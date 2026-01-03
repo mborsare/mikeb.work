@@ -7,7 +7,7 @@
 
   <style>
     html {
-      font-size: 16px;
+      font-size: 14px;
     }
 
     @font-face {
@@ -35,29 +35,41 @@
 
     .container {
       min-width: 20rem;
-      max-width: 31.25rem;
+      max-width: 60rem;
       width: 100%;
       padding: clamp(0.75rem, 2vw, 1.25rem);
       margin: auto 0;
       text-align: center;
       white-space: pre-line;
-      line-height: 1.1;
+      line-height: 1.5;
     }
 
     .list-item {
-      padding: 1rem 0.5rem;
+      padding: 0.5rem 1rem;
     }
 
-    @media (max-width: 31.25rem) {
+    .list-item::after {
+      color: rgb(8, 14, 14);
+      content: "░█░█\A░▄▀▄\A░▀░▀";
+      white-space: pre;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: .4rem;
+      display: inline-block;
+      margin-left: 1rem;
+      vertical-align: middle;
+      line-height: 1;
+    }
+
+    @media (max-width: 60rem) {
       .list-item {
-        padding: 1.25rem;
+        font-size: 1.5rem;
+        text-align: left;
       }
     }
 
     .ascii {
       white-space: pre;
-      line-height: 1;
-      text-align: center;
+      line-height: 1.2;
       font-family: 'Courier New', Courier, monospace;
     }
   </style>
@@ -65,9 +77,9 @@
 
 <body>
   <div class="container">
-    <h1 style="color: #000;">Mike Borsare</h1>
+    <h1 style="color: #000; font-size: 0.375rem;">Mike Borsare</h1>
     <div style="padding:1rem;">
-      <div class="ascii" style="color:yellow; font-size:0.5rem;">
+      <div class="ascii" style="color:rgb(255, 0, 0); font-size:0.4rem;">
       ▄         ▄▄▄▄▄   ▄█   ▄▀     ▄   ▄███▄   ██▄       █▀▄▀█ ▄█ █  █▀ ▄███▄   
   ▀▄   █       █     ▀▄ ██ ▄▀        █  █▀   ▀  █  █      █ █ █ ██ █▄█   █▀   ▀  
     █ ▀      ▄  ▀▀▀▀▄   ██ █ ▀▄  ██   █ ██▄▄    █   █     █ ▄ █ ██ █▀▄   ██▄▄    
@@ -110,20 +122,18 @@
     <div class="list-item">Use accounts for lessons and new rules instead of shame</div>
     <div class="list-item">Obey prime</div>
 
-    <div style="padding:1rem;">
-      <div class="ascii" style="color:blue; font-size:0.625rem;">
-        ██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████ 
-        ▓██░  ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█   ▀ 
-        ▓██░ ██▓▒▓██ ░▄█ ▒▒██▒▓██    ▓██░▒███   
-        ▒██▄█▓▒ ▒▒██▀▀█▄  ░██░▒██    ▒██ ▒▓█  ▄ 
-        ▒██▒ ░  ░░██▓ ▒██▒░██░▒██▒   ░██▒░▒████▒
-        ▒▓▒░ ░  ░░ ▒▓ ░▒▓░░▓  ░ ▒░   ░  ░░░ ▒░ ░
-        ░▒ ░       ░▒ ░ ▒░ ▒ ░░  ░      ░ ░ ░  ░
-        ░░         ░░   ░  ▒ ░░      ░      ░   
-                    ░      ░         ░      ░  ░
-      </div>
+    <div class="ascii" style="color:rgb(149, 255, 20); font-size:0.4rem;">
+    ██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████ 
+    ▓██░  ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█   ▀ 
+    ▓██░ ██▓▒▓██ ░▄█ ▒▒██▒▓██    ▓██░▒███   
+    ▒██▄█▓▒ ▒▒██▀▀█▄  ░██░▒██    ▒██ ▒▓█  ▄ 
+    ▒██▒ ░  ░░██▓ ▒██▒░██░▒██▒   ░██▒░▒████▒
+    ▒▓▒░ ░  ░░ ▒▓ ░▒▓░░▓  ░ ▒░   ░  ░░░ ▒░ ░
+    ░▒ ░       ░▒ ░ ▒░ ▒ ░░  ░      ░ ░ ░  ░
+    ░░         ░░   ░  ▒ ░░      ░      ░   
+                ░      ░         ░      ░  ░
     </div>
-
+    <time datetime="2025-01-03T16:25" style="color: darkslategray;">16:25 Sa 03 JAN</time>
   </div>
 </body>
 </html>
