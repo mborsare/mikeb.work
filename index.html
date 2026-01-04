@@ -86,8 +86,8 @@
       white-space: pre;
       line-height: 1.2;
       font-family: 'Courier New', Courier, monospace;
-      will-change: opacity;
       color: var(--seal);
+      opacity: 0.95;
     }
 
     #clock {
@@ -96,7 +96,7 @@
       font-size: 0.65rem;
       letter-spacing: 0.08em;
       filter: blur(0.25px);
-      opacity: 0.25;
+      opacity: 0.45;
       will-change: opacity;
     }
   </style>
@@ -105,7 +105,6 @@
 <body>
   <div class="container">
     <h1 style="font-size:0.275rem;">Mike Borsare</h1>
-    <time id="clock"></time>
 
     <div style="padding:1rem;">
       <div class="ascii" style="font-size:0.3rem;">
@@ -116,9 +115,7 @@
 █   ▀▄                 ▐  ███  █  █ █ ▀███▀   ███▀         █   ▐   █   ▀███▀   
  ▀                             █   ██                     ▀       ▀            
       </div>
-      <a href="mailto:mjb@mikeb.work" style="color:var(--text); opacity:0.5; text-decoration:none; font-size:0.9rem;">
-        mjb@mikeb.work
-      </a>
+      <time id="clock"></time>
     </div>
 
     <div class="list-item">Forgive yourself. Shame is a chemical event</div>
@@ -163,34 +160,12 @@
 ░░         ░░   ░  ▒ ░░      ░      ░   
             ░      ░         ░      ░  ░
     </div>
-
+    <a href="mailto:mjb@mikeb.work" style="color:var(--text); opacity:0.5; text-decoration:none; font-size:0.9rem;">
+      mjb@mikeb.work
+    </a>
   </div>
 
   <script>
-    // ASCII + clock pulse
-    (() => {
-      const asciis = document.querySelectorAll('.ascii');
-      const clock = document.getElementById('clock');
-      let t = 0;
-
-      function tick() {
-        t += 0.025;
-
-        asciis.forEach((el, i) => {
-          const phase = t + i * 1.5;
-          const pulse = (Math.sin(phase) + 1) / 2;
-          el.style.opacity = 0.15 + pulse * 0.85;
-        });
-
-        const clockPulse = (Math.sin(t) + 1) / 2;
-        clock.style.opacity = 0.18 + clockPulse * 0.22;
-
-        requestAnimationFrame(tick);
-      }
-
-      tick();
-    })();
-
     // Stamp jitter
     (() => {
       const items = document.querySelectorAll('.list-item');
@@ -263,6 +238,21 @@
 
       updateClock();
       setInterval(updateClock, 50);
+    })();
+
+    // Clock pulse (only)
+    (() => {
+      const clock = document.getElementById('clock');
+      let t = 0;
+
+      function tick() {
+        t += 0.03;
+        const pulse = (Math.sin(t) + 1) / 2;
+        clock.style.opacity = 0.35 + pulse * 0.45;
+        requestAnimationFrame(tick);
+      }
+
+      tick();
     })();
   </script>
 </body>
