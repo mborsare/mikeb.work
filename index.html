@@ -161,20 +161,13 @@
       let t = 0;
 
       function tick() {
-        t += 0.035;
+        t += 0.025;
 
         asciis.forEach((el, i) => {
-          const phase = t + i * 0.9;
+          const phase = t + i * 1.5;
           const pulse = (Math.sin(phase) + 1) / 2;
 
-          el.style.opacity = 0.6 + pulse * 0.4;
-
-          const glow = 6 + pulse * 14;
-          el.style.textShadow = `
-            0 0 ${glow}px var(--seal),
-            0 0 ${glow * 1.8}px var(--seal),
-            0 0 ${glow * 3}px var(--seal-soft)
-          `;
+          el.style.opacity = 0.15 + pulse * 0.85;
         });
 
         requestAnimationFrame(tick);
@@ -210,10 +203,9 @@
 
     (() => {
       const palettes = [
+        { bg:'#000000', text:'#ffffff', stamp:'#5b5bff', seal:'#00ff00', soft:'rgba(0,255,0,0.4)' },
         { bg:'#0000cc', text:'#ffffff', stamp:'#ffff66', seal:'#00ff00', soft:'rgba(0,255,0,0.4)' },
-        { bg:'#cc0000', text:'#ffffff', stamp:'#66ffff', seal:'#ffff66', soft:'rgba(255,255,102,0.4)' },
-        { bg:'#00cc00', text:'#000000', stamp:'#cc00cc', seal:'#0000cc', soft:'rgba(0,0,204,0.4)' },
-        { bg:'#cc00cc', text:'#ffffff', stamp:'#66ff66', seal:'#66ffff', soft:'rgba(102,255,255,0.4)' },
+        { bg:'#b8a060', text:'#000000', stamp:'#6b5d38', seal:'#000000', soft:'rgba(255,255,255,0.4)' },
         { bg:'#000000', text:'#00ff00', stamp:'#ff6666', seal:'#00ffff', soft:'rgba(0,255,255,0.4)' }
       ];
 
