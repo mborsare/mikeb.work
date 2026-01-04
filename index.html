@@ -58,7 +58,9 @@
       position: relative;
       letter-spacing: 0.25rem;
       line-height: 1;
-      transform: rotate(-10deg);
+      transform:
+        translate(var(--mjb-x, -2px), var(--mjb-y, -2px))
+        rotate(var(--mjb-tilt, -7deg));
     }
 
     @media (max-width: 60rem) {
@@ -144,19 +146,16 @@
     (() => {
       const asciis = document.querySelectorAll('.ascii');
       let t = 0;
-  
+
       function tick() {
         t += 0.035;
-  
+
         asciis.forEach((el, i) => {
           const phase = t + i * 0.9;
           const pulse = (Math.sin(phase) + 1) / 2;
-  
-          // opacity breath
-          const opacity = 0.6 + pulse * 0.4;
-          el.style.opacity = opacity;
-  
-          // neon glow (subtle, layered)
+
+          el.style.opacity = 0.6 + pulse * 0.4;
+
           const glow = 6 + pulse * 14;
           el.style.textShadow = `
             0 0 ${glow}px currentColor,
@@ -164,13 +163,54 @@
             0 0 ${glow * 3}px rgba(0,255,120,0.25)
           `;
         });
-  
+
         requestAnimationFrame(tick);
       }
-  
+
       tick();
     })();
+
+    (() => {
+      const items = document.querySelectorAll('.list-item');
+
+      function disciplined() {
+        const e = Math.pow(Math.random(), 3);
+        return {
+          x: -3 - e * 8,
+          y: -3 - e * 6,
+          tilt: -4 - e * 6
+        };
+      }
+
+      function sloppy() {
+        return {
+          x: -10 + Math.random() * 16,
+          y: -10 + Math.random() * 16,
+          tilt: -18 + Math.random() * 36
+        };
+      }
+
+      function unhinged() {
+        return {
+          x: (Math.random() * 70) - 35,
+          y: (Math.random() * 70) - 35,
+          tilt: (Math.random() * 80) - 40
+        };
+      }
+
+      items.forEach(item => {
+        const r = Math.random();
+        const stamp =
+          r < 0.9  ? disciplined() :
+          r < 0.98 ? sloppy() :
+                     unhinged();
+
+        item.style.setProperty('--mjb-x', `${stamp.x}px`);
+        item.style.setProperty('--mjb-y', `${stamp.y}px`);
+        item.style.setProperty('--mjb-tilt', `${stamp.tilt}deg`);
+      });
+    })();
   </script>
-  
+
 </body>
 </html>
