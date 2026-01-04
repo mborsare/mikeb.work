@@ -89,12 +89,23 @@
       will-change: opacity;
       color: var(--seal);
     }
+
+    #clock {
+      color: var(--seal);
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.08em;
+      filter: blur(0.25px);
+      opacity: 0.25;
+      will-change: opacity;
+    }
   </style>
 </head>
 
 <body>
   <div class="container">
     <h1 style="font-size:0.275rem;">Mike Borsare</h1>
+    <time id="clock"></time>
 
     <div style="padding:1rem;">
       <div class="ascii" style="font-size:0.3rem;">
@@ -105,10 +116,10 @@
 █   ▀▄                 ▐  ███  █  █ █ ▀███▀   ███▀         █   ▐   █   ▀███▀   
  ▀                             █   ██                     ▀       ▀            
       </div>
-      <a href="mailto:mjb@mikeb.work" style="color:var(--text); opacity:0.5; text-decoration:none; font-size:0.9rem;">mjb@mikeb.work</a>
-
+      <a href="mailto:mjb@mikeb.work" style="color:var(--text); opacity:0.5; text-decoration:none; font-size:0.9rem;">
+        mjb@mikeb.work
+      </a>
     </div>
-
 
     <div class="list-item">Forgive yourself. Shame is a chemical event</div>
     <div class="list-item">Showing up everyday is honorable</div>
@@ -153,15 +164,13 @@
             ░      ░         ░      ░  ░
     </div>
 
-
-    <time datetime="2025-01-03T16:25" style="color:var(--text); opacity:0.7;">
-      16:25 Sa 03 JAN
-    </time>
   </div>
 
   <script>
+    // ASCII + clock pulse
     (() => {
       const asciis = document.querySelectorAll('.ascii');
+      const clock = document.getElementById('clock');
       let t = 0;
 
       function tick() {
@@ -170,9 +179,11 @@
         asciis.forEach((el, i) => {
           const phase = t + i * 1.5;
           const pulse = (Math.sin(phase) + 1) / 2;
-
           el.style.opacity = 0.15 + pulse * 0.85;
         });
+
+        const clockPulse = (Math.sin(t) + 1) / 2;
+        clock.style.opacity = 0.18 + clockPulse * 0.22;
 
         requestAnimationFrame(tick);
       }
@@ -180,6 +191,7 @@
       tick();
     })();
 
+    // Stamp jitter
     (() => {
       const items = document.querySelectorAll('.list-item');
 
@@ -205,6 +217,7 @@
       });
     })();
 
+    // Palette roulette
     (() => {
       const palettes = [
         { bg:'#000000', text:'#ffffff', stamp:'#5b5bff', seal:'#00ff00', soft:'rgba(0,255,0,0.4)' },
@@ -214,7 +227,9 @@
       ];
 
       const rare = Math.random() < 0.15;
-      const p = rare ? palettes[palettes.length - 1] : palettes[Math.floor(Math.random() * (palettes.length - 1))];
+      const p = rare
+        ? palettes[palettes.length - 1]
+        : palettes[Math.floor(Math.random() * (palettes.length - 1))];
 
       const root = document.documentElement;
       root.style.setProperty('--bg', p.bg);
@@ -223,7 +238,32 @@
       root.style.setProperty('--seal', p.seal);
       root.style.setProperty('--seal-soft', p.soft);
     })();
-  </script>
 
+    // Clock text
+    (() => {
+      const clock = document.getElementById('clock');
+
+      function updateClock() {
+        const now = new Date();
+
+        const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+        const day = days[now.getDay()];
+        const month = months[now.getMonth()];
+        const date = now.getDate();
+
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        const millis = String(now.getMilliseconds()).padStart(3, '0');
+
+        clock.textContent = `${day} ${month} ${date} ${hours}:${minutes}:${seconds}:${millis}`;
+      }
+
+      updateClock();
+      setInterval(updateClock, 50);
+    })();
+  </script>
 </body>
 </html>
