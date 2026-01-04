@@ -6,6 +6,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
+    :root {
+      --bg: #000000;
+      --text: #c0c0c0;
+      --stamp: #0000aa;
+      --seal: #00aa00;
+      --seal-soft: rgba(0,170,0,0.25);
+    }
+
     html {
       font-size: 14px;
     }
@@ -26,8 +34,8 @@
       align-items: center;
       overflow-y: auto;
 
-      background: #000;
-      color: #fff;
+      background: var(--bg);
+      color: var(--text);
       font-family: 'ComicMono', monospace;
       font-size: 1rem;
     }
@@ -43,12 +51,16 @@
       line-height: 1.5;
     }
 
+    h1 {
+      color: var(--bg);
+    }
+
     .list-item {
       padding: 0.5rem 1rem;
     }
 
     .list-item::after {
-      color: rgb(0, 58, 255);
+      color: var(--stamp);
       content: "MJB";
       white-space: pre;
       font-size: 1rem;
@@ -75,16 +87,17 @@
       line-height: 1.2;
       font-family: 'Courier New', Courier, monospace;
       will-change: opacity;
+      color: var(--seal);
     }
   </style>
 </head>
 
 <body>
   <div class="container">
-    <h1 style="color:#000; font-size:0.275rem;">Mike Borsare</h1>
+    <h1 style="font-size:0.275rem;">Mike Borsare</h1>
 
     <div style="padding:1rem;">
-      <div class="ascii" style="color:rgb(43,255,0); font-size:0.3rem;">
+      <div class="ascii" style="font-size:0.3rem;">
 ▄             ▄▄▄▄▄   ▄█   ▄▀     ▄   ▄███▄   ██▄       █▀▄▀█ ▄█ █  █▀ ▄███▄   
 ▀▄   █       █     ▀▄ ██ ▄▀        █  █▀   ▀  █  █      █ █ █ ██ █▄█   █▀   ▀  
   █ ▀      ▄  ▀▀▀▀▄   ██ █ ▀▄  ██   █ ██▄▄    █   █     █ ▄ █ ██ █▀▄   ██▄▄    
@@ -125,7 +138,7 @@
     <div class="list-item">Use accounts for lessons and new rules instead of shame</div>
     <div class="list-item">Obey prime</div>
 
-    <div class="ascii" style="color:rgb(149,255,20); font-size:0.4rem;">
+    <div class="ascii" style="font-size:0.4rem;">
 ██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████ 
 ▓██░  ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█   ▀ 
 ▓██░ ██▓▒▓██ ░▄█ ▒▒██▒▓██    ▓██░▒███   
@@ -137,7 +150,7 @@
             ░      ░         ░      ░  ░
     </div>
 
-    <time datetime="2025-01-03T16:25" style="color:darkslategray;">
+    <time datetime="2025-01-03T16:25" style="color:var(--text); opacity:0.7;">
       16:25 Sa 03 JAN
     </time>
   </div>
@@ -158,9 +171,9 @@
 
           const glow = 6 + pulse * 14;
           el.style.textShadow = `
-            0 0 ${glow}px currentColor,
-            0 0 ${glow * 1.8}px currentColor,
-            0 0 ${glow * 3}px rgba(0,255,120,0.25)
+            0 0 ${glow}px var(--seal),
+            0 0 ${glow * 1.8}px var(--seal),
+            0 0 ${glow * 3}px var(--seal-soft)
           `;
         });
 
@@ -175,40 +188,44 @@
 
       function disciplined() {
         const e = Math.pow(Math.random(), 3);
-        return {
-          x: -3 - e * 8,
-          y: -3 - e * 6,
-          tilt: -4 - e * 6
-        };
+        return { x: -3 - e * 8, y: -3 - e * 6, tilt: -4 - e * 6 };
       }
 
       function sloppy() {
-        return {
-          x: -10 + Math.random() * 16,
-          y: -10 + Math.random() * 16,
-          tilt: -18 + Math.random() * 36
-        };
+        return { x: -10 + Math.random() * 16, y: -10 + Math.random() * 16, tilt: -18 + Math.random() * 36 };
       }
 
       function unhinged() {
-        return {
-          x: (Math.random() * 70) - 35,
-          y: (Math.random() * 70) - 35,
-          tilt: (Math.random() * 80) - 40
-        };
+        return { x: (Math.random() * 70) - 35, y: (Math.random() * 70) - 35, tilt: (Math.random() * 80) - 40 };
       }
 
       items.forEach(item => {
         const r = Math.random();
-        const stamp =
-          r < 0.9  ? disciplined() :
-          r < 0.98 ? sloppy() :
-                     unhinged();
-
-        item.style.setProperty('--mjb-x', `${stamp.x}px`);
-        item.style.setProperty('--mjb-y', `${stamp.y}px`);
-        item.style.setProperty('--mjb-tilt', `${stamp.tilt}deg`);
+        const s = r < 0.9 ? disciplined() : r < 0.98 ? sloppy() : unhinged();
+        item.style.setProperty('--mjb-x', `${s.x}px`);
+        item.style.setProperty('--mjb-y', `${s.y}px`);
+        item.style.setProperty('--mjb-tilt', `${s.tilt}deg`);
       });
+    })();
+
+    (() => {
+      const palettes = [
+        { bg:'#0000cc', text:'#ffffff', stamp:'#ffff66', seal:'#00ff00', soft:'rgba(0,255,0,0.4)' },
+        { bg:'#cc0000', text:'#ffffff', stamp:'#66ffff', seal:'#ffff66', soft:'rgba(255,255,102,0.4)' },
+        { bg:'#00cc00', text:'#000000', stamp:'#cc00cc', seal:'#0000cc', soft:'rgba(0,0,204,0.4)' },
+        { bg:'#cc00cc', text:'#ffffff', stamp:'#66ff66', seal:'#66ffff', soft:'rgba(102,255,255,0.4)' },
+        { bg:'#000000', text:'#00ff00', stamp:'#ff6666', seal:'#00ffff', soft:'rgba(0,255,255,0.4)' }
+      ];
+
+      const rare = Math.random() < 0.15;
+      const p = rare ? palettes[palettes.length - 1] : palettes[Math.floor(Math.random() * (palettes.length - 1))];
+
+      const root = document.documentElement;
+      root.style.setProperty('--bg', p.bg);
+      root.style.setProperty('--text', p.text);
+      root.style.setProperty('--stamp', p.stamp);
+      root.style.setProperty('--seal', p.seal);
+      root.style.setProperty('--seal-soft', p.soft);
     })();
   </script>
 
