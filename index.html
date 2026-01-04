@@ -90,14 +90,22 @@
       opacity: 0.95;
     }
 
+    /* stamped objects (mail + clock) */
+    .mail-stamp,
     #clock {
-      color: var(--seal);
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 0.65rem;
-      letter-spacing: 0.08em;
-      filter: blur(0.25px);
-      opacity: 0.45;
-      will-change: opacity;
+      color: var(--stamp);
+      text-decoration: none;
+      display: inline-block;
+      position: relative; /* critical: transforms won't shift layout origin */
+    }
+
+    .mail-stamp {
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    #clock {
+      font-size: 0.85rem;
     }
   </style>
 </head>
@@ -107,7 +115,11 @@
     <h1 style="font-size:0.275rem;">Mike Borsare</h1>
 
     <div style="padding:1rem;">
-      <div class="ascii" style="font-size:0.3rem;">
+      <a href="mailto:mjb@mikeb.work" class="mail-stamp">
+        mjb@mikeb.work
+      </a>
+
+      <div class="ascii" style="font-size:0.5rem;">
 ▄             ▄▄▄▄▄   ▄█   ▄▀     ▄   ▄███▄   ██▄       █▀▄▀█ ▄█ █  █▀ ▄███▄   
 ▀▄   █       █     ▀▄ ██ ▄▀        █  █▀   ▀  █  █      █ █ █ ██ █▄█   █▀   ▀  
   █ ▀      ▄  ▀▀▀▀▄   ██ █ ▀▄  ██   █ ██▄▄    █   █     █ ▄ █ ██ █▀▄   ██▄▄    
@@ -115,6 +127,7 @@
 █   ▀▄                 ▐  ███  █  █ █ ▀███▀   ███▀         █   ▐   █   ▀███▀   
  ▀                             █   ██                     ▀       ▀            
       </div>
+
       <time id="clock"></time>
     </div>
 
@@ -160,9 +173,7 @@
 ░░         ░░   ░  ▒ ░░      ░      ░   
             ░      ░         ░      ░  ░
     </div>
-    <a href="mailto:mjb@mikeb.work" style="color:var(--text); opacity:0.5; text-decoration:none; font-size:0.9rem;">
-      mjb@mikeb.work
-    </a>
+
   </div>
 
   <script>
@@ -183,13 +194,33 @@
         return { x: (Math.random() * 70) - 35, y: (Math.random() * 70) - 35, tilt: (Math.random() * 80) - 40 };
       }
 
-      items.forEach(item => {
+      function pickStamp() {
         const r = Math.random();
-        const s = r < 0.9 ? disciplined() : r < 0.98 ? sloppy() : unhinged();
+        return r < 0.9 ? disciplined() : r < 0.98 ? sloppy() : unhinged();
+      }
+
+      // list-item ::after stamps (CSS vars)
+      items.forEach(item => {
+        const s = pickStamp();
         item.style.setProperty('--mjb-x', `${s.x}px`);
         item.style.setProperty('--mjb-y', `${s.y}px`);
         item.style.setProperty('--mjb-tilt', `${s.tilt}deg`);
       });
+
+      // mail + clock are the stamp objects (programmatic, no layout break)
+      const mail = document.querySelector('.mail-stamp');
+      const clock = document.getElementById('clock');
+
+      if (mail) {
+        const s = pickStamp();
+        mail.style.transform = `translate(${s.x}px, ${s.y}px) rotate(${s.tilt}deg)`;
+        mail.style.opacity = 0.42 + Math.random() * 0.22;
+      }
+
+      if (clock) {
+        const s = pickStamp();
+        clock.style.transform = `translate(${s.x}px, ${s.y}px) rotate(${s.tilt}deg)`;
+      }
     })();
 
     // Palette roulette
@@ -240,7 +271,7 @@
       setInterval(updateClock, 50);
     })();
 
-    // Clock pulse (only)
+    // Clock pulse (only) — a little stronger so it doesn’t look dead vs the MJB stamps
     (() => {
       const clock = document.getElementById('clock');
       let t = 0;
@@ -248,7 +279,7 @@
       function tick() {
         t += 0.03;
         const pulse = (Math.sin(t) + 1) / 2;
-        clock.style.opacity = 0.35 + pulse * 0.45;
+        clock.style.opacity = 0.42 + pulse * 0.38;
         requestAnimationFrame(tick);
       }
 
