@@ -12,8 +12,7 @@
 
     @font-face {
       font-family: 'ComicMono';
-      src:
-        url('/fonts/ComicMono-Regular.woff') format('woff');
+      src: url('/fonts/ComicMono-Regular.woff') format('woff');
       font-weight: 400;
       font-style: normal;
       font-display: swap;
@@ -49,19 +48,18 @@
     }
 
     .list-item::after {
-        color: rgb(0, 58, 255);
-        content:"MJB";
-        white-space: pre;
-        font-size: 1rem;
-        margin-left: 1rem;
-        vertical-align: middle;
-        display: inline-block;
-        position: relative;
-        letter-spacing: .25rem;
-        line-height: 1;
-        transform: rotate(-10deg);
+      color: rgb(0, 58, 255);
+      content: "MJB";
+      white-space: pre;
+      font-size: 1rem;
+      margin-left: 1rem;
+      vertical-align: middle;
+      display: inline-block;
+      position: relative;
+      letter-spacing: 0.25rem;
+      line-height: 1;
+      transform: rotate(-10deg);
     }
-
 
     @media (max-width: 60rem) {
       .list-item {
@@ -74,21 +72,23 @@
       white-space: pre;
       line-height: 1.2;
       font-family: 'Courier New', Courier, monospace;
+      will-change: opacity;
     }
   </style>
 </head>
 
 <body>
   <div class="container">
-    <h1 style="color: #000; font-size: 0.275rem;">Mike Borsare</h1>
+    <h1 style="color:#000; font-size:0.275rem;">Mike Borsare</h1>
+
     <div style="padding:1rem;">
-      <div class="ascii" style="color:rgb(43, 255, 0); font-size:0.3rem;">
-      ▄         ▄▄▄▄▄   ▄█   ▄▀     ▄   ▄███▄   ██▄       █▀▄▀█ ▄█ █  █▀ ▄███▄   
-  ▀▄   █       █     ▀▄ ██ ▄▀        █  █▀   ▀  █  █      █ █ █ ██ █▄█   █▀   ▀  
-    █ ▀      ▄  ▀▀▀▀▄   ██ █ ▀▄  ██   █ ██▄▄    █   █     █ ▄ █ ██ █▀▄   ██▄▄    
-   ▄ █        ▀▄▄▄▄▀    ▐█ █   █ █ █  █ █▄   ▄▀ █  █      █   █ ▐█ █  █  █▄   ▄▀ 
-  █   ▀▄                 ▐  ███  █  █ █ ▀███▀   ███▀         █   ▐   █   ▀███▀   
-   ▀                             █   ██                     ▀       ▀            
+      <div class="ascii" style="color:rgb(43,255,0); font-size:0.3rem;">
+▄         ▄▄▄▄▄   ▄█   ▄▀     ▄   ▄███▄   ██▄       █▀▄▀█ ▄█ █  █▀ ▄███▄   
+▀▄   █       █     ▀▄ ██ ▄▀        █  █▀   ▀  █  █      █ █ █ ██ █▄█   █▀   ▀  
+  █ ▀      ▄  ▀▀▀▀▄   ██ █ ▀▄  ██   █ ██▄▄    █   █     █ ▄ █ ██ █▀▄   ██▄▄    
+ ▄ █        ▀▄▄▄▄▀    ▐█ █   █ █ █  █ █▄   ▄▀ █  █      █   █ ▐█ █  █  █▄   ▄▀ 
+█   ▀▄                 ▐  ███  █  █ █ ▀███▀   ███▀         █   ▐   █   ▀███▀   
+ ▀                             █   ██                     ▀       ▀            
       </div>
     </div>
 
@@ -108,9 +108,7 @@
     <div class="list-item">Press when green instead of red to manage risk</div>
     <div class="list-item">Globex owns the night. Make instead of trade: ops, art, design</div>
     <div class="list-item">Globex wants to bargain. Deals with self cost time, money and emotion</div>
-    <div class="list-item">
-      Hero trades are signal. If both sides feel dumb stand down. Sharks are swapping lots.
-    </div>
+    <div class="list-item">Hero trades are signal. If both sides feel dumb stand down. Sharks are swapping lots.</div>
     <div class="list-item">Attack at edges and breathe</div>
     <div class="list-item">Treat every score (PnL, MAE, ...) as data for improvement</div>
     <div class="list-item">Draw a clean sheet and imagine accepting it</div>
@@ -125,18 +123,54 @@
     <div class="list-item">Use accounts for lessons and new rules instead of shame</div>
     <div class="list-item">Obey prime</div>
 
-    <div class="ascii" style="color:rgb(149, 255, 20); font-size:0.4rem;">
-    ██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████ 
-    ▓██░  ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█   ▀ 
-    ▓██░ ██▓▒▓██ ░▄█ ▒▒██▒▓██    ▓██░▒███   
-    ▒██▄█▓▒ ▒▒██▀▀█▄  ░██░▒██    ▒██ ▒▓█  ▄ 
-    ▒██▒ ░  ░░██▓ ▒██▒░██░▒██▒   ░██▒░▒████▒
-    ▒▓▒░ ░  ░░ ▒▓ ░▒▓░░▓  ░ ▒░   ░  ░░░ ▒░ ░
-    ░▒ ░       ░▒ ░ ▒░ ▒ ░░  ░      ░ ░ ░  ░
-    ░░         ░░   ░  ▒ ░░      ░      ░   
-                ░      ░         ░      ░  ░
+    <div class="ascii" style="color:rgb(149,255,20); font-size:0.4rem;">
+██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████ 
+▓██░  ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█   ▀ 
+▓██░ ██▓▒▓██ ░▄█ ▒▒██▒▓██    ▓██░▒███   
+▒██▄█▓▒ ▒▒██▀▀█▄  ░██░▒██    ▒██ ▒▓█  ▄ 
+▒██▒ ░  ░░██▓ ▒██▒░██░▒██▒   ░██▒░▒████▒
+▒▓▒░ ░  ░░ ▒▓ ░▒▓░░▓  ░ ▒░   ░  ░░░ ▒░ ░
+░▒ ░       ░▒ ░ ▒░ ▒ ░░  ░      ░ ░ ░  ░
+░░         ░░   ░  ▒ ░░      ░      ░   
+            ░      ░         ░      ░  ░
     </div>
-    <time datetime="2025-01-03T16:25" style="color: darkslategray;">16:25 Sa 03 JAN</time>
+
+    <time datetime="2025-01-03T16:25" style="color:darkslategray;">
+      16:25 Sa 03 JAN
+    </time>
   </div>
+
+  <script>
+    (() => {
+      const asciis = document.querySelectorAll('.ascii');
+      let t = 0;
+  
+      function tick() {
+        t += 0.035;
+  
+        asciis.forEach((el, i) => {
+          const phase = t + i * 0.9;
+          const pulse = (Math.sin(phase) + 1) / 2;
+  
+          // opacity breath
+          const opacity = 0.6 + pulse * 0.4;
+          el.style.opacity = opacity;
+  
+          // neon glow (subtle, layered)
+          const glow = 6 + pulse * 14;
+          el.style.textShadow = `
+            0 0 ${glow}px currentColor,
+            0 0 ${glow * 1.8}px currentColor,
+            0 0 ${glow * 3}px rgba(0,255,120,0.25)
+          `;
+        });
+  
+        requestAnimationFrame(tick);
+      }
+  
+      tick();
+    })();
+  </script>
+  
 </body>
 </html>
