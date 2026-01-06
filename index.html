@@ -9,8 +9,16 @@
     :root {
       --bg: #000000;
       --text: #c0c0c0;
-      --stamp: #0000aa;
+      --stamp: #888888;
       --seal: #eaffea;
+
+      /* derived button colors */
+      --btn-fill: color-mix(
+        in hsl,
+        var(--bg),
+        var(--seal) 20%
+      );
+      --btn-text: #ffffff;
     }
 
     html {
@@ -32,7 +40,6 @@
       justify-content: center;
       align-items: center;
       overflow-y: auto;
-
       background: var(--bg);
       color: var(--text);
       font-family: 'ComicMono', monospace;
@@ -97,7 +104,7 @@
       display: inline-block;
     }
 
-    /* ---- MOBILE TAP FIX (local, disciplined) ---- */
+    /* ---- MOBILE TAP FIX ---- */
     #palette-btn {
       touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
@@ -127,15 +134,16 @@
       <button
         id="palette-btn"
         style="
-          background:0;
-          border:1px solid var(--seal);
-          border-radius:.5em;
-          white-space:normal;
-          font-size:1em;
-          padding:.5em 1em;
-          margin:0 1em;
+          background: var(--btn-fill);
+          color: var(--btn-text);
+          border: 2px solid var(--seal);
+          border-radius: 1em;
+          white-space: normal;
+          font-size: 1em;
+          padding: 1.5em;
+          margin: 0 1em;
           font-family:'ComicMono', monospace;
-          cursor:pointer;
+          cursor: pointer;
         "
       >
         Randomize colors
@@ -188,8 +196,8 @@
   </div>
 
   <script>
-    // ---- MJB stamp jitter ----
-    (() => {
+    // ---- Stamp jitter ----
+    function randomizeStamps() {
       const items = document.querySelectorAll('.list-item');
 
       function disciplined() {
@@ -210,42 +218,52 @@
         item.style.setProperty('--mjb-y', `${s.y}px`);
         item.style.setProperty('--mjb-tilt', `${s.tilt}deg`);
       });
-    })();
+    }
 
-    // ---- Random palette generator ----
+    randomizeStamps();
+
+    // ---- Random palette generator (with wild mode) ----
     function applyRandomPalette() {
       const root = document.documentElement;
       const r = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
       const hsl = (h, s, l) => `hsl(${h}, ${s}%, ${l}%)`;
 
+      const wild = Math.random() < 0.25;
+
       const hue = r(0, 360);
       const dark = Math.random() < 0.6;
       const bgLight = dark ? r(3, 14) : r(82, 94);
 
-      root.style.setProperty('--bg', hsl(hue, r(5, 25), bgLight));
-      root.style.setProperty('--text', hsl(hue, r(5, 20), dark ? r(88, 96) : r(4, 12)));
-      root.style.setProperty('--stamp', hsl((hue + r(90, 210)) % 360, r(70, 100), r(40, 60)));
-      root.style.setProperty('--seal',
-        dark
-          ? hsl(r(90, 140), r(30, 50), r(85, 92))
-          : hsl(r(90, 140), r(25, 45), r(20, 30))
+      const bgSat = wild ? r(30, 70) : r(5, 25);
+      const textSat = wild ? r(30, 60) : r(5, 20);
+
+      root.style.setProperty('--bg', hsl(hue, bgSat, bgLight));
+      root.style.setProperty('--text', hsl(hue, textSat, dark ? r(88, 96) : r(4, 12)));
+
+      // softer, belonging stamp
+      root.style.setProperty(
+        '--stamp',
+        bgLight < 50
+          ? hsl((hue + 180) % 360, 30, 70)
+          : hsl((hue + 180) % 360, 30, 30)
       );
 
-      const uiColor = bgLight < 50
-        ? 'hsl(95, 90%, 60%)'
-        : 'hsl(95, 80%, 20%)';
+      const sealHue = wild ? r(0, 360) : r(90, 140);
+      root.style.setProperty('--seal',
+        dark
+          ? hsl(sealHue, wild ? r(50, 90) : r(30, 50), r(85, 92))
+          : hsl(sealHue, wild ? r(40, 80) : r(25, 45), r(20, 30))
+      );
 
-      const btn = document.getElementById('palette-btn');
-      const score = document.getElementById('palette-score');
-
-      btn.style.color = uiColor;
-      btn.style.borderColor = uiColor;
-      score.style.color = uiColor;
+      root.style.setProperty(
+        '--btn-text',
+        bgLight < 50 ? '#ffffff' : '#000000'
+      );
     }
 
     applyRandomPalette();
 
-    // ---- Palette button + score (mobile-safe) ----
+    // ---- Palette button + score ----
     (() => {
       const btn = document.getElementById('palette-btn');
       const scoreEl = document.getElementById('palette-score');
@@ -261,8 +279,9 @@
 
       btn.addEventListener('click', e => {
         e.preventDefault();
-
         applyRandomPalette();
+        randomizeStamps();
+
         score++;
         scoreEl.textContent = score;
 
