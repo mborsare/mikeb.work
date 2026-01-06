@@ -91,7 +91,6 @@
 
     #clock {
       color: var(--seal);
-      font-size: 0.85rem;
       opacity: 0.45;
       filter: blur(0.25px);
       will-change: opacity;
@@ -107,8 +106,9 @@
     <time id="clock"></time>
 
 
-    <div style="padding:1rem;">
+    
 
+    <div style="padding:1rem;">
       <div class="ascii" style="font-size:0.5rem;">
 ▄             ▄▄▄▄▄   ▄█   ▄▀     ▄   ▄███▄   ██▄       █▀▄▀█ ▄█ █  █▀ ▄███▄   
 ▀▄   █       █     ▀▄ ██ ▄▀        █  █▀   ▀  █  █      █ █ █ ██ █▄█   █▀   ▀  
@@ -118,10 +118,15 @@
  ▀                             █   ██                     ▀       ▀            
       </div>
       <a href="mailto:mb@mikeb.work" style="color: var(--seal);">mb@mikeb.work</a>
-
     </div>
-
-    <!-- list items unchanged -->
+    
+    <div style="display: flex; justify-content: center; align-items: center;">
+      <button id="palette-btn"
+              style="background: none; font-size: 1em; font-family: 'ComicMono', monospace; border:0; line-height: 0; text-decoration: underline; cursor: pointer;">
+       Randomize colors 
+      </button>
+      <div><span id="palette-score">0</span></div>
+    </div>
     <div class="list-item">Forgive yourself. Shame is a chemical event</div>
     <div class="list-item">Showing up everyday is honorable</div>
     <div class="list-item">Draw last night's bedtime</div>
@@ -191,30 +196,61 @@
       });
     })();
 
-    // Palette roulette (bg/text/stamp only)
-    (() => {
-      const palettes = [
-        { bg:'#000000', text:'#ffffff', stamp:'#5b5bff' },
-        { bg:'#0000cc', text:'#ffffff', stamp:'#ffff66' },
-        { bg:'#b8a060', text:'#000000', stamp:'#6b5d38' },
-        { bg:'#000000', text:'#00ff00', stamp:'#ff6666' }
-      ];
-
-      const p = palettes[Math.floor(Math.random() * palettes.length)];
+    // Random palette generator + AAA UI accent
+    function applyRandomPalette() {
       const root = document.documentElement;
+      const r = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+      const hsl = (h, s, l) => `hsl(${h}, ${s}%, ${l}%)`;
 
-      root.style.setProperty('--bg', p.bg);
-      root.style.setProperty('--text', p.text);
-      root.style.setProperty('--stamp', p.stamp);
+      const hue = r(0, 360);
+      const dark = Math.random() < 0.6;
 
-      // AAA-safe seal selection
-      const rgb = p.bg.match(/\w\w/g).map(x => parseInt(x, 16));
-      const luminance = (0.2126*rgb[0] + 0.7152*rgb[1] + 0.0722*rgb[2]) / 255;
+      const bgLight = dark ? r(3,14) : r(82,94);
 
-      root.style.setProperty(
-        '--seal',
-        luminance < 0.5 ? '#eaffea' : '#0b2b0b'
+      root.style.setProperty('--bg', hsl(hue, r(5,25), bgLight));
+      root.style.setProperty('--text', hsl(hue, r(5,20), dark ? r(88,96) : r(4,12)));
+      root.style.setProperty('--stamp', hsl((hue + r(90,210)) % 360, r(70,100), r(40,60)));
+      root.style.setProperty('--seal',
+        dark
+          ? hsl(r(90,140), r(30,50), r(85,92))
+          : hsl(r(90,140), r(25,45), r(20,30))
       );
+
+      const uiColor = bgLight < 50
+        ? 'hsl(95, 90%, 60%)'
+        : 'hsl(95, 80%, 20%)';
+
+      const btn = document.getElementById('palette-btn');
+      const score = document.getElementById('palette-score');
+
+      if (btn && score) {
+        btn.style.color = uiColor;
+        btn.style.borderColor = uiColor;
+        score.style.color = uiColor;
+      }
+    }
+
+    applyRandomPalette();
+
+    // Palette button + score
+    (() => {
+      const btn = document.getElementById('palette-btn');
+      const scoreEl = document.getElementById('palette-score');
+      let score = 0;
+      let timer;
+
+      btn.addEventListener('click', () => {
+        applyRandomPalette();
+
+        score++;
+        scoreEl.textContent = score;
+
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+          score = 0;
+          scoreEl.textContent = 0;
+        }, 3000);
+      });
     })();
 
     // Clock text + pulse
