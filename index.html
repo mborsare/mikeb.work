@@ -114,10 +114,33 @@
     button:active {
       scale: 0.9;
     }
+
+    #toast {
+      position: fixed;
+      top: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100px);
+      background: var(--seal);
+      color: var(--bg);
+      padding: 1rem 2rem;
+      border-radius: 0.5rem;
+      font-size: 1.5rem;
+      font-weight: bold;
+      opacity: 0;
+      transition: all 0.3s ease;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    #toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
   </style>
 </head>
 
 <body>
+  <div id="toast"></div>
   <div class="container">
     <h1 style="font-size:0.275rem;">Mike Borsare</h1>
     <time id="clock"></time>
@@ -274,9 +297,18 @@
     (() => {
       const btn = document.getElementById('palette-btn');
       const scoreEl = document.getElementById('palette-score');
+      const toast = document.getElementById('toast');
       let score = 0;
       let timer;
       let lastTap = 0;
+
+      function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add('show');
+        setTimeout(() => {
+          toast.classList.remove('show');
+        }, 2000);
+      }
 
       btn.addEventListener('touchend', e => {
         const now = Date.now();
@@ -291,6 +323,29 @@
 
         score++;
         scoreEl.textContent = score;
+
+        // Check milestones
+        if (score === 25) {
+          showToast('Great job!');
+        } else if (score === 50) {
+          showToast('Keep going!');
+        } else if (score === 75) {
+          showToast("You're on fire!");
+        } else if (score === 100) {
+          showToast('Boomshakalaka');
+          btn.disabled = true;
+          btn.style.opacity = '0.5';
+          btn.style.cursor = 'not-allowed';
+          
+          setTimeout(() => {
+            score = 0;
+            scoreEl.textContent = 0;
+            btn.disabled = false;
+            btn.style.opacity = '1';
+            btn.style.cursor = 'pointer';
+          }, 3000);
+          return;
+        }
 
         clearTimeout(timer);
         timer = setTimeout(() => {
