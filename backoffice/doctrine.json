@@ -2,9 +2,9 @@
     "doctrine": [
       { "id": 0, "text": "Forgive yourself. Shame is chemical" },
       { "id": 1, "text": "Show up everyday (it's honorable)" },
-      { "id": 2, "text": "Note last night’s bedtime" },
-      { "id": 3, "text": "Read yesterday’s journal" },
-      { "id": 4, "text": "Review yesterday’s trades" },
+      { "id": 2, "text": "Note last night's bedtime" },
+      { "id": 3, "text": "Read yesterday's journal" },
+      { "id": 4, "text": "Review yesterday's trades" },
       { "id": 5, "text": "The now in Motivewave chooses where to engage" },
       { "id": 6, "text": "The now in Bookmap chooses where to execute" },
       { "id": 7, "text": "The regime and tape choose the target type" },
@@ -25,7 +25,7 @@
       { "id": 22, "text": "PnL is execution points. 1EXP = 1USD" },
       { "id": 23, "text": "Draw a clean sheet and accept it" },
       { "id": 24, "text": "Draw a red sheet and accept it" },
-      { "id": 25, "text": "Draws days together. It’s a campaign" },
+      { "id": 25, "text": "Draws days together. It's a campaign" },
       { "id": 26, "text": "Trust yourself. Returns cost time, money, and emotion" },
       { "id": 27, "text": "Stretch and sync with nature" },
       { "id": 28, "text": "Journal leftie thru-out" },
@@ -36,4 +36,3 @@
       { "id": 33, "text": "Obey prime" }
     ]
   }
-  
