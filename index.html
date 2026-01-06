@@ -10,7 +10,7 @@
       --bg: #000000;
       --text: #c0c0c0;
       --stamp: #0000aa;
-      --seal: #eaffea; /* fallback */
+      --seal: #eaffea;
     }
 
     html {
@@ -96,7 +96,13 @@
       will-change: opacity;
       display: inline-block;
     }
-    
+
+    /* ---- MOBILE TAP FIX (local, disciplined) ---- */
+    #palette-btn {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
   </style>
 </head>
 
@@ -104,9 +110,6 @@
   <div class="container">
     <h1 style="font-size:0.275rem;">Mike Borsare</h1>
     <time id="clock"></time>
-
-
-    
 
     <div style="padding:1rem;">
       <div class="ascii" style="font-size:0.5rem;">
@@ -119,14 +122,27 @@
       </div>
       <a href="mailto:mb@mikeb.work" style="color: var(--seal);">mb@mikeb.work</a>
     </div>
-    
-    <div style="display: flex; justify-content: center; align-items: center;">
-      <button id="palette-btn"
-              style="background: 0; border: 1px solid var(--seal); border-radius: .5em; white-space: normal; font-size: 1em; padding: .5em 1em; margin: 0 1em; font-family: 'ComicMono', monospace; cursor: pointer;">
-       Randomize colors 
+
+    <div style="display:flex; justify-content:center; align-items:center;">
+      <button
+        id="palette-btn"
+        style="
+          background:0;
+          border:1px solid var(--seal);
+          border-radius:.5em;
+          white-space:normal;
+          font-size:1em;
+          padding:.5em 1em;
+          margin:0 1em;
+          font-family:'ComicMono', monospace;
+          cursor:pointer;
+        "
+      >
+        Randomize colors
       </button>
       <div><span id="palette-score">0</span></div>
     </div>
+
     <div class="list-item">Forgive yourself. Shame is a chemical event</div>
     <div class="list-item">Showing up everyday is honorable</div>
     <div class="list-item">Draw last night's bedtime</div>
@@ -172,7 +188,7 @@
   </div>
 
   <script>
-    // MJB stamp jitter
+    // ---- MJB stamp jitter ----
     (() => {
       const items = document.querySelectorAll('.list-item');
 
@@ -184,7 +200,7 @@
         return { x: -10 + Math.random() * 16, y: -10 + Math.random() * 16, tilt: -18 + Math.random() * 36 };
       }
       function unhinged() {
-        return { x: (Math.random() * 70) - 35, y: (Math.random() * 70) - 35, tilt: (Math.random() * 80) - 40 };
+        return { x: Math.random() * 70 - 35, y: Math.random() * 70 - 35, tilt: Math.random() * 80 - 40 };
       }
 
       items.forEach(item => {
@@ -196,7 +212,7 @@
       });
     })();
 
-    // Random palette generator + AAA UI accent
+    // ---- Random palette generator ----
     function applyRandomPalette() {
       const root = document.documentElement;
       const r = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
@@ -204,16 +220,15 @@
 
       const hue = r(0, 360);
       const dark = Math.random() < 0.6;
+      const bgLight = dark ? r(3, 14) : r(82, 94);
 
-      const bgLight = dark ? r(3,14) : r(82,94);
-
-      root.style.setProperty('--bg', hsl(hue, r(5,25), bgLight));
-      root.style.setProperty('--text', hsl(hue, r(5,20), dark ? r(88,96) : r(4,12)));
-      root.style.setProperty('--stamp', hsl((hue + r(90,210)) % 360, r(70,100), r(40,60)));
+      root.style.setProperty('--bg', hsl(hue, r(5, 25), bgLight));
+      root.style.setProperty('--text', hsl(hue, r(5, 20), dark ? r(88, 96) : r(4, 12)));
+      root.style.setProperty('--stamp', hsl((hue + r(90, 210)) % 360, r(70, 100), r(40, 60)));
       root.style.setProperty('--seal',
         dark
-          ? hsl(r(90,140), r(30,50), r(85,92))
-          : hsl(r(90,140), r(25,45), r(20,30))
+          ? hsl(r(90, 140), r(30, 50), r(85, 92))
+          : hsl(r(90, 140), r(25, 45), r(20, 30))
       );
 
       const uiColor = bgLight < 50
@@ -223,25 +238,31 @@
       const btn = document.getElementById('palette-btn');
       const score = document.getElementById('palette-score');
 
-      if (btn && score) {
-        btn.style.color = uiColor;
-        btn.style.borderColor = uiColor;
-        score.style.color = uiColor;
-      }
+      btn.style.color = uiColor;
+      btn.style.borderColor = uiColor;
+      score.style.color = uiColor;
     }
 
     applyRandomPalette();
 
-    // Palette button + score
+    // ---- Palette button + score (mobile-safe) ----
     (() => {
       const btn = document.getElementById('palette-btn');
       const scoreEl = document.getElementById('palette-score');
       let score = 0;
       let timer;
+      let lastTap = 0;
 
-      btn.addEventListener('click', () => {
+      btn.addEventListener('touchend', e => {
+        const now = Date.now();
+        if (now - lastTap < 300) e.preventDefault();
+        lastTap = now;
+      }, { passive: false });
+
+      btn.addEventListener('click', e => {
+        e.preventDefault();
+
         applyRandomPalette();
-
         score++;
         scoreEl.textContent = score;
 
@@ -253,7 +274,7 @@
       });
     })();
 
-    // Clock text + pulse
+    // ---- Clock + pulse ----
     (() => {
       const clock = document.getElementById('clock');
       let t = 0;
