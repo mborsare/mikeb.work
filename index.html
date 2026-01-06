@@ -325,10 +325,12 @@
         scoreEl.textContent = score;
 
         // Check milestones
-        if (score === 25) {
+        if (score === 5) {
+          showToast('Keep going!')
+        } else if (score === 25) {
           showToast('Great job!');
         } else if (score === 50) {
-          showToast('Keep going!');
+          showToast('Heating up!');
         } else if (score === 75) {
           showToast("You're on fire!");
         } else if (score === 100) {
