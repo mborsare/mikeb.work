@@ -300,7 +300,8 @@
       const toast = document.getElementById('toast');
       let score = 0;
       let timer;
-      let lastTap = 0;
+      let isProcessing = false;
+      let pendingUpdates = 0;
 
       function showToast(message) {
         toast.textContent = message;
@@ -310,50 +311,76 @@
         }, 2000);
       }
 
-      btn.addEventListener('touchend', e => {
-        const now = Date.now();
-        if (now - lastTap < 300) e.preventDefault();
-        lastTap = now;
-      }, { passive: false });
-
-      btn.addEventListener('click', e => {
-        e.preventDefault();
-        applyRandomPalette();
-        randomizeStamps();
-
-        score++;
-        scoreEl.textContent = score;
-
-        // Check milestones
-        if (score === 5) {
-          showToast('Keep going!')
-        } else if (score === 25) {
-          showToast('Great job!');
-        } else if (score === 50) {
-          showToast('Heating up!');
-        } else if (score === 75) {
-          showToast("You're on fire!");
-        } else if (score === 100) {
-          showToast('Boomshakalaka!!!');
-          btn.disabled = true;
-          btn.style.opacity = '0.5';
-          btn.style.cursor = 'not-allowed';
-          
-          setTimeout(() => {
-            score = 0;
-            scoreEl.textContent = 0;
-            btn.disabled = false;
-            btn.style.opacity = '1';
-            btn.style.cursor = 'pointer';
-          }, 3000);
+      function processUpdate() {
+        if (pendingUpdates === 0) {
+          isProcessing = false;
           return;
         }
 
-        clearTimeout(timer);
-        timer = setTimeout(() => {
-          score = 0;
-          scoreEl.textContent = 0;
-        }, 3000);
+        isProcessing = true;
+        pendingUpdates--;
+        
+        // Update score immediately for responsiveness
+        score++;
+        scoreEl.textContent = score;
+
+        // Defer heavy visual updates to avoid blocking
+        requestAnimationFrame(() => {
+          applyRandomPalette();
+          randomizeStamps();
+
+          // Check milestones
+          if (score === 5) {
+            showToast('Keep going!')
+          } else if (score === 25) {
+            showToast('Great job!');
+          } else if (score === 50) {
+            showToast('Heating up!');
+          } else if (score === 75) {
+            showToast("You're on fire!");
+          } else if (score === 100) {
+            showToast('Boomshakalaka!!!');
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+            btn.style.cursor = 'not-allowed';
+            
+            setTimeout(() => {
+              score = 0;
+              scoreEl.textContent = 0;
+              btn.disabled = false;
+              btn.style.opacity = '1';
+              btn.style.cursor = 'pointer';
+            }, 3000);
+            isProcessing = false;
+            pendingUpdates = 0;
+            return;
+          }
+
+          clearTimeout(timer);
+          timer = setTimeout(() => {
+            score = 0;
+            scoreEl.textContent = 0;
+          }, 3000);
+
+          // Process next pending update if any
+          if (pendingUpdates > 0) {
+            requestAnimationFrame(processUpdate);
+          } else {
+            isProcessing = false;
+          }
+        });
+      }
+
+      btn.addEventListener('click', e => {
+        e.preventDefault();
+        
+        if (btn.disabled) return;
+        
+        pendingUpdates++;
+        
+        if (!isProcessing) {
+          processUpdate();
+        }
       });
     })();
 
