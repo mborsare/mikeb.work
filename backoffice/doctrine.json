@@ -1,38 +1,104 @@
-{
-    "doctrine": [
-      { "id": 0, "text": "Forgive yourself. Shame is chemical" },
-      { "id": 1, "text": "Show up everyday (it's honorable)" },
-      { "id": 2, "text": "Note last night's bedtime" },
-      { "id": 3, "text": "Read yesterday's journal" },
-      { "id": 4, "text": "Review yesterday's trades" },
-      { "id": 5, "text": "The now in Motivewave chooses where to engage" },
-      { "id": 6, "text": "The now in Bookmap chooses where to execute" },
-      { "id": 7, "text": "The regime and tape choose the target type" },
-      { "id": 8, "text": "Focus on the now for signal" },
-      { "id": 9, "text": "Environments matter, chaos breeds chaos. Trade calm" },
-      { "id": 10, "text": "Run cadence loop: The 7, market map, email" },
-      { "id": 11, "text": "Leaks are a chemical event. Debrief why and create a rule" },
-      { "id": 12, "text": "Witness distortions. See reality" },
-      { "id": 13, "text": "Size is earned instead of imagined" },
-      { "id": 14, "text": "Single lots for rhythm and limited exposure, +1 lot on permission" },
-      { "id": 15, "text": "Press when green" },
-      { "id": 16, "text": "Globex owns the night. Make instead of trade: ops, art, design" },
-      { "id": 17, "text": "Globex wants to bargain. Deals with self cost time, money and emotion" },
-      { "id": 18, "text": "Hero trades are signal" },
-      { "id": 19, "text": "If both sides lose, stand down" },
-      { "id": 20, "text": "Attack at edges and breathe" },
-      { "id": 21, "text": "Every score is data for improvement" },
-      { "id": 22, "text": "PnL is execution points. 1EXP = 1USD" },
-      { "id": 23, "text": "Draw a clean sheet and accept it" },
-      { "id": 24, "text": "Draw a red sheet and accept it" },
-      { "id": 25, "text": "Draws days together. It's a campaign" },
-      { "id": 26, "text": "Trust yourself. Returns cost time, money, and emotion" },
-      { "id": 27, "text": "Stretch and sync with nature" },
-      { "id": 28, "text": "Journal leftie thru-out" },
-      { "id": 29, "text": "Vlog and review sessions" },
-      { "id": 30, "text": "Regulate with music, movies and the daily worksheet" },
-      { "id": 31, "text": "Survival > PnL" },
-      { "id": 32, "text": "Use accounts for lessons and new rules instead of shame" },
-      { "id": 33, "text": "Obey prime" }
-    ]
-  }
+[
+    {
+      "doctrineItem": "Forgive yourself. Shame is chemical"
+    },
+    {
+      "doctrineItem": "Show up everyday (it's honorable)"
+    },
+    {
+      "doctrineItem": "Note last night's bedtime"
+    },
+    {
+      "doctrineItem": "Read yesterday's journal"
+    },
+    {
+      "doctrineItem": "Review yesterday's trades"
+    },
+    {
+      "doctrineItem": "The now in Motivewave chooses where to engage"
+    },
+    {
+      "doctrineItem": "The now in Bookmap chooses where to execute"
+    },
+    {
+      "doctrineItem": "The regime and tape choose the target type"
+    },
+    {
+      "doctrineItem": "Focus on the now for signal"
+    },
+    {
+      "doctrineItem": "Environments matter, chaos breeds chaos. Trade calm"
+    },
+    {
+      "doctrineItem": "Run cadence loop: The 7, market map, email"
+    },
+    {
+      "doctrineItem": "Leaks are a chemical event. Debrief why and create a rule"
+    },
+    {
+      "doctrineItem": "Witness distortions. See reality"
+    },
+    {
+      "doctrineItem": "Size is earned instead of imagined"
+    },
+    {
+      "doctrineItem": "Single lots for rhythm and limited exposure, +1 lot on permission"
+    },
+    {
+      "doctrineItem": "Press when green"
+    },
+    {
+      "doctrineItem": "Globex owns the night. Make instead of trade: ops, art, design"
+    },
+    {
+      "doctrineItem": "Globex wants to bargain. Deals with self cost time, money and emotion"
+    },
+    {
+      "doctrineItem": "Hero trades are signal"
+    },
+    {
+      "doctrineItem": "If both sides lose, stand down"
+    },
+    {
+      "doctrineItem": "Attack at edges and breathe"
+    },
+    {
+      "doctrineItem": "Every score is data for improvement"
+    },
+    {
+      "doctrineItem": "PnL is execution points. 1EXP = 1USD"
+    },
+    {
+      "doctrineItem": "Draw a clean sheet and accept it"
+    },
+    {
+      "doctrineItem": "Draw a red sheet and accept it"
+    },
+    {
+      "doctrineItem": "Draws days together. It's a campaign"
+    },
+    {
+      "doctrineItem": "Trust yourself. Returns cost time, money, and emotion"
+    },
+    {
+      "doctrineItem": "Stretch and sync with nature"
+    },
+    {
+      "doctrineItem": "Journal leftie thru-out"
+    },
+    {
+      "doctrineItem": "Vlog and review sessions"
+    },
+    {
+      "doctrineItem": "Regulate with music, movies and the daily worksheet"
+    },
+    {
+      "doctrineItem": "Survival > PnL"
+    },
+    {
+      "doctrineItem": "Use accounts for lessons and new rules instead of shame"
+    },
+    {
+      "doctrineItem": "Obey prime"
+    }
+  ]
