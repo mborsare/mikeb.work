@@ -330,15 +330,15 @@
           randomizeStamps();
 
           // Check milestones
-          if (score === 5) {
-            showToast('Keep going!')
-          } else if (score === 25) {
-            showToast('Great job!');
-          } else if (score === 50) {
+          if (score === 3) {
+            showToast('Keep going!');
+          } else if (score === 15) {
+            showToast('Getting warm!');
+          } else if (score === 30) {
             showToast('Heating up!');
-          } else if (score === 75) {
+          } else if (score === 60) {
             showToast("You're on fire!");
-          } else if (score === 100) {
+          } else if (score === 99) {
             showToast('Boomshakalaka!!!');
             btn.disabled = true;
             btn.style.opacity = '0.5';
