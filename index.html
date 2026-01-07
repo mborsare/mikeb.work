@@ -178,39 +178,7 @@
       <div><span id="palette-score">0</span></div>
     </div>
 
-    <div class="list-item">Forgive yourself. Shame is chemical</div>
-    <div class="list-item">Show up everyday (it's honorable)</div>
-    <div class="list-item">Note last night's bedtime</div>
-    <div class="list-item">Read yesterday's journal</div>
-    <div class="list-item">Review yesterday's trades</div>
-    <div class="list-item">The now in Motivewave chooses where to engage</div>
-    <div class="list-item">The now in Bookmap chooses where to execute</div>
-    <div class="list-item">The regime and tape choose the target type</div>
-    <div class="list-item">Focus on the now for signal</div>
-    <div class="list-item">Environments matter, chaos breeds chaos. Trade calm</div>
-    <div class="list-item">Run cadence loop: The 7, market map, email</div>
-    <div class="list-item">Leaks are a chemical event. Debrief why and create a rule</div>
-    <div class="list-item">Witness distortions. See reality</div>
-    <div class="list-item">Size is permission instead of commitment. Earn it</div>
-    <div class="list-item">Press when green to manage risk</div>
-    <div class="list-item">Globex owns the night. Make instead of trade</div>
-    <div class="list-item">Globex wants to bargain. Deals with self cost time, money and emotion</div>
-    <div class="list-item">Hero trades are signal</div>
-    <div class="list-item">If both sides lose, stand down</div>
-    <div class="list-item">Attack at edges and breathe</div>
-    <div class="list-item">Every score is data for improvement</div>
-    <div class="list-item">PnL is execution points. 1EXP = 1USD</div>
-    <div class="list-item">Draw a clean sheet and accept it</div>
-    <div class="list-item">Draw a red sheet and accept it</div>
-    <div class="list-item">Draws days together. It's a campaign</div>
-    <div class="list-item">Trust yourself. Returns cost time, money, and emotion</div>
-    <div class="list-item">Stretch and sync with nature</div>
-    <div class="list-item">Journal leftie thru-out</div>
-    <div class="list-item">Vlog and review sessions</div>
-    <div class="list-item">Regulate with music, movies and the Daily worksheet</div>
-    <div class="list-item">Survival &gt; PnL</div>
-    <div class="list-item">Use accounts for lessons and new rules instead of shame</div>
-    <div class="list-item">Obey prime</div>
+    <div id="doctrine-list"></div>
 
     <div class="ascii" style="font-size:0.4rem;">
 ██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████ 
@@ -226,6 +194,93 @@
   </div>
 
   <script>
+    // ---- Doctrine data (embedded for file:// protocol support) ----
+    // This data is synced from backoffice/doctrine.json
+    const DOCTRINE_DATA = [
+      {"doctrineItem": "Forgive yourself. Shame is chemical"},
+      {"doctrineItem": "Show up everyday (it's honorable)"},
+      {"doctrineItem": "Note last night's bedtime"},
+      {"doctrineItem": "Read yesterday's journal"},
+      {"doctrineItem": "Review yesterday's trades"},
+      {"doctrineItem": "The now in Motivewave chooses where to engage"},
+      {"doctrineItem": "The now in Bookmap chooses where to execute"},
+      {"doctrineItem": "The regime and tape choose the target type"},
+      {"doctrineItem": "Focus on the now for signal"},
+      {"doctrineItem": "Environments matter, chaos breeds chaos. Trade calm"},
+      {"doctrineItem": "Run cadence loop: The 7, market map, email"},
+      {"doctrineItem": "Leaks are a chemical event. Debrief why and create a rule"},
+      {"doctrineItem": "Witness distortions. See reality"},
+      {"doctrineItem": "Size is earned instead of imagined"},
+      {"doctrineItem": "Single lots for rhythm and limited exposure, +1 lot on permission"},
+      {"doctrineItem": "Press when green"},
+      {"doctrineItem": "Globex owns the night. Make instead of trade: ops, art, design"},
+      {"doctrineItem": "Globex wants to bargain. Deals with self cost time, money and emotion"},
+      {"doctrineItem": "Hero trades are signal"},
+      {"doctrineItem": "If both sides lose, stand down"},
+      {"doctrineItem": "Attack at edges and breathe"},
+      {"doctrineItem": "Every score is data for improvement"},
+      {"doctrineItem": "PnL is execution points. 1EXP = 1USD"},
+      {"doctrineItem": "Draw a clean sheet and accept it"},
+      {"doctrineItem": "Draw a red sheet and accept it"},
+      {"doctrineItem": "Draws days together. It's a campaign"},
+      {"doctrineItem": "Trust yourself. Returns cost time, money, and emotion"},
+      {"doctrineItem": "Stretch and sync with nature"},
+      {"doctrineItem": "Journal leftie thru-out"},
+      {"doctrineItem": "Vlog and review sessions"},
+      {"doctrineItem": "Regulate with music, movies and the daily worksheet"},
+      {"doctrineItem": "Survival > PnL"},
+      {"doctrineItem": "Use accounts for lessons and new rules instead of shame"},
+      {"doctrineItem": "Obey prime"}
+    ];
+
+    // ---- Load doctrine items from JSON ----
+    function renderDoctrineItems(data) {
+      const container = document.getElementById('doctrine-list');
+      if (!container) {
+        console.error('Container element #doctrine-list not found');
+        return;
+      }
+
+      if (!Array.isArray(data)) {
+        console.error('Invalid data format: expected array');
+        return;
+      }
+
+      container.innerHTML = data
+        .map(item => {
+          const text = item.doctrineItem || '';
+          // Escape HTML to prevent XSS
+          const escaped = text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+          return `<div class="list-item">${escaped}</div>`;
+        })
+        .join('');
+      
+      // Initialize stamps after items are loaded
+      randomizeStamps();
+    }
+
+    async function loadDoctrineItems() {
+      // Try to fetch from JSON file first (works with HTTP/HTTPS)
+      try {
+        const response = await fetch('./backoffice/doctrine.json');
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Loaded doctrine items from JSON file:', data.length);
+          renderDoctrineItems(data);
+          return;
+        }
+      } catch (error) {
+        // Fall back to embedded data (works with file:// protocol)
+        console.log('Using embedded doctrine data (file:// protocol detected)');
+      }
+      
+      // Use embedded data as fallback
+      renderDoctrineItems(DOCTRINE_DATA);
+    }
+
     // ---- Stamp jitter ----
     function randomizeStamps() {
       const items = document.querySelectorAll('.list-item');
@@ -250,7 +305,8 @@
       });
     }
 
-    randomizeStamps();
+    // Load doctrine items on page load
+    loadDoctrineItems();
 
     // ---- Random palette generator (with wild mode) ----
     function applyRandomPalette() {
