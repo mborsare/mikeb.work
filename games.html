@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Word Jumble</title>
+
+  <style>
+    :root {
+      --bg: #000000;
+      --text: #c0c0c0;
+      --stamp: #888888;
+      --seal: #eaffea;
+      --btn-fill: color-mix(in hsl, var(--bg), var(--seal) 20%);
+      --btn-text: #ffffff;
+    }
+
+    html { font-size: 14px; }
+
+    @font-face {
+      font-family: 'ComicMono';
+      src: url('/fonts/ComicMono-Regular.woff') format('woff');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'ComicMono', monospace;
+    }
+
+    .container {
+      min-width: 20rem;
+      max-width: 60rem;
+      width: 100%;
+      padding: 1.25rem;
+      text-align: center;
+      line-height: 1.5;
+      display: flex;
+      flex-direction: column;
+    }
+
+    h1 {
+      color: var(--seal);
+      margin: 1rem 0;
+      white-space: pre;
+      font-size: .75em;
+      line-height: 1;
+    }
+
+    button {
+      background: var(--btn-fill);
+      color: var(--btn-text);
+      border: 2px solid var(--seal);
+      border-radius: 1em;
+      font-size: 1em;
+      padding: 1.5em;
+      margin: 1em auto 2em;
+      font-family: 'ComicMono', monospace;
+      cursor: pointer;
+      user-select: none;
+      width: fit-content;
+    }
+
+    button:active { scale: 0.96; }
+
+    /* ---------- WORDS ---------- */
+
+    #wordsContainer {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      width: 100%;
+      padding-top: 1em;
+    }
+
+    .ascii {
+      white-space: pre;
+      line-height: 1.1;
+      color: var(--seal);
+    }
+
+    .word-row {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-bottom: 1em;
+    }
+
+    .label-row {
+      display: flex;
+      justify-content: center;
+      color: var(--seal);
+      margin-bottom: 0.5rem;
+    }
+
+    .scrambled {
+      font-size: 1.8rem;
+      letter-spacing: 0.4rem;
+      font-weight: 600;
+      color: var(--seal);
+      text-align: center;
+      line-height: 1.2;
+    }
+
+    .answer-blanks {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+      justify-content: center;
+    }
+
+    .blank {
+      width: 2em;
+      height: 2em;
+      border: 1px solid rgb(78, 78, 78);
+      border-radius: 50%;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      font-size: 0.75em;
+      color: var(--stamp);
+    }
+
+    .hint {
+      color: var(--stamp);
+      margin-left: .5em;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>
+                                                  
+                                          
+                           █      ███          
+        ███                █        █          
+          █                █        █          
+          █  █   █  ██▓█▓  █▓██     █     ███  
+          █  █   █  █▒█▒█  █▓ ▓█    █    ▓▓ ▒█ 
+          █  █   █  █ █ █  █   █    █    █   █ 
+          █  █   █  █ █ █  █   █    █    █████ 
+          █  █   █  █ █ █  █   █    █    █     
+      █░ ▒█  █▒ ▓█  █ █ █  █▓ ▓█    █░   ▓▓  █ 
+      ▒███░  ▒██▒█  █ █ █  █▓██     ▒██   ███▒ 
+                                               
+                                               
+                                               
+    </h1>
+    <nav>
+        <a href="/" class="ascii">Back</a>
+    </nav>
+
+    <button onclick="newPuzzle()">Randomize</button>
+
+    <div id="wordsContainer"></div>
+  </div>
+
+  <script>
+    let WORD_BANK = [];
+
+    async function loadWordBank() {
+      try {
+        const res = await fetch("/backoffice/jumble-words.json", {
+          cache: "force-cache"
+        });
+        if (!res.ok) throw new Error("load failed");
+        WORD_BANK = await res.json();
+      } catch (e) {
+        console.error("failed to load jumble words", e);
+        WORD_BANK = [{ word: "fallback", clue: "local safety word." }];
+      }
+    }
+
+    function shuffleArray(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function scrambleWord(word) {
+      const chars = word.split("");
+      if (chars.length < 2) return word;
+      do { shuffleArray(chars); }
+      while (chars.join("") === word);
+      return chars.join("");
+    }
+
+    function pickWords(count = 4) {
+      const copy = [...WORD_BANK];
+      shuffleArray(copy);
+      return copy.slice(0, count);
+    }
+
+    function buildWordRow(entry, index) {
+      const row = document.createElement("div");
+      row.className = "word-row";
+
+      const labelRow = document.createElement("div");
+      labelRow.className = "label-row";
+
+      const label = document.createElement("div");
+      label.textContent = `${index + 1}`;
+
+      const hint = document.createElement("div");
+      hint.className = "hint";
+      hint.textContent = entry.clue;
+
+      labelRow.appendChild(label);
+      labelRow.appendChild(hint);
+
+      const scrambled = document.createElement("div");
+      scrambled.className = "scrambled";
+      scrambled.textContent = scrambleWord(entry.word);
+
+      const blanks = document.createElement("div");
+      blanks.className = "answer-blanks";
+
+      for (let i = 0; i < entry.word.length; i++) {
+        const b = document.createElement("div");
+        b.className = "blank";
+        b.textContent = i + 1; // number the blanks
+        blanks.appendChild(b);
+      }
+
+      row.appendChild(labelRow);
+      row.appendChild(scrambled);
+      row.appendChild(blanks);
+
+      return row;
+    }
+
+    function newPuzzle() {
+      if (!WORD_BANK.length) return;
+
+      const container = document.getElementById("wordsContainer");
+      container.innerHTML = "";
+
+      const picked = pickWords(4);
+      picked.forEach((entry, idx) =>
+        container.appendChild(buildWordRow(entry, idx))
+      );
+    }
+
+    (async function init() {
+      await loadWordBank();
+      newPuzzle();
+    })();
+  </script>
+</body>
+</html>
