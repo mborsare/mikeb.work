@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Word Jumble</title>
+  <title>Jumble</title>
 
   <style>
     :root {
@@ -46,7 +46,6 @@
     #fuse-text {
       opacity: 0.7;
       font-variant-numeric: tabular-nums;
-      margin-bottom: 0.75rem;
       min-height: 1.5em;
       display: flex;
       gap: 0.75rem;
@@ -56,7 +55,6 @@
 
     .checkpoint {
       color: var(--seal);
-      display: inline-block;
       white-space: nowrap;
       opacity: 0;
       visibility: hidden;
@@ -73,11 +71,11 @@
     }
 
     @keyframes flicker {
-      0%   { opacity: 1; }
-      20%  { opacity: 0.2; }
-      40%  { opacity: 1; }
-      60%  { opacity: 0.3; }
-      80%  { opacity: 1; }
+      0% { opacity: 1; }
+      20% { opacity: 0.2; }
+      40% { opacity: 1; }
+      60% { opacity: 0.3; }
+      80% { opacity: 1; }
       100% { opacity: 1; }
     }
 
@@ -86,8 +84,7 @@
       white-space: pre;
       font-size: .75em;
       line-height: 1;
-      /* margin-bottom: 1rem; */
-      padding: 4em
+      padding: 4em;
     }
 
     button {
@@ -106,39 +103,44 @@
     #wordsContainer {
       display: flex;
       flex-direction: column;
-      gap: 1rem;
+      gap: 2.5rem;
       padding-top: 2em;
-    }
-
-    .scrambled {
-      font-size: 1.8rem;
-      letter-spacing: 0.4rem;
-      font-weight: 600;
-      color: var(--seal);
-    }
-
-    .answer-blanks {
-      display: flex;
-      gap: 0.5rem;
-      margin-top: 0.75rem;
-      justify-content: center;
-    }
-
-    .blank {
-      width: 2em;
-      height: 2em;
-      border: 1px solid rgb(78, 78, 78);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.75em;
-      color: var(--stamp);
     }
 
     .jumble {
       padding: .5em;
     }
+
+    /* SINGLE TABLE – PERFECT ALIGNMENT */
+    .letter-table {
+      margin: 0 auto;
+      border-collapse: separate;
+      border-spacing: 0.5rem;
+    }
+
+    .letter-table td {
+      width: 2em;
+      height: 2em;
+      text-align: center;
+      vertical-align: middle;
+      font-size: 0.75em;
+      color: var(--stamp);
+    }
+
+    .scrambled-row td {
+      border-color: transparent;
+      color: var(--seal);
+      font-size: 1.2em;
+      font-weight: 600;
+    }
+
+    .clue {
+      margin-top: 1rem;
+      color: var(--stamp);
+      opacity: 0.8;
+    }
+
+    #game-score { margin-right: 1em; }
   </style>
 </head>
 
@@ -150,7 +152,10 @@
       <span id="time-readout"></span>
     </div>
 
-    <div>Score: <span id="game-score">0</span></div>
+    <div>
+      Score: <span id="game-score">0</span>
+      <span>Hi-score: <span id="hi-score">0</span></span>
+    </div>
 
     <h1>
                            █      ███          
@@ -169,10 +174,7 @@
       <a href="/" style="color: var(--seal)">Back</a>
     </nav>
 
-    <div style="display:flex; justify-content:center;">
-      <button id="game-btn">Randomize</button>
-    </div>
- 
+    <button id="game-btn">Randomize</button>
 
     <div id="wordsContainer"></div>
   </div>
@@ -200,7 +202,7 @@
     function scrambleWord(word) {
       const chars = word.split("");
       do { shuffleArray(chars); } while (chars.join("") === word);
-      return chars.join("");
+      return chars;
     }
 
     function pickWords(count = 4) {
@@ -212,23 +214,30 @@
     function newPuzzle() {
       const container = document.getElementById("wordsContainer");
       container.innerHTML = "";
+
       pickWords(4).forEach(entry => {
+        const scrambled = scrambleWord(entry.word);
+
+        const scrambledCells = scrambled.map(c => `<td>${c}</td>`).join('');
+        const answerCells = entry.word.split('').map((_, i) => `<td>${i + 1}</td>`).join('');
+
         container.insertAdjacentHTML(
           "beforeend",
           `<div class="jumble">
-            <div class="scrambled">${scrambleWord(entry.word)}</div>
-            <div class="answer-blanks">
-              ${entry.word.split('').map((_, i) => `<div class="blank">${i+1}</div>`).join('')}
-            </div>
+            <table class="letter-table">
+              <tr class="scrambled-row">${scrambledCells}</tr>
+              <tr>${answerCells}</tr>
+            </table>
+            <div class="clue">${entry.clue}</div>
           </div>`
         );
       });
     }
 
-    // ---- GAME LOOP (LAYOUT-STABLE CHECKPOINT) ----
     (() => {
       const btn = document.getElementById('game-btn');
       const scoreEl = document.getElementById('game-score');
+      const hiScoreEl = document.getElementById('hi-score');
       const checkpointEl = document.querySelector('.checkpoint');
       const timeEl = document.getElementById('time-readout');
 
@@ -236,6 +245,17 @@
       let fuseEndTime = 0;
       let fuseInterval;
       let fadeTimeout;
+
+      let hiScore = Number(localStorage.getItem('jumble-hi')) || 0;
+      hiScoreEl.textContent = hiScore;
+
+      function updateHiScore() {
+        if (score > hiScore) {
+          hiScore = score;
+          hiScoreEl.textContent = hiScore;
+          localStorage.setItem('jumble-hi', hiScore);
+        }
+      }
 
       function renderFuse() {
         const now = performance.now();
@@ -275,6 +295,7 @@
 
         score++;
         scoreEl.textContent = score;
+        updateHiScore();
 
         fuseEndTime = fuseEndTime < now
           ? now + 3000
