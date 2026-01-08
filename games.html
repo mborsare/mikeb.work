@@ -20,8 +20,6 @@
     @font-face {
       font-family: 'ComicMono';
       src: url('/fonts/ComicMono-Regular.woff') format('woff');
-      font-weight: 400;
-      font-style: normal;
       font-display: swap;
     }
 
@@ -30,7 +28,6 @@
       min-height: 100vh;
       display: flex;
       justify-content: center;
-      align-items: center;
       background: var(--bg);
       color: var(--text);
       font-family: 'ComicMono', monospace;
@@ -42,17 +39,55 @@
       width: 100%;
       padding: 1.25rem;
       text-align: center;
-      line-height: 1.5;
       display: flex;
       flex-direction: column;
     }
 
+    #fuse-text {
+      opacity: 0.7;
+      font-variant-numeric: tabular-nums;
+      margin-bottom: 0.75rem;
+      min-height: 1.5em;
+      display: flex;
+      gap: 0.75rem;
+      position: absolute;
+      top: 1em;
+    }
+
+    .checkpoint {
+      color: var(--seal);
+      display: inline-block;
+      white-space: nowrap;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 1s ease;
+    }
+
+    .checkpoint.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .checkpoint.flicker {
+      animation: flicker 0.25s steps(2, end);
+    }
+
+    @keyframes flicker {
+      0%   { opacity: 1; }
+      20%  { opacity: 0.2; }
+      40%  { opacity: 1; }
+      60%  { opacity: 0.3; }
+      80%  { opacity: 1; }
+      100% { opacity: 1; }
+    }
+
     h1 {
       color: var(--seal);
-      margin: 1rem 0;
       white-space: pre;
       font-size: .75em;
       line-height: 1;
+      /* margin-bottom: 1rem; */
+      padding: 4em
     }
 
     button {
@@ -60,45 +95,19 @@
       color: var(--btn-text);
       border: 2px solid var(--seal);
       border-radius: 1em;
-      font-size: 1em;
       padding: 1.5em;
-      margin: 1em auto 2em;
-      font-family: 'ComicMono', monospace;
+      margin: 1em auto 0.25em;
+      font-family: inherit;
       cursor: pointer;
-      user-select: none;
-      width: fit-content;
     }
 
     button:active { scale: 0.96; }
 
-    /* ---------- WORDS ---------- */
-
     #wordsContainer {
       display: flex;
       flex-direction: column;
-      gap: 2rem;
-      width: 100%;
-      padding-top: 1em;
-    }
-
-    .ascii {
-      white-space: pre;
-      line-height: 1.1;
-      color: var(--seal);
-    }
-
-    .word-row {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding-bottom: 1em;
-    }
-
-    .label-row {
-      display: flex;
-      justify-content: center;
-      color: var(--seal);
-      margin-bottom: 0.5rem;
+      gap: 1rem;
+      padding-top: 2em;
     }
 
     .scrambled {
@@ -106,8 +115,6 @@
       letter-spacing: 0.4rem;
       font-weight: 600;
       color: var(--seal);
-      text-align: center;
-      line-height: 1.2;
     }
 
     .answer-blanks {
@@ -122,27 +129,30 @@
       height: 2em;
       border: 1px solid rgb(78, 78, 78);
       border-radius: 50%;
-
       display: flex;
       align-items: center;
       justify-content: center;
-
       font-size: 0.75em;
       color: var(--stamp);
     }
 
-    .hint {
-      color: var(--stamp);
-      margin-left: .5em;
+    .jumble {
+      padding: .5em;
     }
   </style>
 </head>
 
 <body>
   <div class="container">
+
+    <div id="fuse-text">
+      <span class="checkpoint">Checkpoint +1</span>
+      <span id="time-readout"></span>
+    </div>
+
+    <div>Score: <span id="game-score">0</span></div>
+
     <h1>
-                                                  
-                                          
                            █      ███          
         ███                █        █          
           █                █        █          
@@ -153,15 +163,16 @@
           █  █   █  █ █ █  █   █    █    █     
       █░ ▒█  █▒ ▓█  █ █ █  █▓ ▓█    █░   ▓▓  █ 
       ▒███░  ▒██▒█  █ █ █  █▓██     ▒██   ███▒ 
-                                               
-                                               
-                                               
     </h1>
+
     <nav>
-        <a href="/" class="ascii">Back</a>
+      <a href="/" style="color: var(--seal)">Back</a>
     </nav>
 
-    <button onclick="newPuzzle()">Randomize</button>
+    <div style="display:flex; justify-content:center;">
+      <button id="game-btn">Randomize</button>
+    </div>
+ 
 
     <div id="wordsContainer"></div>
   </div>
@@ -171,13 +182,9 @@
 
     async function loadWordBank() {
       try {
-        const res = await fetch("/backoffice/jumble-words.json", {
-          cache: "force-cache"
-        });
-        if (!res.ok) throw new Error("load failed");
+        const res = await fetch("/backoffice/jumble-words.json", { cache: "force-cache" });
         WORD_BANK = await res.json();
-      } catch (e) {
-        console.error("failed to load jumble words", e);
+      } catch {
         WORD_BANK = [{ word: "fallback", clue: "local safety word." }];
       }
     }
@@ -192,9 +199,7 @@
 
     function scrambleWord(word) {
       const chars = word.split("");
-      if (chars.length < 2) return word;
-      do { shuffleArray(chars); }
-      while (chars.join("") === word);
+      do { shuffleArray(chars); } while (chars.join("") === word);
       return chars.join("");
     }
 
@@ -204,55 +209,82 @@
       return copy.slice(0, count);
     }
 
-    function buildWordRow(entry, index) {
-      const row = document.createElement("div");
-      row.className = "word-row";
-
-      const labelRow = document.createElement("div");
-      labelRow.className = "label-row";
-
-      const label = document.createElement("div");
-      label.textContent = `${index + 1}`;
-
-      const hint = document.createElement("div");
-      hint.className = "hint";
-      hint.textContent = entry.clue;
-
-      labelRow.appendChild(label);
-      labelRow.appendChild(hint);
-
-      const scrambled = document.createElement("div");
-      scrambled.className = "scrambled";
-      scrambled.textContent = scrambleWord(entry.word);
-
-      const blanks = document.createElement("div");
-      blanks.className = "answer-blanks";
-
-      for (let i = 0; i < entry.word.length; i++) {
-        const b = document.createElement("div");
-        b.className = "blank";
-        b.textContent = i + 1; // number the blanks
-        blanks.appendChild(b);
-      }
-
-      row.appendChild(labelRow);
-      row.appendChild(scrambled);
-      row.appendChild(blanks);
-
-      return row;
-    }
-
     function newPuzzle() {
-      if (!WORD_BANK.length) return;
-
       const container = document.getElementById("wordsContainer");
       container.innerHTML = "";
-
-      const picked = pickWords(4);
-      picked.forEach((entry, idx) =>
-        container.appendChild(buildWordRow(entry, idx))
-      );
+      pickWords(4).forEach(entry => {
+        container.insertAdjacentHTML(
+          "beforeend",
+          `<div class="jumble">
+            <div class="scrambled">${scrambleWord(entry.word)}</div>
+            <div class="answer-blanks">
+              ${entry.word.split('').map((_, i) => `<div class="blank">${i+1}</div>`).join('')}
+            </div>
+          </div>`
+        );
+      });
     }
+
+    // ---- GAME LOOP (LAYOUT-STABLE CHECKPOINT) ----
+    (() => {
+      const btn = document.getElementById('game-btn');
+      const scoreEl = document.getElementById('game-score');
+      const checkpointEl = document.querySelector('.checkpoint');
+      const timeEl = document.getElementById('time-readout');
+
+      let score = 0;
+      let fuseEndTime = 0;
+      let fuseInterval;
+      let fadeTimeout;
+
+      function renderFuse() {
+        const now = performance.now();
+        const remaining = Math.max(0, fuseEndTime - now);
+
+        if (remaining <= 0) {
+          clearInterval(fuseInterval);
+          timeEl.textContent = '';
+          checkpointEl.classList.remove('visible');
+          score = 0;
+          scoreEl.textContent = 0;
+          return;
+        }
+
+        timeEl.textContent = (remaining / 1000).toFixed(4);
+      }
+
+      function startFuse() {
+        clearInterval(fuseInterval);
+        fuseInterval = setInterval(renderFuse, 16);
+      }
+
+      function triggerCheckpoint() {
+        checkpointEl.classList.add('visible');
+        checkpointEl.classList.remove('flicker');
+        void checkpointEl.offsetWidth;
+        checkpointEl.classList.add('flicker');
+
+        clearTimeout(fadeTimeout);
+        fadeTimeout = setTimeout(() => {
+          checkpointEl.classList.remove('visible');
+        }, 1000);
+      }
+
+      btn.addEventListener('click', () => {
+        const now = performance.now();
+
+        score++;
+        scoreEl.textContent = score;
+
+        fuseEndTime = fuseEndTime < now
+          ? now + 3000
+          : fuseEndTime + 1000;
+
+        startFuse();
+        triggerCheckpoint();
+        newPuzzle();
+      });
+    })();
 
     (async function init() {
       await loadWordBank();
