@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Auction</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #111111;
+      --muted: #9aa09a;
+      --accent: #b6ff2b;
+      --live-red: #d12f2f;
+    }
+
+    html {
+      font-size: 14px;
+    }
+
+    @font-face {
+      font-family: 'ComicMono';
+      src: url('/fonts/ComicMono-Regular.woff') format('woff');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'ComicMono', monospace;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 60rem;
+      text-align: center;
+      padding: 2rem 1rem;
+    }
+
+    /* --- ASCII --- */
+    .ascii {
+      white-space: pre;
+      line-height: 1.1;
+      opacity: 0.85;
+      margin-top: 3rem;
+    }
+
+    /* --- WATCHERS --- */
+    #watchers {
+      margin-top: 2rem;
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    /* accessible live indicator */
+    .live-indicator {
+      width: 0.75em;
+      /* 75% of font size */
+      height: 0.75em;
+      border-radius: 50%;
+      background: var(--live-red);
+      animation: livePulse 2.2s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes livePulse {
+      0% {
+        opacity: 0.4;
+      }
+
+      40% {
+        opacity: 1;
+      }
+
+      100% {
+        opacity: 0.4;
+      }
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .watch-count {
+      margin: 0 0.25rem;
+      color: var(--text);
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    .watch-count.visible {
+      opacity: 1;
+    }
+
+    .watch-count.flicker {
+      animation: flicker 0.25s steps(2, end);
+    }
+
+    @keyframes flicker {
+      0% {
+        opacity: 1;
+      }
+
+      20% {
+        opacity: 0.2;
+      }
+
+      40% {
+        opacity: 1;
+      }
+
+      60% {
+        opacity: 0.3;
+      }
+
+      80% {
+        opacity: 1;
+      }
+
+      100% {
+        opacity: 1;
+      }
+    }
+
+    /* --- PRIME MARK --- */
+    .prime {
+      margin-top: 6rem;
+      font-size: 1.25rem;
+      letter-spacing: 0.4em;
+      opacity: 0.85;
+    }
+
+    .timestamp {
+      margin-top: 0.5rem;
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      opacity: 0.5;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <img src="backoffice/the-stacks/joints.png" alt="" style="max-width: 25em" />
+
+    <div id="watchers" role="status" aria-live="polite" aria-label="live watchers">
+      <span class="live-indicator" aria-hidden="true"></span>
+      <span class="sr-only">live</span>
+      <span class="watch-count">2</span>
+      <span class="watch-tail">watchers with you</span>
+    </div>
+
+    <div class="prime">PRIME</div>
+    <div class="timestamp">18:45 · FR · 09 JAN</div>
+
+    <div class="ascii" style="font-size:0.4rem;">
+      ██▓███ ██▀███ ██▓ ███▄ ▄███▓▓█████
+      ▓██░ ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█ ▀
+      ▓██░ ██▓▒▓██ ░▄█ ▒▒██▒▓██ ▓██░▒███
+      ▒██▄█▓▒ ▒▒██▀▀█▄ ░██░▒██ ▒██ ▒▓█ ▄
+      ▒██▒ ░ ░░██▓ ▒██▒░██░▒██▒ ░██▒░▒████▒
+      ▒▓▒░ ░ ░░ ▒▓ ░▒▓░░▓ ░ ▒░ ░ ░░░ ▒░ ░
+      ░▒ ░ ░▒ ░ ▒░ ▒ ░░ ░ ░ ░ ░ ░
+      ░░ ░░ ░ ▒ ░░ ░ ░
+      ░ ░ ░ ░ ░
+    </div>
+
+  </div>
+
+  <script>
+    (() => {
+      const countEl = document.querySelector('.watch-count');
+      let n = 0;
+      let timer;
+
+      function tick() {
+        n++;
+        if (n > 999) n = 0;
+
+        countEl.textContent = n;
+        countEl.classList.add('visible');
+        countEl.classList.remove('flicker');
+        void countEl.offsetWidth;
+        countEl.classList.add('flicker');
+      }
+
+      timer = setInterval(tick, 300);
+    })();
+  </script>
+</body>
+
+</html>
