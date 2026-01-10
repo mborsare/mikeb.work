@@ -13,9 +13,8 @@
       --muted: #9aa09a;
       --live-red: #d12f2f;
 
-      /* button system (lifted + tuned) */
       --seal: #111111;
-      --btn-fill: color-mix(in hsl, var(--bg), var(--seal) 8%);
+      --btn-fill: red;
       --btn-text: #111111;
     }
 
@@ -32,35 +31,48 @@
     body {
       margin: 0;
       min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
       background: var(--bg);
       color: var(--text);
       font-family: 'ComicMono', monospace;
+      overflow: hidden;
     }
 
     .container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      width: 100%;
-      max-width: 60rem;
-      text-align: center;
-      padding: 2rem 1rem;
+      position: relative;
+      width: 100vw;
+      height: 100vh;
     }
 
     /* --- RIP SURFACE --- */
     .rip {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
       cursor: grab;
-      transition: transform 120ms cubic-bezier(.2,.8,.2,1);
-      will-change: transform;
+      transition:
+        transform 140ms cubic-bezier(.2,.8,.2,1),
+        filter 60ms linear;
+      will-change: transform, filter;
+      mix-blend-mode: multiply;
+      user-select: none;
     }
+
     .rip:active { cursor: grabbing; }
 
-    /* --- WATCHERS --- */
+    .rip.bleed {
+      filter:
+        blur(8px)
+        contrast(1.2)
+        saturate(0.85);
+    }
+
+    /* --- WATCHERS + PRICE --- */
     #watchers {
-      margin-top: 2rem;
+      position: fixed;
+      top: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%);
       font-size: 0.7rem;
       letter-spacing: 0.15em;
       color: var(--muted);
@@ -68,6 +80,15 @@
       align-items: center;
       gap: 0.4rem;
       font-variant-numeric: tabular-nums;
+      z-index: 10;
+      pointer-events: none;
+      flex-direction: column;
+    }
+
+    .watch-row {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
     }
 
     .live-indicator {
@@ -84,26 +105,32 @@
       100% { opacity: 0.4; }
     }
 
-    .watch-count {
-      margin: 0 0.25rem;
+    #price {
+      margin-top: 0.35rem;
+      font-size: 1.1rem;
+      font-weight: 400;
+      letter-spacing: 0.1em;
       color: var(--text);
+      opacity: 0.9;
+      font-variant-numeric: tabular-nums;
+      position: relative;
+    }
+
+    .price-tick {
+      position: absolute;
+      right: -1.2em;
+      top: 0;
       opacity: 0;
-      transition: opacity 0.4s ease;
-    }
-    .watch-count.visible { opacity: 1; }
-    .watch-count.flicker { animation: flicker 0.25s steps(2,end); }
-
-    @keyframes flicker {
-      0% { opacity: 1; }
-      20% { opacity: 0.2; }
-      40% { opacity: 1; }
-      60% { opacity: 0.3; }
-      100% { opacity: 1; }
+      transition: opacity 120ms ease;
+      font-size: 0.9em;
     }
 
-    /* --- BUTTON UX (ported) --- */
+    .price-tick.show {
+      opacity: 0.6;
+    }
+
+    /* --- BUTTON --- */
     #rip-btn {
-      margin-top: 2.5rem;
       background: var(--btn-fill);
       color: var(--btn-text);
       border: 2px solid var(--seal);
@@ -118,28 +145,12 @@
     }
 
     #rip-btn:active { scale: 0.9; }
-
-    .score {
-      margin-top: 0.75rem;
-      font-size: 0.75rem;
-      opacity: 0.6;
-    }
-
-    /* --- ASCII --- */
-    .ascii {
-      margin-top: 3rem;
-      color: var(--live-red);
-      white-space: pre;
-      line-height: 1.1;
-      opacity: 0.85;
-      font-size: 0.4rem;
-    }
   </style>
 </head>
 
 <body>
   <div class="container">
-    <nav>
+    <nav style=" padding: 5em; text-align: center;">
       <a href="/" style="color: var(--seal)">Back</a>
     </nav>
 
@@ -147,61 +158,159 @@
       src="backoffice/the-stacks/joints.png"
       alt=""
       class="rip"
-      style="max-width:22em"
+      id="rip-img"
     />
 
     <div id="watchers">
-      <span class="live-indicator"></span>
-      <span class="watch-count">0</span>
-      <span>watchers</span>
+      <div class="watch-row">
+        <span class="live-indicator"></span>
+        <span class="watch-count">42</span>
+        <span>watchers</span>
+      </div>
+      <div style="display: flex; align-items: center; justify-content: center;">
+        <h2 id="price">
+          $420.00
+          <span class="price-tick" id="price-tick">↑</span>
+        </h2>
+
+      </div>
+      
     </div>
 
-    <button id="rip-btn">Randomize</button>
-    <div class="score"><span id="rip-score">0</span></div>
-
-    <div class="ascii">
-██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████ 
-▓██░  ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█   ▀ 
-▓██░ ██▓▒▓██ ░▄█ ▒▒██▒▓██    ▓██░▒███   
-▒██▄█▓▒ ▒▒██▀▀█▄  ░██░▒██    ▒██ ▒▓█  ▄ 
-▒██▒ ░  ░░██▓ ▒██▒░██░▒██▒   ░██▒░▒████▒
-▒▓▒░ ░  ░░ ▒▓ ░▒▓░░▓  ░ ▒░   ░  ░░░ ▒░ ░
-░▒ ░       ░▒ ░ ▒░ ▒ ░░  ░      ░ ░ ░  ░
-░░         ░░   ░  ▒ ░░      ░      ░   
-            ░      ░         ░      ░  ░
+    <div style="display: flex; justify-content: space-evenly; align-items: center; margin: 9em;">
+      <button id="rip-btn">Randomize</button>
+      <div class="score"><span id="rip-score">0</span></div>
     </div>
-
-  </div>
 
   <script>
-    // watchers
+    /* -------------------------------
+       WATCHER EUPHORIA WAVE
+    -------------------------------- */
     (() => {
       const el = document.querySelector('.watch-count');
-      let n = 0;
-      setInterval(() => {
-        n = (n + 1) % 1000;
-        el.textContent = n;
-        el.classList.add('visible');
-        el.classList.remove('flicker');
-        void el.offsetWidth;
-        el.classList.add('flicker');
-      }, 300);
+
+      let base = 42;
+      let current = base;
+      let target = base;
+      let velocity = 0;
+      let state = 'idle';
+
+      function newWave() {
+        state = 'surge';
+        target = base + Math.floor(Math.random() * 120 + 40);
+        velocity = Math.random() * 2 + 1.5;
+      }
+
+      function tick() {
+        if (state === 'idle') {
+          current += Math.sin(Date.now() / 1800) * 0.05;
+          if (Math.random() < 0.004) newWave();
+        }
+
+        if (state === 'surge') {
+          current += velocity;
+          velocity *= 1.08;
+          if (current >= target) state = 'crest';
+        }
+
+        if (state === 'crest') {
+          if (Math.random() < 0.08) state = 'decay';
+        }
+
+        if (state === 'decay') {
+          current -= Math.max(0.4, (current - base) * 0.04);
+          if (current <= base + 1) {
+            current = base;
+            state = 'idle';
+          }
+        }
+
+        el.textContent = Math.max(0, Math.round(current));
+        requestAnimationFrame(tick);
+      }
+
+      tick();
     })();
 
-    // rip logic (button + image share same action)
+    /* -------------------------------
+       PRICE — TWO WAY MARKET + DIRECTION
+    -------------------------------- */
     (() => {
-      const img = document.querySelector('.rip');
+      const el = document.getElementById('price');
+      const tickEl = document.getElementById('price-tick');
+
+      let mid = 420;
+      let price = mid;
+      let lastPrice = price;
+      let impulse = 0;
+      let drift = 0;
+
+      function showTick(dir) {
+        tickEl.textContent = dir === 'up' ? '↑' : '↓';
+        tickEl.classList.add('show');
+        setTimeout(() => tickEl.classList.remove('show'), 180);
+      }
+
+      function tick() {
+        impulse += (Math.random() - 0.5);
+        drift += (mid - price) * 0.002;
+        impulse *= 0.1;
+
+        // asymmetric feel: up moves slightly faster
+        const delta = impulse + drift;
+        price += delta > 0 ? delta * 1.15 : delta * 0.9;
+
+        if (Math.random() < 0.015) {
+          price += (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 6);
+        }
+
+        if (price > lastPrice) showTick('up');
+        if (price < lastPrice) showTick('down');
+
+        lastPrice = price;
+        el.firstChild.textContent = `$${price.toFixed(2)}`;
+
+        requestAnimationFrame(tick);
+      }
+
+      tick();
+    })();
+
+    /* -------------------------------
+       RIP LOGIC — OFFSET FROM CENTER
+    -------------------------------- */
+    (() => {
+      const img = document.getElementById('rip-img');
       const btn = document.getElementById('rip-btn');
       const scoreEl = document.getElementById('rip-score');
       let score = 0;
 
-      function randomAngle() {
-        return (Math.random() * 16 - 8).toFixed(2);
+      function random(min, max) {
+        return Math.random() * (max - min) + min;
       }
 
       function rip() {
-        const angle = randomAngle();
-        img.style.transform = `rotate(${angle}deg)`;
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+
+        const dx = random(-vw * 0.35, vw * 0.35);
+        const dy = random(-vh * 0.35, vh * 0.35);
+        const scale = random(0.4, 2.1);
+        const angle = random(-22, 22);
+        const overshoot = angle * 1.4;
+
+        img.classList.add('bleed');
+        img.style.transform =
+          `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) ` +
+          `scale(${scale}) rotate(${overshoot}deg)`;
+
+        setTimeout(() => {
+          img.classList.remove('bleed');
+          img.style.transform =
+            `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) ` +
+            `scale(${scale}) rotate(${angle}deg)`;
+        }, 60);
+
         score++;
         scoreEl.textContent = score;
       }
