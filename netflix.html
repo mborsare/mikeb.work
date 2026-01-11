@@ -2,150 +2,105 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Netflix A–Z (JustWatch)</title>
+<title>Netflix Catalog A–Z</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-  body { font-family: system-ui, sans-serif; margin: 16px; }
-  button { margin-right: 6px; }
-  h2 { border-top: 1px solid #ddd; padding-top: 8px; }
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 12px;
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    margin: 16px;
+    background: #fff;
+    color: #000;
   }
-  img { width: 100%; display: block; }
-  .title { font-size: 13px; }
-  .status { margin: 8px 0; font-size: 13px; }
+
+  h1 {
+    font-size: 20px;
+    margin-bottom: 12px;
+  }
+
+  .filters button {
+    margin-right: 6px;
+    margin-bottom: 12px;
+  }
+
+  .az {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  a {
+    display: block;
+    padding: 10px 0;
+    text-align: center;
+    text-decoration: none;
+    border: 1px solid #ddd;
+    color: #000;
+    border-radius: 6px;
+    font-weight: 500;
+  }
+
+  a:active {
+    background: #eee;
+  }
+
+  .note {
+    font-size: 13px;
+    color: #555;
+    margin-top: 16px;
+    line-height: 1.4;
+  }
 </style>
 </head>
 
 <body>
 
-<strong>Netflix Catalog A–Z</strong><br>
-<button onclick="setFilter('both')">Both</button>
-<button onclick="setFilter('movie')">Movies</button>
-<button onclick="setFilter('show')">TV Shows</button>
+<h1>Netflix Catalog A–Z</h1>
 
-<div class="status" id="status">Idle</div>
-<div id="app"></div>
+<div class="filters">
+  <button onclick="setType('both')">Both</button>
+  <button onclick="setType('movie')">Movies</button>
+  <button onclick="setType('show')">TV Shows</button>
+</div>
+
+<div class="az" id="az"></div>
+
+<div class="note">
+  This is a map, not a feed.<br>
+  Choose a letter. Walk the aisle.
+</div>
 
 <script>
-const REGION = "US";
-const NETFLIX = 8;
-const PAGE_SIZE = 100;
+let type = "both";
+const region = "US";
 
-let filter = "both";
-let catalog = new Map(); // id → item
-
-function setFilter(f) {
-  filter = f;
-  render();
+function setType(t) {
+  type = t;
 }
 
-async function search(query, page) {
-  const res = await fetch(
-    `https://apis.justwatch.com/content/titles/${REGION}/search`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        query,
-        page,
-        page_size: PAGE_SIZE,
-        providers: [NETFLIX],
-        monetization_types: ["flatrate"],
-        content_types: ["movie", "show"]
-      })
-    }
-  );
-  return res.json();
-}
-
-async function sweepQuery(q) {
-  let page = 1;
-  while (true) {
-    document.getElementById("status").textContent =
-      `Fetching "${q}" page ${page}… (${catalog.size} titles)`;
-
-    const data = await search(q, page);
-    if (!data.items || data.items.length === 0) break;
-
-    data.items.forEach(item => {
-      catalog.set(item.id, {
-        id: item.id,
-        title: item.title,
-        type: item.object_type,
-        poster: item.poster
-          ? `https://images.justwatch.com/poster/${item.poster}/s592`
-          : null
-      });
-    });
-
-    page++;
-    await new Promise(r => setTimeout(r, 150)); // throttle
-  }
-}
-
-async function loadAll() {
-  const queries = [
-    ...Array.from({ length: 26 }, (_, i) => String.fromCharCode(97 + i)),
-    ...Array.from({ length: 10 }, (_, i) => String(i))
-  ];
-
-  for (const q of queries) {
-    await sweepQuery(q);
-  }
-
-  document.getElementById("status").textContent =
-    `Done. ${catalog.size} titles loaded.`;
-
-  render();
-}
-
-function render() {
-  const root = document.getElementById("app");
-  root.innerHTML = "";
-
-  const items = [...catalog.values()]
-    .filter(x => filter === "both" || x.type === filter)
-    .sort((a, b) => a.title.localeCompare(b.title));
-
-  let current = null;
-  let grid;
-
-  items.forEach(item => {
-    const letter = item.title[0].toUpperCase();
-
-    if (letter !== current) {
-      current = letter;
-      const h = document.createElement("h2");
-      h.textContent = letter;
-      root.appendChild(h);
-
-      grid = document.createElement("div");
-      grid.className = "grid";
-      root.appendChild(grid);
-    }
-
-    const card = document.createElement("div");
-
-    if (item.poster) {
-      const img = document.createElement("img");
-      img.src = item.poster;
-      card.appendChild(img);
-    }
-
-    const t = document.createElement("div");
-    t.className = "title";
-    t.textContent = item.title;
-    card.appendChild(t);
-
-    grid.appendChild(card);
+function buildLink(letter) {
+  const base = "https://www.justwatch.com/us/search";
+  const params = new URLSearchParams({
+    q: letter,
+    providers: "nfx"
   });
+
+  if (type === "movie") params.set("object_type", "movie");
+  if (type === "show") params.set("object_type", "show");
+
+  return `${base}?${params.toString()}`;
 }
 
-loadAll();
+const az = document.getElementById("az");
+
+"ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").forEach(letter => {
+  const a = document.createElement("a");
+  a.textContent = letter;
+  a.href = buildLink(letter);
+  a.target = "_blank";
+  az.appendChild(a);
+});
 </script>
 
 </body>
