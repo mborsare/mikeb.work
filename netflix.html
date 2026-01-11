@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Netflix A–Z (JustWatch)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+  body { font-family: system-ui, sans-serif; margin: 16px; }
+  button { margin-right: 6px; }
+  h2 { border-top: 1px solid #ddd; padding-top: 8px; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 12px;
+  }
+  img { width: 100%; display: block; }
+  .title { font-size: 13px; }
+  .status { margin: 8px 0; font-size: 13px; }
+</style>
+</head>
+
+<body>
+
+<strong>Netflix Catalog A–Z</strong><br>
+<button onclick="setFilter('both')">Both</button>
+<button onclick="setFilter('movie')">Movies</button>
+<button onclick="setFilter('show')">TV Shows</button>
+
+<div class="status" id="status">Idle</div>
+<div id="app"></div>
+
+<script>
+const REGION = "US";
+const NETFLIX = 8;
+const PAGE_SIZE = 100;
+
+let filter = "both";
+let catalog = new Map(); // id → item
+
+function setFilter(f) {
+  filter = f;
+  render();
+}
+
+async function search(query, page) {
+  const res = await fetch(
+    `https://apis.justwatch.com/content/titles/${REGION}/search`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query,
+        page,
+        page_size: PAGE_SIZE,
+        providers: [NETFLIX],
+        monetization_types: ["flatrate"],
+        content_types: ["movie", "show"]
+      })
+    }
+  );
+  return res.json();
+}
+
+async function sweepQuery(q) {
+  let page = 1;
+  while (true) {
+    document.getElementById("status").textContent =
+      `Fetching "${q}" page ${page}… (${catalog.size} titles)`;
+
+    const data = await search(q, page);
+    if (!data.items || data.items.length === 0) break;
+
+    data.items.forEach(item => {
+      catalog.set(item.id, {
+        id: item.id,
+        title: item.title,
+        type: item.object_type,
+        poster: item.poster
+          ? `https://images.justwatch.com/poster/${item.poster}/s592`
+          : null
+      });
+    });
+
+    page++;
+    await new Promise(r => setTimeout(r, 150)); // throttle
+  }
+}
+
+async function loadAll() {
+  const queries = [
+    ...Array.from({ length: 26 }, (_, i) => String.fromCharCode(97 + i)),
+    ...Array.from({ length: 10 }, (_, i) => String(i))
+  ];
+
+  for (const q of queries) {
+    await sweepQuery(q);
+  }
+
+  document.getElementById("status").textContent =
+    `Done. ${catalog.size} titles loaded.`;
+
+  render();
+}
+
+function render() {
+  const root = document.getElementById("app");
+  root.innerHTML = "";
+
+  const items = [...catalog.values()]
+    .filter(x => filter === "both" || x.type === filter)
+    .sort((a, b) => a.title.localeCompare(b.title));
+
+  let current = null;
+  let grid;
+
+  items.forEach(item => {
+    const letter = item.title[0].toUpperCase();
+
+    if (letter !== current) {
+      current = letter;
+      const h = document.createElement("h2");
+      h.textContent = letter;
+      root.appendChild(h);
+
+      grid = document.createElement("div");
+      grid.className = "grid";
+      root.appendChild(grid);
+    }
+
+    const card = document.createElement("div");
+
+    if (item.poster) {
+      const img = document.createElement("img");
+      img.src = item.poster;
+      card.appendChild(img);
+    }
+
+    const t = document.createElement("div");
+    t.className = "title";
+    t.textContent = item.title;
+    card.appendChild(t);
+
+    grid.appendChild(card);
+  });
+}
+
+loadAll();
+</script>
+
+</body>
+</html>
