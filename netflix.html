@@ -1,107 +1,296 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-<meta charset="utf-8">
-<title>Netflix Catalog A–Z</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8" />
+  <title>Netflix US A–Z</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-<style>
-  body {
-    font-family: system-ui, -apple-system, sans-serif;
-    margin: 16px;
-    background: #fff;
-    color: #000;
-  }
+  <style>
+    :root {
+      --bg: #000000;
+      --text: #c0c0c0;
+      --stamp: #888888;
+      --seal: #eaffea;
+      --btn-fill: color-mix(in hsl, var(--bg), var(--seal) 20%);
+    }
 
-  h1 {
-    font-size: 20px;
-    margin-bottom: 12px;
-  }
+    html {
+      font-size: 14px;
+    }
 
-  .filters button {
-    margin-right: 6px;
-    margin-bottom: 12px;
-  }
+    @font-face {
+      font-family: 'ComicMono';
+      src: url('/fonts/ComicMono-Regular.woff') format('woff');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
 
-  .az {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 8px;
-    margin-top: 12px;
-  }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'ComicMono', monospace;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
 
-  a {
-    display: block;
-    padding: 10px 0;
-    text-align: center;
-    text-decoration: none;
-    border: 1px solid #ddd;
-    color: #000;
-    border-radius: 6px;
-    font-weight: 500;
-  }
+    .container {
+      max-width: 72rem;
+      width: 100%;
+      padding: 1.5rem;
+      text-align: center;
+    }
 
-  a:active {
-    background: #eee;
-  }
+    h1 {
+      color: var(--seal);
+      letter-spacing: .15em;
+      margin: 0 0 .25rem 0;
+      font-size: 1.6rem;
+    }
 
-  .note {
-    font-size: 13px;
-    color: #555;
-    margin-top: 16px;
-    line-height: 1.4;
-  }
-</style>
+    .meta {
+      opacity: .7;
+      font-size: .85rem;
+      margin: 0 0 1.25rem 0;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      margin: 0 auto 1rem auto;
+      max-width: 64rem;
+    }
+
+    @media (max-width: 720px) {
+      .controls {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    input[type="text"] {
+      background: transparent;
+      border: 2px solid var(--stamp);
+      color: var(--text);
+      padding: .75rem .9rem;
+      border-radius: .9rem;
+      font-family: inherit;
+      width: 100%;
+      outline: none;
+    }
+
+    input[type="text"]::placeholder {
+      color: color-mix(in srgb, var(--text), transparent 55%);
+    }
+
+    .filters {
+      margin: 1em;
+    }
+
+    label {
+      cursor: pointer;
+      user-select: none;
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      opacity: .95;
+    }
+
+    input[type="checkbox"] {
+      accent-color: var(--seal);
+      width: 1.05rem;
+      height: 1.05rem;
+    }
+
+    #count {
+      opacity: .75;
+      font-size: .85rem;
+      margin: .5rem 0 0 0;
+    }
+
+    .catalog {
+      margin-top: 1.25rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+      gap: .5rem;
+      text-align: left;
+    }
+
+    .item {
+      padding: .55rem .75rem;
+      border: 1px dotted color-mix(in srgb, var(--stamp), transparent 20%);
+      border-radius: .85rem;
+    }
+
+    .title {
+      color: var(--seal);
+      line-height: 1.25;
+    }
+
+    .sub {
+      opacity: .65;
+      margin-top: .2rem;
+      font-size: .85rem;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: .05rem .45rem;
+      border: 1px solid color-mix(in srgb, var(--stamp), transparent 15%);
+      border-radius: 999px;
+      margin-left: .35rem;
+      font-size: .75rem;
+      opacity: .85;
+    }
+  </style>
 </head>
 
 <body>
+  <div class="container">
+    <nav style=" padding: 5em; text-align: center;">
+      <a href="/" style="color: var(--seal)">Back</a>
+    </nav>
+    <h1>NETFLIX US A–Z</h1>
+    <div class="meta" id="snapshot">Loading catalog…</div>
 
-<h1>Netflix Catalog A–Z</h1>
+    <div class="controls">
+      <input id="search" type="text" placeholder="Search titles…" oninput="applyFilters()" autocomplete="off"
+        spellcheck="false" />
 
-<div class="filters">
-  <button onclick="setType('both')">Both</button>
-  <button onclick="setType('movie')">Movies</button>
-  <button onclick="setType('show')">TV Shows</button>
-</div>
+      <div class="filters">
+        <label>
+          <input type="checkbox" id="filter-movie" checked onchange="applyFilters()" />
+          Movies
+        </label>
+        <label>
+          <input type="checkbox" id="filter-series" checked onchange="applyFilters()" />
+          Series
+        </label>
+      </div>
+    </div>
 
-<div class="az" id="az"></div>
+    <div id="count"></div>
+    <div class="catalog" id="catalog"></div>
+  </div>
 
-<div class="note">
-  This is a map, not a feed.<br>
-  Choose a letter. Walk the aisle.
-</div>
+  <script>
+    const DATA_URL = 'https://netflix.mborsare.workers.dev/';
 
-<script>
-let type = "both";
-const region = "US";
+    // Fallback dataset so UX is never empty.
+    // Format matches what your UI needs: title, type, year, rating (optional)
+    const DUMMY_TITLES = [
+      { title: 'Arrival', type: 'movie', year: 2016, rating: 'PG-13' },
+      { title: 'The Social Network', type: 'movie', year: 2010, rating: 'PG-13' },
+      { title: 'Her', type: 'movie', year: 2013, rating: 'R' },
+      { title: 'No Country for Old Men', type: 'movie', year: 2007, rating: 'R' },
+      { title: 'Moonlight', type: 'movie', year: 2016, rating: 'R' },
+      { title: 'Drive', type: 'movie', year: 2011, rating: 'R' },
+      { title: 'Inside Man', type: 'movie', year: 2006, rating: 'R' },
+      { title: 'Ex Machina', type: 'movie', year: 2014, rating: 'R' },
 
-function setType(t) {
-  type = t;
-}
+      { title: 'Mindhunter', type: 'series', year: 2017, rating: 'TV-MA' },
+      { title: 'Dark', type: 'series', year: 2017, rating: 'TV-MA' },
+      { title: 'The Queen’s Gambit', type: 'series', year: 2020, rating: 'TV-MA' },
+      { title: 'Better Call Saul', type: 'series', year: 2015, rating: 'TV-MA' },
+      { title: 'Black Mirror', type: 'series', year: 2011, rating: 'TV-MA' },
+      { title: 'Narcos', type: 'series', year: 2015, rating: 'TV-MA' },
+      { title: 'Blue Eye Samurai', type: 'series', year: 2023, rating: 'TV-MA' },
+      { title: 'Arcane', type: 'series', year: 2021, rating: 'TV-14' },
 
-function buildLink(letter) {
-  const base = "https://www.justwatch.com/us/search";
-  const params = new URLSearchParams({
-    q: letter,
-    providers: "nfx"
-  });
+      // some “catalog noise” to feel scale
+      { title: 'A Very Normal Romantic Comedy', type: 'movie', year: 2019, rating: 'PG-13' },
+      { title: 'Zombie Heat: Miami', type: 'movie', year: 2022, rating: 'R' },
+      { title: 'Cooking Under Pressure', type: 'series', year: 2021, rating: 'TV-PG' },
+      { title: 'The Last Weekend', type: 'movie', year: 2009, rating: 'R' },
+      { title: 'Mystery at Dawn', type: 'series', year: 2018, rating: 'TV-14' },
+      { title: 'Snowfall', type: 'series', year: 2017, rating: 'TV-MA' }
+    ];
 
-  if (type === "movie") params.set("object_type", "movie");
-  if (type === "show") params.set("object_type", "show");
+    let allTitles = [];
+    let usingDummy = false;
 
-  return `${base}?${params.toString()}`;
-}
+    function normalizeFromWorker(results) {
+      return results.map(item => ({
+        title: item.title,
+        type: item.title_type === 'movie' ? 'movie' : 'series',
+        year: item.title_date || item.year || 'N/A',
+        rating: item.rating || ''
+      }));
+    }
 
-const az = document.getElementById("az");
+    async function loadCatalog() {
+      try {
+        const res = await fetch(DATA_URL, { cache: 'no-store' });
+        if (!res.ok) throw new Error('worker fetch failed');
 
-"ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").forEach(letter => {
-  const a = document.createElement("a");
-  a.textContent = letter;
-  a.href = buildLink(letter);
-  a.target = "_blank";
-  az.appendChild(a);
-});
-</script>
+        const data = await res.json();
 
+        // Worker can return {status:"empty"...} until ingest runs.
+        if (data.status === 'empty' || !Array.isArray(data.results) || data.results.length === 0) {
+          usingDummy = true;
+          allTitles = DUMMY_TITLES.slice();
+          document.getElementById('snapshot').textContent =
+            'Snapshot: dummy data (API quota cooled down)';
+          applyFilters();
+          return;
+        }
+
+        usingDummy = false;
+        allTitles = normalizeFromWorker(data.results);
+        document.getElementById('snapshot').textContent =
+          `Snapshot: ${data.day} · ${allTitles.length} titles`;
+        applyFilters();
+
+      } catch (e) {
+        usingDummy = true;
+        allTitles = DUMMY_TITLES.slice();
+        document.getElementById('snapshot').textContent =
+          'Snapshot: dummy data (offline / worker unreachable)';
+        applyFilters();
+      }
+    }
+
+    function applyFilters() {
+      const q = document.getElementById('search').value.trim().toLowerCase();
+      const showMovies = document.getElementById('filter-movie').checked;
+      const showSeries = document.getElementById('filter-series').checked;
+
+      const filtered = allTitles
+        .filter(t => {
+          if (t.type === 'movie' && !showMovies) return false;
+          if (t.type === 'series' && !showSeries) return false;
+          if (q && !t.title.toLowerCase().includes(q)) return false;
+          return true;
+        })
+        .sort((a, b) => a.title.localeCompare(b.title));
+
+      const note = usingDummy ? ' (dummy)' : '';
+      document.getElementById('count').textContent = `${filtered.length} titles${note}`;
+
+      document.getElementById('catalog').innerHTML = filtered.map(t => {
+        const year = t.year ?? 'N/A';
+        const rating = t.rating ? `<span class="pill">${escapeHtml(t.rating)}</span>` : '';
+        const typePill = `<span class="pill">${t.type}</span>`;
+        return `
+          <div class="item">
+            <div class="title">${escapeHtml(t.title)}</div>
+            <div class="sub">${escapeHtml(String(year))} ${typePill} ${rating}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[c]));
+    }
+
+    loadCatalog();
+  </script>
 </body>
+
 </html>
