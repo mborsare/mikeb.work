@@ -65,12 +65,6 @@
       max-width: 64rem;
     }
 
-    @media (max-width: 720px) {
-      .controls {
-        grid-template-columns: 1fr;
-      }
-    }
-
     input[type="text"] {
       background: transparent;
       border: 2px solid var(--stamp);
@@ -82,27 +76,9 @@
       outline: none;
     }
 
-    input[type="text"]::placeholder {
-      color: color-mix(in srgb, var(--text), transparent 55%);
-    }
-
     .filters {
+      display: flex;
       margin: 1em;
-    }
-
-    label {
-      cursor: pointer;
-      user-select: none;
-      display: inline-flex;
-      align-items: center;
-      gap: .45rem;
-      opacity: .95;
-    }
-
-    input[type="checkbox"] {
-      accent-color: var(--seal);
-      width: 1.05rem;
-      height: 1.05rem;
     }
 
     #count {
@@ -120,12 +96,22 @@
     }
 
     .item {
+      display: grid;
+      grid-template-columns: 3.5rem 1fr;
+      gap: .6rem;
       padding: .55rem .75rem;
       border: 1px dotted color-mix(in srgb, var(--stamp), transparent 20%);
       border-radius: .85rem;
       text-decoration: none;
       color: inherit;
-      display: block;
+    }
+
+    .cover {
+      width: 100%;
+      aspect-ratio: 2 / 3;
+      object-fit: cover;
+      border-radius: .4rem;
+      background: #111;
     }
 
     .title {
@@ -137,6 +123,14 @@
       opacity: .65;
       margin-top: .2rem;
       font-size: .85rem;
+    }
+
+    /* NEW: synopsis */
+    .synopsis {
+      margin-top: .35rem;
+      font-size: .8rem;
+      line-height: 1.35;
+      opacity: .6;
     }
 
     .pill {
@@ -161,18 +155,10 @@
     <div class="meta" id="snapshot">Loading catalog…</div>
 
     <div class="controls">
-      <input id="search" type="text" placeholder="Search titles…" oninput="applyFilters()" autocomplete="off"
-        spellcheck="false" />
-
+      <input id="search" type="text" placeholder="Search titles…" oninput="applyFilters()" autocomplete="off" />
       <div class="filters">
-        <label>
-          <input type="checkbox" id="filter-movie" checked onchange="applyFilters()" />
-          Movies
-        </label>
-        <label>
-          <input type="checkbox" id="filter-series" checked onchange="applyFilters()" />
-          Series
-        </label>
+        <label><input type="checkbox" id="filter-movie" checked onchange="applyFilters()" /> Movies</label>
+        <label><input type="checkbox" id="filter-series" checked onchange="applyFilters()" /> Series</label>
       </div>
     </div>
 
@@ -184,39 +170,40 @@
     const DATA_URL = 'https://netflix.mborsare.workers.dev/';
 
     const DUMMY_TITLES = [
-      { title: 'Arrival', type: 'movie', year: 2016, rating: 'PG-13', netflix_id: null },
-      { title: 'The Social Network', type: 'movie', year: 2010, rating: 'PG-13', netflix_id: null },
-      { title: 'Mindhunter', type: 'series', year: 2017, rating: 'TV-MA', netflix_id: null }
+      {
+        title: 'Arrival',
+        type: 'movie',
+        year: 2016,
+        rating: 'PG-13',
+        netflix_id: null,
+        img: null,
+        synopsis: ''
+      }
     ];
 
     let allTitles = [];
     let usingDummy = false;
 
+    /* UPDATED: preserve img + synopsis */
     function normalizeFromWorker(results) {
       return results.map(item => ({
         title: item.title,
         type: item.title_type === 'movie' ? 'movie' : 'series',
         year: item.title_date || item.year || 'N/A',
         rating: item.rating || '',
-        netflix_id: item.netflix_id
+        netflix_id: item.netflix_id,
+        img: item.img || null,
+        synopsis: item.synopsis || ''
       }));
     }
 
     async function loadCatalog() {
       try {
         const res = await fetch(DATA_URL, { cache: 'no-store' });
-        if (!res.ok) throw new Error('worker fetch failed');
+        if (!res.ok) throw new Error();
 
         const data = await res.json();
-
-        if (data.status === 'empty' || !Array.isArray(data.results) || data.results.length === 0) {
-          usingDummy = true;
-          allTitles = DUMMY_TITLES.slice();
-          document.getElementById('snapshot').textContent =
-            'Snapshot: dummy data (API quota cooled down)';
-          applyFilters();
-          return;
-        }
+        if (!Array.isArray(data.results) || data.results.length === 0) throw new Error();
 
         usingDummy = false;
         allTitles = normalizeFromWorker(data.results);
@@ -224,50 +211,50 @@
           `Snapshot: ${data.day} · ${allTitles.length} titles`;
         applyFilters();
 
-      } catch (e) {
+      } catch {
         usingDummy = true;
         allTitles = DUMMY_TITLES.slice();
         document.getElementById('snapshot').textContent =
-          'Snapshot: dummy data (offline / worker unreachable)';
+          'Snapshot: dummy data';
         applyFilters();
       }
     }
 
     function applyFilters() {
-      const q = document.getElementById('search').value.trim().toLowerCase();
+      const q = document.getElementById('search').value.toLowerCase();
       const showMovies = document.getElementById('filter-movie').checked;
       const showSeries = document.getElementById('filter-series').checked;
 
-      const filtered = allTitles
-        .filter(t => {
-          if (t.type === 'movie' && !showMovies) return false;
-          if (t.type === 'series' && !showSeries) return false;
-          if (q && !t.title.toLowerCase().includes(q)) return false;
-          return true;
-        })
-        .sort((a, b) => a.title.localeCompare(b.title));
+      const filtered = allTitles.filter(t => {
+        if (t.type === 'movie' && !showMovies) return false;
+        if (t.type === 'series' && !showSeries) return false;
+        if (q && !t.title.toLowerCase().includes(q)) return false;
+        return true;
+      });
 
-      const note = usingDummy ? ' (dummy)' : '';
-      document.getElementById('count').textContent = `${filtered.length} titles${note}`;
+      document.getElementById('count').textContent =
+        `${filtered.length} titles${usingDummy ? ' (dummy)' : ''}`;
 
       document.getElementById('catalog').innerHTML = filtered.map(t => {
-        const year = t.year ?? 'N/A';
-        const rating = t.rating ? `<span class="pill">${escapeHtml(t.rating)}</span>` : '';
-        const typePill = `<span class="pill">${t.type}</span>`;
+        const cover = t.img
+          ? `<img class="cover" src="${t.img}" loading="lazy" alt="">`
+          : '';
 
-        const href = t.netflix_id
-          ? `https://www.netflix.com/watch/${t.netflix_id}`
-          : '#';
+        const synopsis = t.synopsis
+          ? `<div class="synopsis">${escapeHtml(t.synopsis)}</div>`
+          : '';
 
         return `
-          <a
-            class="item"
-            href="${href}"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <div class="title">${escapeHtml(t.title)}</div>
-            <div class="sub">${escapeHtml(String(year))} ${typePill} ${rating}</div>
+          <a class="item"
+             href="${t.netflix_id ? `https://www.netflix.com/watch/${t.netflix_id}` : '#'}"
+             target="_blank"
+             rel="noopener noreferrer">
+            ${cover}
+            <div>
+              <div class="title">${escapeHtml(t.title)}</div>
+              <div class="sub">${t.year} <span class="pill">${t.type}</span></div>
+              ${synopsis}
+            </div>
           </a>
         `;
       }).join('');
@@ -275,7 +262,11 @@
 
     function escapeHtml(s) {
       return String(s).replace(/[&<>"']/g, c => ({
-        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
       }[c]));
     }
 
