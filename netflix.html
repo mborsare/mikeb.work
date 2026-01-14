@@ -125,7 +125,6 @@
       font-size: .85rem;
     }
 
-    /* NEW: synopsis */
     .synopsis {
       margin-top: .35rem;
       font-size: .8rem;
@@ -169,22 +168,19 @@
   <script>
     const DATA_URL = 'https://netflix.mborsare.workers.dev/';
 
-    const DUMMY_TITLES = [
-      {
-        title: 'Arrival',
-        type: 'movie',
-        year: 2016,
-        rating: 'PG-13',
-        netflix_id: null,
-        img: null,
-        synopsis: ''
-      }
-    ];
+    const DUMMY_TITLES = [{
+      title: 'Arrival',
+      type: 'movie',
+      year: 2016,
+      rating: 'PG-13',
+      netflix_id: null,
+      img: null,
+      synopsis: ''
+    }];
 
     let allTitles = [];
     let usingDummy = false;
 
-    /* UPDATED: preserve img + synopsis */
     function normalizeFromWorker(results) {
       return results.map(item => ({
         title: item.title,
@@ -214,8 +210,7 @@
       } catch {
         usingDummy = true;
         allTitles = DUMMY_TITLES.slice();
-        document.getElementById('snapshot').textContent =
-          'Snapshot: dummy data';
+        document.getElementById('snapshot').textContent = 'Snapshot: dummy data';
         applyFilters();
       }
     }
@@ -225,12 +220,17 @@
       const showMovies = document.getElementById('filter-movie').checked;
       const showSeries = document.getElementById('filter-series').checked;
 
-      const filtered = allTitles.filter(t => {
-        if (t.type === 'movie' && !showMovies) return false;
-        if (t.type === 'series' && !showSeries) return false;
-        if (q && !t.title.toLowerCase().includes(q)) return false;
-        return true;
-      });
+      const filtered = allTitles
+        .filter(t => {
+          if (t.type === 'movie' && !showMovies) return false;
+          if (t.type === 'series' && !showSeries) return false;
+          if (q && !t.title.toLowerCase().includes(q)) return false;
+          return true;
+        })
+        // ✅ enforced A–Z
+        .sort((a, b) =>
+          a.title.localeCompare(b.title, 'en', { sensitivity: 'base' })
+        );
 
       document.getElementById('count').textContent =
         `${filtered.length} titles${usingDummy ? ' (dummy)' : ''}`;
