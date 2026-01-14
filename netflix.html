@@ -123,6 +123,9 @@
       padding: .55rem .75rem;
       border: 1px dotted color-mix(in srgb, var(--stamp), transparent 20%);
       border-radius: .85rem;
+      text-decoration: none;
+      color: inherit;
+      display: block;
     }
 
     .title {
@@ -150,9 +153,10 @@
 
 <body>
   <div class="container">
-    <nav style=" padding: 5em; text-align: center;">
+    <nav style="padding: 5em; text-align: center;">
       <a href="/" style="color: var(--seal)">Back</a>
     </nav>
+
     <h1>NETFLIX US A–Z</h1>
     <div class="meta" id="snapshot">Loading catalog…</div>
 
@@ -179,34 +183,10 @@
   <script>
     const DATA_URL = 'https://netflix.mborsare.workers.dev/';
 
-    // Fallback dataset so UX is never empty.
-    // Format matches what your UI needs: title, type, year, rating (optional)
     const DUMMY_TITLES = [
-      { title: 'Arrival', type: 'movie', year: 2016, rating: 'PG-13' },
-      { title: 'The Social Network', type: 'movie', year: 2010, rating: 'PG-13' },
-      { title: 'Her', type: 'movie', year: 2013, rating: 'R' },
-      { title: 'No Country for Old Men', type: 'movie', year: 2007, rating: 'R' },
-      { title: 'Moonlight', type: 'movie', year: 2016, rating: 'R' },
-      { title: 'Drive', type: 'movie', year: 2011, rating: 'R' },
-      { title: 'Inside Man', type: 'movie', year: 2006, rating: 'R' },
-      { title: 'Ex Machina', type: 'movie', year: 2014, rating: 'R' },
-
-      { title: 'Mindhunter', type: 'series', year: 2017, rating: 'TV-MA' },
-      { title: 'Dark', type: 'series', year: 2017, rating: 'TV-MA' },
-      { title: 'The Queen’s Gambit', type: 'series', year: 2020, rating: 'TV-MA' },
-      { title: 'Better Call Saul', type: 'series', year: 2015, rating: 'TV-MA' },
-      { title: 'Black Mirror', type: 'series', year: 2011, rating: 'TV-MA' },
-      { title: 'Narcos', type: 'series', year: 2015, rating: 'TV-MA' },
-      { title: 'Blue Eye Samurai', type: 'series', year: 2023, rating: 'TV-MA' },
-      { title: 'Arcane', type: 'series', year: 2021, rating: 'TV-14' },
-
-      // some “catalog noise” to feel scale
-      { title: 'A Very Normal Romantic Comedy', type: 'movie', year: 2019, rating: 'PG-13' },
-      { title: 'Zombie Heat: Miami', type: 'movie', year: 2022, rating: 'R' },
-      { title: 'Cooking Under Pressure', type: 'series', year: 2021, rating: 'TV-PG' },
-      { title: 'The Last Weekend', type: 'movie', year: 2009, rating: 'R' },
-      { title: 'Mystery at Dawn', type: 'series', year: 2018, rating: 'TV-14' },
-      { title: 'Snowfall', type: 'series', year: 2017, rating: 'TV-MA' }
+      { title: 'Arrival', type: 'movie', year: 2016, rating: 'PG-13', netflix_id: null },
+      { title: 'The Social Network', type: 'movie', year: 2010, rating: 'PG-13', netflix_id: null },
+      { title: 'Mindhunter', type: 'series', year: 2017, rating: 'TV-MA', netflix_id: null }
     ];
 
     let allTitles = [];
@@ -217,7 +197,8 @@
         title: item.title,
         type: item.title_type === 'movie' ? 'movie' : 'series',
         year: item.title_date || item.year || 'N/A',
-        rating: item.rating || ''
+        rating: item.rating || '',
+        netflix_id: item.netflix_id
       }));
     }
 
@@ -228,7 +209,6 @@
 
         const data = await res.json();
 
-        // Worker can return {status:"empty"...} until ingest runs.
         if (data.status === 'empty' || !Array.isArray(data.results) || data.results.length === 0) {
           usingDummy = true;
           allTitles = DUMMY_TITLES.slice();
@@ -274,11 +254,21 @@
         const year = t.year ?? 'N/A';
         const rating = t.rating ? `<span class="pill">${escapeHtml(t.rating)}</span>` : '';
         const typePill = `<span class="pill">${t.type}</span>`;
+
+        const href = t.netflix_id
+          ? `https://www.netflix.com/watch/${t.netflix_id}`
+          : '#';
+
         return `
-          <div class="item">
+          <a
+            class="item"
+            href="${href}"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <div class="title">${escapeHtml(t.title)}</div>
             <div class="sub">${escapeHtml(String(year))} ${typePill} ${rating}</div>
-          </div>
+          </a>
         `;
       }).join('');
     }
