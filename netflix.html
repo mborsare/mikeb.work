@@ -154,6 +154,38 @@
       cursor: pointer;
     }
 
+    .nerd-mode {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      margin: .75rem auto 0 auto;
+      max-width: 64rem;
+      font-size: .85rem;
+      justify-content: flex-start;
+      padding: .75rem;
+      border: 1px dashed color-mix(in srgb, var(--seal), transparent 50%);
+      border-radius: .75rem;
+      background: color-mix(in srgb, var(--seal), transparent 95%);
+    }
+
+    .nerd-mode input[type="checkbox"] {
+      cursor: pointer;
+      width: 1rem;
+      height: 1rem;
+      accent-color: var(--seal);
+    }
+
+    .nerd-mode label {
+      cursor: pointer;
+      color: var(--seal);
+    }
+
+    .nerd-mode .time-flavor {
+      margin-left: auto;
+      font-size: .75rem;
+      opacity: .7;
+    }
+
     body.is-loading #catalog {
       animation: pulse 1.2s ease-in-out infinite;
     }
@@ -309,6 +341,14 @@
       <label for="mode-big">Make the pictures really big</label>
     </div>
 
+    <div class="nerd-mode">
+      <input type="checkbox" id="nerd-mode" onchange="applyFilters()" />
+      <div style="display: flex; flex-direction: column;">
+        <label for="nerd-mode">🎬 Nerdy Video Store Mode</label>
+        <span class="time-flavor" id="time-flavor"></span>
+      </div>
+    </div>
+
     <div id="count"></div>
     <div class="catalog" id="catalog"></div>
   </div>
@@ -319,8 +359,114 @@
     const catalogEl = document.getElementById('catalog');
     const modeCheckbox = document.getElementById('mode-big');
     const alphabetEl = document.getElementById('alphabet');
+    const timeFlavorEl = document.getElementById('time-flavor');
 
     let allTitles = [];
+
+    // Nerdy video store keywords and patterns
+    const NERD_CRITERIA = {
+      // Directors (auteurs)
+      directors: ['kubrick', 'lynch', 'carpenter', 'cronenberg', 'argento', 'romero', 'hooper',
+        'nolan', 'fincher', 'villeneuve', 'del toro', 'tarantino', 'coen', 'hitchcock',
+        'wes anderson', 'paul thomas anderson', 'scorsese', 'ridley scott', 'verhoeven',
+        'gilliam', 'zemeckis', 'spielberg', 'cameron'],
+
+      // 80s classics & cult
+      classics: ['blade runner', 'alien', 'aliens', 'terminator', 'thing', 'fly', 'evil dead',
+        'reanimator', 'hellraiser', 'scanners', 'videodrome', 'they live', 'escape from',
+        'big trouble', 'brazil', 'dune', 'tron', 'akira', 'ghost in the shell'],
+
+      // Horror & thriller
+      horror: ['nightmare', 'friday the 13th', 'halloween', 'scream', 'saw', 'conjuring',
+        'insidious', 'sinister', 'hereditary', 'midsommar', 'witch', 'lighthouse',
+        'suspiria', 'cabin', 'descent', 'ring', 'grudge', 'dark', 'black mirror'],
+
+      // Adventure & sci-fi
+      adventure: ['indiana jones', 'goonies', 'princess bride', 'labyrinth', 'dark crystal',
+        'neverending story', 'willow', 'mad max', 'road warrior', 'dredd',
+        'fifth element', 'total recall', 'robocop', 'starship troopers'],
+
+      // Prestige/arthouse indicators
+      prestige: ['criterion', 'directors cut', 'uncut', 'remastered', 'restored', 'original',
+        'edition', 'documentary', 'portrait', 'story of', 'making of'],
+
+      // Time-based preferences
+      timeOfDay: {
+        morning: ['2001', 'solaris', 'arrival', 'interstellar', 'her', 'moon', 'ex machina',
+          'annihilation', 'blade runner', 'ghost in the shell'],
+        afternoon: ['raiders', 'fury road', 'dredd', 'john wick', 'mission impossible',
+          'bourne', 'kingsman', 'baby driver', 'edge of tomorrow'],
+        evening: ['silence of the lambs', 'seven', 'zodiac', 'gone girl', 'prisoners',
+          'shutter island', 'the thing', 'alien', 'hereditary', 'midsommar'],
+        latenight: ['eraserhead', 'mulholland', 'twin peaks', 'donnie darko', 'fight club',
+          'requiem', 'trainspotting', 'fear and loathing', 'bad lieutenant']
+      }
+    };
+
+    // Anti-patterns (what to avoid)
+    const NERD_EXCLUSIONS = [
+      'hallmark', 'christmas prince', 'holiday', 'kissing booth', 'to all the boys',
+      'tall girl', 'sierra burgess', 'perfect date', 'love guaranteed'
+    ];
+
+    function getTimeOfDay() {
+      const hour = new Date().getHours();
+      if (hour >= 6 && hour < 12) return 'morning';
+      if (hour >= 12 && hour < 18) return 'afternoon';
+      if (hour >= 18 && hour < 24) return 'evening';
+      return 'latenight';
+    }
+
+    function getTimeFlavor() {
+      const timeOfDay = getTimeOfDay();
+      const flavors = {
+        morning: 'Cerebral sci-fi & arthouse',
+        afternoon: 'Adventure & action classics',
+        evening: 'Horror, thrillers & noir',
+        latenight: 'Cult classics & weird stuff'
+      };
+      return flavors[timeOfDay];
+    }
+
+    function updateTimeFlavor() {
+      if (document.getElementById('nerd-mode').checked) {
+        timeFlavorEl.textContent = `Now showing: ${getTimeFlavor()}`;
+      } else {
+        timeFlavorEl.textContent = '';
+      }
+    }
+
+    function matchesNerdCriteria(title) {
+      const nerdMode = document.getElementById('nerd-mode').checked;
+      if (!nerdMode) return true;
+
+      const titleLower = title.title.toLowerCase();
+      const synopsisLower = (title.synopsis || '').toLowerCase();
+      const combined = titleLower + ' ' + synopsisLower;
+
+      // Exclusions first
+      if (NERD_EXCLUSIONS.some(ex => combined.includes(ex))) {
+        return false;
+      }
+
+      // Check year (80s bonus)
+      const year = parseInt(title.year);
+      const is80s = year >= 1980 && year <= 1989;
+
+      // Simple keyword matching
+      const hasDirector = NERD_CRITERIA.directors.some(d => combined.includes(d));
+      const hasClassic = NERD_CRITERIA.classics.some(c => titleLower.includes(c));
+      const hasHorror = NERD_CRITERIA.horror.some(h => titleLower.includes(h));
+      const hasAdventure = NERD_CRITERIA.adventure.some(a => titleLower.includes(a));
+      const hasPrestige = NERD_CRITERIA.prestige.some(p => combined.includes(p));
+
+      // Time-of-day matching
+      const timeOfDay = getTimeOfDay();
+      const hasTimeMatch = NERD_CRITERIA.timeOfDay[timeOfDay].some(t => titleLower.includes(t));
+
+      // Pass if matches any criteria (generous filtering)
+      return is80s || hasDirector || hasClassic || hasHorror || hasAdventure || hasPrestige || hasTimeMatch;
+    }
 
     const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
     alphabetEl.innerHTML = letters.map(l =>
@@ -381,10 +527,13 @@
       const showMovies = document.getElementById('filter-movie').checked;
       const showSeries = document.getElementById('filter-series').checked;
 
+      updateTimeFlavor();
+
       const filtered = allTitles
         .filter(t =>
           (!q || t.title.toLowerCase().includes(q)) &&
-          ((t.type === 'movie' && showMovies) || (t.type === 'series' && showSeries))
+          ((t.type === 'movie' && showMovies) || (t.type === 'series' && showSeries)) &&
+          matchesNerdCriteria(t)
         )
         .sort((a, b) => a.title.localeCompare(b.title, 'en', { sensitivity: 'base' }));
 
@@ -428,6 +577,10 @@
       modeCheckbox.checked = true;
       document.body.classList.add('big-mode');
     }
+
+    // Update time flavor every minute
+    setInterval(updateTimeFlavor, 60000);
+    updateTimeFlavor();
 
     function escapeHtml(s) {
       return String(s).replace(/[&<>"']/g, c => ({
