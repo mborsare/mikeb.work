@@ -343,10 +343,8 @@
 
     <div class="nerd-mode">
       <input type="checkbox" id="nerd-mode" onchange="applyFilters()" />
-      <div style="display: flex; flex-direction: column;">
-        <label for="nerd-mode">🎬 Nerdy Video Store Mode</label>
-        <span class="time-flavor" id="time-flavor"></span>
-      </div>
+      <label for="nerd-mode">🎬 Nerdy Video Store Mode</label>
+      <span class="time-flavor" id="time-flavor"></span>
     </div>
 
     <div id="count"></div>
@@ -362,6 +360,7 @@
     const timeFlavorEl = document.getElementById('time-flavor');
 
     let allTitles = [];
+    let isRandomized = false;
 
     // Nerdy video store keywords and patterns
     const NERD_CRITERIA = {
@@ -471,7 +470,8 @@
     const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
     alphabetEl.innerHTML = letters.map(l =>
       `<button data-letter="${l}">${l}</button>`
-    ).join('') + '<button class="random" id="random-btn">Choose randomnly</button>';
+    ).join('') + '<div style="display: grid; row-gap: .8em;">' + '<button class="random" id="random-btn">Fate decides</button>' +
+      '<button class="random" id="randomize-btn">Randomize</button>' + '</div>';
 
     alphabetEl.addEventListener('click', (e) => {
       if (e.target.tagName !== 'BUTTON') return;
@@ -482,6 +482,7 @@
 
         const eligible = allTitles.filter(t =>
           ((t.type === 'movie' && showMovies) || (t.type === 'series' && showSeries)) &&
+          matchesNerdCriteria(t) &&
           t.netflix_id
         );
 
@@ -492,14 +493,30 @@
         return;
       }
 
+      if (e.target.id === 'randomize-btn') {
+        isRandomized = true;
+        applyFilters();
+        return;
+      }
+
+      // Letter click - reset to A-Z and jump
       const letter = e.target.dataset.letter;
+      if (isRandomized) {
+        isRandomized = false;
+        applyFilters();
+        // Wait for re-render before scrolling
+        setTimeout(() => {
+          const target = document.getElementById(`letter-${letter}`);
+          if (target) target.scrollIntoView({ block: 'start' });
+        }, 50);
+      } else {
+        const target = document.getElementById(`letter-${letter}`);
+        if (target) target.scrollIntoView({ block: 'start' });
+      }
 
       alphabetEl.querySelectorAll('button')
         .forEach(btn => btn.classList.remove('active'));
       e.target.classList.add('active');
-
-      const target = document.getElementById(`letter-${letter}`);
-      if (target) target.scrollIntoView({ block: 'start' });
     });
 
     function normalizeFromWorker(results) {
@@ -529,20 +546,27 @@
 
       updateTimeFlavor();
 
-      const filtered = allTitles
+      let filtered = allTitles
         .filter(t =>
           (!q || t.title.toLowerCase().includes(q)) &&
           ((t.type === 'movie' && showMovies) || (t.type === 'series' && showSeries)) &&
           matchesNerdCriteria(t)
-        )
-        .sort((a, b) => a.title.localeCompare(b.title, 'en', { sensitivity: 'base' }));
+        );
+
+      // Sort: randomized or A-Z
+      if (isRandomized) {
+        filtered = filtered.sort(() => Math.random() - 0.5);
+      } else {
+        filtered = filtered.sort((a, b) => a.title.localeCompare(b.title, 'en', { sensitivity: 'base' }));
+      }
 
       const seen = new Set();
 
       catalogEl.innerHTML = filtered.map(t => {
+        // Only add letter anchors if NOT randomized
         const L = t.title[0]?.toUpperCase();
         const anchor =
-          L && !seen.has(L)
+          !isRandomized && L && !seen.has(L)
             ? (seen.add(L), `id="letter-${L}"`)
             : '';
 
@@ -564,7 +588,8 @@
         `;
       }).join('');
 
-      document.getElementById('count').textContent = `${filtered.length} titles`;
+      const countText = isRandomized ? `${filtered.length} titles (randomized)` : `${filtered.length} titles`;
+      document.getElementById('count').textContent = countText;
     }
 
     modeCheckbox.addEventListener('change', () => {
