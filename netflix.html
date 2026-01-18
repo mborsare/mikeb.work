@@ -83,14 +83,20 @@
       white-space: nowrap;
     }
 
-    /* ---- ALPHABET ---- */
+    /* ---- ALPHABET (STICKY) ---- */
     .alphabet {
+      position: sticky;
+      top: 0;
+      z-index: 5;
       display: flex;
       gap: .5rem;
       justify-content: center;
       flex-wrap: wrap;
       margin: 0 auto 1rem auto;
       max-width: 64rem;
+      background: var(--bg);
+      padding: .5rem 0 .75rem;
+      border-bottom: 1px dotted color-mix(in srgb, var(--stamp), transparent 40%);
     }
 
     .alphabet button {
@@ -116,7 +122,6 @@
       border-color: var(--seal);
     }
 
-    /* ---- MODE SWITCH ---- */
     .mode-switch {
       display: flex;
       align-items: center;
@@ -138,7 +143,6 @@
       cursor: pointer;
     }
 
-    /* ---- LOADING PULSE ---- */
     body.is-loading #catalog {
       animation: pulse 1.2s ease-in-out infinite;
     }
@@ -249,7 +253,6 @@
       opacity: .85;
     }
 
-    /* ---------- BIG MODE ---------- */
     body.big-mode .catalog {
       grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
       gap: 1.25rem;
@@ -304,43 +307,26 @@
     const snapshotEl = document.getElementById('snapshot');
     const catalogEl = document.getElementById('catalog');
     const modeCheckbox = document.getElementById('mode-big');
-    const searchInput = document.getElementById('search');
     const alphabetEl = document.getElementById('alphabet');
 
-    const loadingTimer = setTimeout(() => {
-      if (snapshotEl.textContent === 'Fixing Netflix, one sec…') {
-        snapshotEl.textContent = "Still fixing. It's really messy...";
-      }
-    }, 3000);
-
     let allTitles = [];
-    let usingDummy = false;
 
-    // Create alphabet buttons
     const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-    alphabetEl.innerHTML = letters.map(letter =>
-      `<button data-letter="${letter}">${letter}</button>`
+    alphabetEl.innerHTML = letters.map(l =>
+      `<button data-letter="${l}">${l}</button>`
     ).join('');
 
     alphabetEl.addEventListener('click', (e) => {
-      if (e.target.tagName === 'BUTTON') {
-        const letter = e.target.dataset.letter;
+      if (e.target.tagName !== 'BUTTON') return;
 
-        // Remove active class from all buttons
-        alphabetEl.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
+      const letter = e.target.dataset.letter;
 
-        // Add active class to clicked button
-        e.target.classList.add('active');
+      alphabetEl.querySelectorAll('button')
+        .forEach(btn => btn.classList.remove('active'));
+      e.target.classList.add('active');
 
-        // Set search input and filter
-        searchInput.value = letter;
-        applyFilters();
-      }
-    });
-
-    // Clear active state when user types
-    searchInput.addEventListener('input', () => {
-      alphabetEl.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
+      const target = document.getElementById(`letter-${letter}`);
+      if (target) target.scrollIntoView({ block: 'start' });
     });
 
     function normalizeFromWorker(results) {
@@ -348,7 +334,6 @@
         title: item.title,
         type: item.title_type === 'movie' ? 'movie' : 'series',
         year: item.title_date || item.year || 'N/A',
-        rating: item.rating || '',
         netflix_id: item.netflix_id,
         img: item.img || null,
         synopsis: item.synopsis || ''
@@ -356,28 +341,12 @@
     }
 
     async function loadCatalog() {
-      try {
-        const res = await fetch(DATA_URL, { cache: 'no-store' });
-        if (!res.ok) throw new Error();
-
-        const data = await res.json();
-        if (!Array.isArray(data.results)) throw new Error();
-
-        clearTimeout(loadingTimer);
-        document.body.classList.remove('is-loading');
-
-        allTitles = normalizeFromWorker(data.results);
-        snapshotEl.textContent = `Snapshot: ${data.day} · ${allTitles.length} titles`;
-        applyFilters();
-
-      } catch {
-        clearTimeout(loadingTimer);
-        document.body.classList.remove('is-loading');
-
-        snapshotEl.textContent = 'Snapshot: dummy data';
-        allTitles = [];
-        applyFilters();
-      }
+      const res = await fetch(DATA_URL, { cache: 'no-store' });
+      const data = await res.json();
+      allTitles = normalizeFromWorker(data.results);
+      document.body.classList.remove('is-loading');
+      snapshotEl.textContent = `Snapshot: ${data.day} · ${allTitles.length} titles`;
+      applyFilters();
     }
 
     function applyFilters() {
@@ -385,27 +354,41 @@
       const showMovies = document.getElementById('filter-movie').checked;
       const showSeries = document.getElementById('filter-series').checked;
 
-      const filtered = allTitles.filter(t =>
-        (!q || t.title.toLowerCase().includes(q)) &&
-        ((t.type === 'movie' && showMovies) || (t.type === 'series' && showSeries))
-      ).sort((a, b) => a.title.localeCompare(b.title, 'en', { sensitivity: 'base' }));
+      const filtered = allTitles
+        .filter(t =>
+          (!q || t.title.toLowerCase().includes(q)) &&
+          ((t.type === 'movie' && showMovies) || (t.type === 'series' && showSeries))
+        )
+        .sort((a, b) => a.title.localeCompare(b.title, 'en', { sensitivity: 'base' }));
+
+      const seen = new Set();
+
+      catalogEl.innerHTML = filtered.map(t => {
+        const L = t.title[0]?.toUpperCase();
+        const anchor =
+          L && !seen.has(L)
+            ? (seen.add(L), `id="letter-${L}"`)
+            : '';
+
+        return `
+          <a class="item" ${anchor}
+             href="${t.netflix_id ? `https://www.netflix.com/watch/${t.netflix_id}` : '#'}"
+             target="_blank">
+            ${t.img ? `
+              <div class="cover-wrap">
+                <img class="cover" src="${t.img}" loading="lazy">
+                <div class="play-overlay">PLAY ></div>
+              </div>` : ''}
+            <div>
+              <div class="title">${escapeHtml(t.title)}</div>
+              <div class="sub">${t.year} <span class="pill">${t.type}</span></div>
+              ${t.synopsis ? `<div class="synopsis">${escapeHtml(t.synopsis)}</div>` : ''}
+            </div>
+          </a>
+        `;
+      }).join('');
 
       document.getElementById('count').textContent = `${filtered.length} titles`;
-      catalogEl.innerHTML = filtered.map(t => `
-        <a class="item" href="${t.netflix_id ? `https://www.netflix.com/watch/${t.netflix_id}` : '#'}" target="_blank">
-          ${t.img ? `
-            <div class="cover-wrap">
-              <img class="cover" src="${t.img}" loading="lazy">
-              <div class="play-overlay">PLAY ></div>
-            </div>
-          ` : ''}
-          <div>
-            <div class="title">${escapeHtml(t.title)}</div>
-            <div class="sub">${t.year} <span class="pill">${t.type}</span></div>
-            ${t.synopsis ? `<div class="synopsis">${escapeHtml(t.synopsis)}</div>` : ''}
-          </div>
-        </a>
-      `).join('');
     }
 
     modeCheckbox.addEventListener('change', () => {
@@ -421,7 +404,8 @@
 
     function escapeHtml(s) {
       return String(s).replace(/[&<>"']/g, c => ({
-        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        '&': '&amp;', '<': '&lt;', '>': '&gt;',
+        '"': '&quot;', "'": '&#39;'
       }[c]));
     }
 
