@@ -83,6 +83,39 @@
       white-space: nowrap;
     }
 
+    /* ---- ALPHABET ---- */
+    .alphabet {
+      display: flex;
+      gap: .5rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 0 auto 1rem auto;
+      max-width: 64rem;
+    }
+
+    .alphabet button {
+      background: transparent;
+      border: 1px solid var(--stamp);
+      color: var(--text);
+      font-family: inherit;
+      font-size: .85rem;
+      padding: .25rem .5rem;
+      border-radius: .4rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .alphabet button:hover {
+      border-color: var(--seal);
+      color: var(--seal);
+    }
+
+    .alphabet button.active {
+      background: var(--seal);
+      color: var(--bg);
+      border-color: var(--seal);
+    }
+
     /* ---- MODE SWITCH ---- */
     .mode-switch {
       display: flex;
@@ -255,6 +288,8 @@
       </div>
     </div>
 
+    <div class="alphabet" id="alphabet"></div>
+
     <div class="mode-switch">
       <input type="checkbox" id="mode-big" />
       <label for="mode-big">Make the pictures really big</label>
@@ -269,6 +304,8 @@
     const snapshotEl = document.getElementById('snapshot');
     const catalogEl = document.getElementById('catalog');
     const modeCheckbox = document.getElementById('mode-big');
+    const searchInput = document.getElementById('search');
+    const alphabetEl = document.getElementById('alphabet');
 
     const loadingTimer = setTimeout(() => {
       if (snapshotEl.textContent === 'Fixing Netflix, one sec…') {
@@ -278,6 +315,33 @@
 
     let allTitles = [];
     let usingDummy = false;
+
+    // Create alphabet buttons
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+    alphabetEl.innerHTML = letters.map(letter =>
+      `<button data-letter="${letter}">${letter}</button>`
+    ).join('');
+
+    alphabetEl.addEventListener('click', (e) => {
+      if (e.target.tagName === 'BUTTON') {
+        const letter = e.target.dataset.letter;
+
+        // Remove active class from all buttons
+        alphabetEl.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
+
+        // Add active class to clicked button
+        e.target.classList.add('active');
+
+        // Set search input and filter
+        searchInput.value = letter;
+        applyFilters();
+      }
+    });
+
+    // Clear active state when user types
+    searchInput.addEventListener('input', () => {
+      alphabetEl.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
+    });
 
     function normalizeFromWorker(results) {
       return results.map(item => ({
