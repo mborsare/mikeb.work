@@ -79,6 +79,49 @@
     .filters {
       display: flex;
       margin: 1em;
+      gap: .75rem;
+      white-space: nowrap;
+    }
+
+    /* ---- MODE SWITCH ---- */
+    .mode-switch {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      margin: .25rem auto 0 auto;
+      max-width: 64rem;
+      font-size: .85rem;
+      justify-content: flex-start;
+    }
+
+    .mode-switch input[type="checkbox"] {
+      cursor: pointer;
+      width: 1rem;
+      height: 1rem;
+      accent-color: #0375ff;
+    }
+
+    .mode-switch label {
+      cursor: pointer;
+    }
+
+    /* ---- LOADING PULSE ---- */
+    body.is-loading #catalog {
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        opacity: .35;
+      }
+
+      50% {
+        opacity: .65;
+      }
+
+      100% {
+        opacity: .35;
+      }
     }
 
     #count {
@@ -104,6 +147,11 @@
       border-radius: .85rem;
       text-decoration: none;
       color: inherit;
+      position: relative;
+    }
+
+    .item .cover-wrap {
+      position: relative;
     }
 
     .cover {
@@ -112,6 +160,32 @@
       object-fit: cover;
       border-radius: .4rem;
       background: #111;
+      transition: opacity 0.2s ease;
+    }
+
+    .item:hover .cover {
+      opacity: 0.3;
+    }
+
+    .play-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--seal);
+      font-size: 1rem;
+      font-weight: bold;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      pointer-events: none;
+    }
+
+    .item:hover .play-overlay {
+      opacity: 1;
     }
 
     .title {
@@ -141,10 +215,30 @@
       font-size: .75rem;
       opacity: .85;
     }
+
+    /* ---------- BIG MODE ---------- */
+    body.big-mode .catalog {
+      grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+      gap: 1.25rem;
+    }
+
+    body.big-mode .item {
+      display: block;
+      padding: 0;
+      border: none;
+    }
+
+    body.big-mode .cover {
+      border-radius: .75rem;
+    }
+
+    body.big-mode .item>div {
+      padding: .5rem .25rem 0 .25rem;
+    }
   </style>
 </head>
 
-<body>
+<body class="is-loading">
   <div class="container">
     <nav style="padding: 5em; text-align: center;">
       <a href="/" style="color: var(--seal)">Back</a>
@@ -161,22 +255,26 @@
       </div>
     </div>
 
+    <div class="mode-switch">
+      <input type="checkbox" id="mode-big" />
+      <label for="mode-big">Make the pictures really big</label>
+    </div>
+
     <div id="count"></div>
     <div class="catalog" id="catalog"></div>
   </div>
 
   <script>
     const DATA_URL = 'https://netflix.mborsare.workers.dev/';
+    const snapshotEl = document.getElementById('snapshot');
+    const catalogEl = document.getElementById('catalog');
+    const modeCheckbox = document.getElementById('mode-big');
 
-    const DUMMY_TITLES = [{
-      title: 'Arrival',
-      type: 'movie',
-      year: 2016,
-      rating: 'PG-13',
-      netflix_id: null,
-      img: null,
-      synopsis: ''
-    }];
+    const loadingTimer = setTimeout(() => {
+      if (snapshotEl.textContent === 'Fixing Netflix, one sec…') {
+        snapshotEl.textContent = "Still fixing. It's really messy...";
+      }
+    }, 3000);
 
     let allTitles = [];
     let usingDummy = false;
@@ -199,18 +297,21 @@
         if (!res.ok) throw new Error();
 
         const data = await res.json();
-        if (!Array.isArray(data.results) || data.results.length === 0) throw new Error();
+        if (!Array.isArray(data.results)) throw new Error();
 
-        usingDummy = false;
+        clearTimeout(loadingTimer);
+        document.body.classList.remove('is-loading');
+
         allTitles = normalizeFromWorker(data.results);
-        document.getElementById('snapshot').textContent =
-          `Snapshot: ${data.day} · ${allTitles.length} titles`;
+        snapshotEl.textContent = `Snapshot: ${data.day} · ${allTitles.length} titles`;
         applyFilters();
 
       } catch {
-        usingDummy = true;
-        allTitles = DUMMY_TITLES.slice();
-        document.getElementById('snapshot').textContent = 'Snapshot: dummy data';
+        clearTimeout(loadingTimer);
+        document.body.classList.remove('is-loading');
+
+        snapshotEl.textContent = 'Snapshot: dummy data';
+        allTitles = [];
         applyFilters();
       }
     }
@@ -220,53 +321,43 @@
       const showMovies = document.getElementById('filter-movie').checked;
       const showSeries = document.getElementById('filter-series').checked;
 
-      const filtered = allTitles
-        .filter(t => {
-          if (t.type === 'movie' && !showMovies) return false;
-          if (t.type === 'series' && !showSeries) return false;
-          if (q && !t.title.toLowerCase().includes(q)) return false;
-          return true;
-        })
-        // ✅ enforced A–Z
-        .sort((a, b) =>
-          a.title.localeCompare(b.title, 'en', { sensitivity: 'base' })
-        );
+      const filtered = allTitles.filter(t =>
+        (!q || t.title.toLowerCase().includes(q)) &&
+        ((t.type === 'movie' && showMovies) || (t.type === 'series' && showSeries))
+      ).sort((a, b) => a.title.localeCompare(b.title, 'en', { sensitivity: 'base' }));
 
-      document.getElementById('count').textContent =
-        `${filtered.length} titles${usingDummy ? ' (dummy)' : ''}`;
-
-      document.getElementById('catalog').innerHTML = filtered.map(t => {
-        const cover = t.img
-          ? `<img class="cover" src="${t.img}" loading="lazy" alt="">`
-          : '';
-
-        const synopsis = t.synopsis
-          ? `<div class="synopsis">${escapeHtml(t.synopsis)}</div>`
-          : '';
-
-        return `
-          <a class="item"
-             href="${t.netflix_id ? `https://www.netflix.com/watch/${t.netflix_id}` : '#'}"
-             target="_blank"
-             rel="noopener noreferrer">
-            ${cover}
-            <div>
-              <div class="title">${escapeHtml(t.title)}</div>
-              <div class="sub">${t.year} <span class="pill">${t.type}</span></div>
-              ${synopsis}
+      document.getElementById('count').textContent = `${filtered.length} titles`;
+      catalogEl.innerHTML = filtered.map(t => `
+        <a class="item" href="${t.netflix_id ? `https://www.netflix.com/watch/${t.netflix_id}` : '#'}" target="_blank">
+          ${t.img ? `
+            <div class="cover-wrap">
+              <img class="cover" src="${t.img}" loading="lazy">
+              <div class="play-overlay">PLAY ></div>
             </div>
-          </a>
-        `;
-      }).join('');
+          ` : ''}
+          <div>
+            <div class="title">${escapeHtml(t.title)}</div>
+            <div class="sub">${t.year} <span class="pill">${t.type}</span></div>
+            ${t.synopsis ? `<div class="synopsis">${escapeHtml(t.synopsis)}</div>` : ''}
+          </div>
+        </a>
+      `).join('');
+    }
+
+    modeCheckbox.addEventListener('change', () => {
+      const on = modeCheckbox.checked;
+      document.body.classList.toggle('big-mode', on);
+      localStorage.setItem('viewMode', on ? 'big' : 'small');
+    });
+
+    if (localStorage.getItem('viewMode') === 'big') {
+      modeCheckbox.checked = true;
+      document.body.classList.add('big-mode');
     }
 
     function escapeHtml(s) {
       return String(s).replace(/[&<>"']/g, c => ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;'
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
       }[c]));
     }
 
