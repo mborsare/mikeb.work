@@ -116,10 +116,21 @@
       color: var(--seal);
     }
 
-    .alphabet button.active {
+    .alphabet button:active {
       background: var(--seal);
       color: var(--bg);
       border-color: var(--seal);
+    }
+
+    .alphabet button.random {
+      background: var(--seal);
+      color: var(--bg);
+      border-color: var(--seal);
+      padding: .25rem .75rem;
+    }
+
+    .alphabet button.random:hover {
+      opacity: 0.85;
     }
 
     .mode-switch {
@@ -314,10 +325,26 @@
     const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
     alphabetEl.innerHTML = letters.map(l =>
       `<button data-letter="${l}">${l}</button>`
-    ).join('');
+    ).join('') + '<button class="random" id="random-btn">Choose randomnly</button>';
 
     alphabetEl.addEventListener('click', (e) => {
       if (e.target.tagName !== 'BUTTON') return;
+
+      if (e.target.id === 'random-btn') {
+        const showMovies = document.getElementById('filter-movie').checked;
+        const showSeries = document.getElementById('filter-series').checked;
+
+        const eligible = allTitles.filter(t =>
+          ((t.type === 'movie' && showMovies) || (t.type === 'series' && showSeries)) &&
+          t.netflix_id
+        );
+
+        if (eligible.length > 0) {
+          const random = eligible[Math.floor(Math.random() * eligible.length)];
+          window.open(`https://www.netflix.com/watch/${random.netflix_id}`, '_blank');
+        }
+        return;
+      }
 
       const letter = e.target.dataset.letter;
 
