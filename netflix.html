@@ -36,6 +36,7 @@
       display: flex;
       justify-content: center;
       align-items: flex-start;
+      transition: background 0.3s ease, color 0.3s ease;
     }
 
     .container {
@@ -50,11 +51,12 @@
       letter-spacing: .15em;
       margin: 0 0 .25rem 0;
       font-size: 1.6rem;
+      transition: color 0.3s ease;
     }
 
     .meta {
       opacity: .7;
-      font-size: .85rem;
+      font-size: .5rem;
       margin: 0 0 1.25rem 0;
     }
 
@@ -74,29 +76,36 @@
       font-family: inherit;
       width: 100%;
       outline: none;
+      transition: border-color 0.3s ease, color 0.3s ease;
     }
 
     .filters {
       display: flex;
+      justify-content: center;
       margin: 1em;
       gap: .75rem;
       white-space: nowrap;
     }
 
-    /* ---- ALPHABET (STICKY) ---- */
-    .alphabet {
+    /* ---- STICKY CONTROLS CONTAINER ---- */
+    .sticky-controls {
       position: sticky;
       top: 0;
       z-index: 5;
+      background: var(--bg);
+      padding: .75rem 0;
+      border-bottom: 1px dotted color-mix(in srgb, var(--stamp), transparent 40%);
+      transition: background 0.3s ease;
+    }
+
+    /* ---- ALPHABET ---- */
+    .alphabet {
       display: flex;
       gap: .5rem;
       justify-content: center;
       flex-wrap: wrap;
-      margin: 0 auto 1rem auto;
+      margin: 0 auto .75rem auto;
       max-width: 64rem;
-      background: var(--bg);
-      padding: .5rem 0 .75rem;
-      border-bottom: 1px dotted color-mix(in srgb, var(--stamp), transparent 40%);
     }
 
     .alphabet button {
@@ -127,63 +136,11 @@
       color: var(--bg);
       border-color: var(--seal);
       padding: .25rem .75rem;
+      transition: all 0.3s ease;
     }
 
     .alphabet button.random:hover {
       opacity: 0.85;
-    }
-
-    .mode-switch {
-      display: flex;
-      align-items: center;
-      gap: .6rem;
-      margin: .25rem auto 0 auto;
-      max-width: 64rem;
-      font-size: .85rem;
-      justify-content: flex-start;
-    }
-
-    .mode-switch input[type="checkbox"] {
-      cursor: pointer;
-      width: 1rem;
-      height: 1rem;
-      accent-color: #0375ff;
-    }
-
-    .mode-switch label {
-      cursor: pointer;
-    }
-
-    .nerd-mode {
-      display: flex;
-      align-items: center;
-      gap: .6rem;
-      margin: .75rem auto 0 auto;
-      max-width: 64rem;
-      font-size: .85rem;
-      justify-content: flex-start;
-      padding: .75rem;
-      border: 1px dashed color-mix(in srgb, var(--seal), transparent 50%);
-      border-radius: .75rem;
-      background: color-mix(in srgb, var(--seal), transparent 95%);
-    }
-
-    .nerd-mode input[type="checkbox"] {
-      cursor: pointer;
-      width: 1rem;
-      height: 1rem;
-      accent-color: var(--seal);
-    }
-
-    .nerd-mode label {
-      cursor: pointer;
-      color: var(--seal);
-    }
-
-    .nerd-mode .time-flavor {
-      margin-left: auto;
-      font-size: .75rem;
-      opacity: .7;
     }
 
     body.is-loading #catalog {
@@ -204,10 +161,10 @@
       }
     }
 
-    #count {
+    #count,
+    .time-flavor {
       opacity: .75;
       font-size: .85rem;
-      margin: .5rem 0 0 0;
     }
 
     .catalog {
@@ -228,6 +185,7 @@
       text-decoration: none;
       color: inherit;
       position: relative;
+      transition: border-color 0.3s ease;
     }
 
     .item .cover-wrap {
@@ -271,6 +229,8 @@
     .title {
       color: var(--seal);
       line-height: 1.25;
+      margin: .5rem 0;
+      transition: color 0.3s ease;
     }
 
     .sub {
@@ -280,10 +240,8 @@
     }
 
     .synopsis {
-      margin-top: .35rem;
-      font-size: .8rem;
-      line-height: 1.35;
-      opacity: .6;
+      margin-top: .5rem;
+      line-height: 1.5;
     }
 
     .pill {
@@ -294,6 +252,7 @@
       margin-left: .35rem;
       font-size: .75rem;
       opacity: .85;
+      transition: border-color 0.3s ease;
     }
 
     body.big-mode .catalog {
@@ -314,40 +273,65 @@
     body.big-mode .item>div {
       padding: .5rem .25rem 0 .25rem;
     }
+
+    #mode-select {
+      text-align: center;
+      padding: .5rem;
+      margin: 1rem;
+      font-family: inherit;
+      border-radius: .5rem;
+    }
+
+    /* .nerd-mode {
+      padding: 1rem;
+    } */
   </style>
 </head>
 
 <body class="is-loading">
   <div class="container">
     <nav style="padding: 5em; text-align: center;">
-      <a href="/" style="color: var(--seal)">Back</a>
+      <a href="/" style="color: var(--seal); transition: color 0.3s ease;">Back</a>
     </nav>
 
-    <h1>NETFLIX US A–Z</h1>
-    <div class="meta" id="snapshot">Fixing Netflix, one sec…</div>
+    <pre class="meta" id="snapshot">
+░██                              ░██ ░██                                     
+░██                              ░██                                         
+░██  ░███████   ░██████    ░████████ ░██░████████   ░████████                
+░██ ░██    ░██       ░██  ░██    ░██ ░██░██    ░██ ░██    ░██                
+░██ ░██    ░██  ░███████  ░██    ░██ ░██░██    ░██ ░██    ░██                
+░██ ░██    ░██ ░██   ░██  ░██   ░███ ░██░██    ░██ ░██   ░███                
+░██  ░███████   ░█████░██  ░█████░██ ░██░██    ░██  ░█████░██    ░██ ░██ ░██ 
+                                                          ░██                
+                                                    ░███████                 
+                                                                             
+      </pre>
 
-    <div class="controls">
-      <input id="search" type="text" placeholder="Search titles…" oninput="applyFilters()" autocomplete="off" />
+    <div class="nerd-mode">
+      <div id="count"></div>
+    </div>
+
+    <div class="sticky-controls">
+      <select id="mode-select" onchange="handleModeChange()">
+        <option value="off">No filter</option>
+        <option value="primetime">Video store mode</option>
+        <option value="saturday">Wake up on Saturday morning</option>
+        <option value="background">Put something on in the background</option>
+      </select>
+      <div class="time-flavor" id="time-flavor"></div>
+
       <div class="filters">
         <label><input type="checkbox" id="filter-movie" checked onchange="applyFilters()" /> Movies</label>
         <label><input type="checkbox" id="filter-series" checked onchange="applyFilters()" /> Series</label>
+        <label><input type="checkbox" id="mode-big" />Make the pictures really big</label>
+      </div>
+
+      <div id="alphabet" class="alphabet"></div>
+      <div class="controls">
+        <input id="search" type="text" placeholder="Search titles…" oninput="applyFilters()" autocomplete="off" />
       </div>
     </div>
 
-    <div class="alphabet" id="alphabet"></div>
-
-    <div class="mode-switch">
-      <input type="checkbox" id="mode-big" />
-      <label for="mode-big">Make the pictures really big</label>
-    </div>
-
-    <div class="nerd-mode">
-      <input type="checkbox" id="nerd-mode" onchange="applyFilters()" />
-      <label for="nerd-mode">🎬 Nerdy Video Store Mode</label>
-      <span class="time-flavor" id="time-flavor"></span>
-    </div>
-
-    <div id="count"></div>
     <div class="catalog" id="catalog"></div>
   </div>
 
@@ -362,34 +346,23 @@
     let allTitles = [];
     let isRandomized = false;
 
-    // Nerdy video store keywords and patterns
-    const NERD_CRITERIA = {
-      // Directors (auteurs)
+    // PRIMETIME VIDEO MODE - Nerdy video store keywords and patterns
+    const PRIMETIME_CRITERIA = {
       directors: ['kubrick', 'lynch', 'carpenter', 'cronenberg', 'argento', 'romero', 'hooper',
         'nolan', 'fincher', 'villeneuve', 'del toro', 'tarantino', 'coen', 'hitchcock',
         'wes anderson', 'paul thomas anderson', 'scorsese', 'ridley scott', 'verhoeven',
         'gilliam', 'zemeckis', 'spielberg', 'cameron'],
-
-      // 80s classics & cult
       classics: ['blade runner', 'alien', 'aliens', 'terminator', 'thing', 'fly', 'evil dead',
         'reanimator', 'hellraiser', 'scanners', 'videodrome', 'they live', 'escape from',
         'big trouble', 'brazil', 'dune', 'tron', 'akira', 'ghost in the shell'],
-
-      // Horror & thriller
       horror: ['nightmare', 'friday the 13th', 'halloween', 'scream', 'saw', 'conjuring',
         'insidious', 'sinister', 'hereditary', 'midsommar', 'witch', 'lighthouse',
         'suspiria', 'cabin', 'descent', 'ring', 'grudge', 'dark', 'black mirror'],
-
-      // Adventure & sci-fi
       adventure: ['indiana jones', 'goonies', 'princess bride', 'labyrinth', 'dark crystal',
         'neverending story', 'willow', 'mad max', 'road warrior', 'dredd',
         'fifth element', 'total recall', 'robocop', 'starship troopers'],
-
-      // Prestige/arthouse indicators
       prestige: ['criterion', 'directors cut', 'uncut', 'remastered', 'restored', 'original',
         'edition', 'documentary', 'portrait', 'story of', 'making of'],
-
-      // Time-based preferences
       timeOfDay: {
         morning: ['2001', 'solaris', 'arrival', 'interstellar', 'her', 'moon', 'ex machina',
           'annihilation', 'blade runner', 'ghost in the shell'],
@@ -401,12 +374,81 @@
           'requiem', 'trainspotting', 'fear and loathing', 'bad lieutenant']
       }
     };
-
-    // Anti-patterns (what to avoid)
-    const NERD_EXCLUSIONS = [
+    const PRIMETIME_EXCLUSIONS = [
       'hallmark', 'christmas prince', 'holiday', 'kissing booth', 'to all the boys',
       'tall girl', 'sierra burgess', 'perfect date', 'love guaranteed'
     ];
+
+    // SATURDAY MORNING MODE - Kids content
+    const SATURDAY_CRITERIA = {
+      keywords: ['animation', 'animated', 'adventure', 'family', 'kids', 'children',
+        'dragon', 'princess', 'magic', 'friendship', 'school', 'superhero',
+        'lego', 'pokemon', 'digimon', 'avatar', 'korra', 'miraculous',
+        'trolls', 'boss baby', 'octonauts', 'paw patrol', 'bluey'],
+      studios: ['pixar', 'dreamworks', 'disney', 'nickelodeon', 'cartoon network',
+        'ghibli', 'laika'],
+      safe: ['rated g', 'rated pg', 'tv-y', 'tv-g', 'tv-pg']
+    };
+    const SATURDAY_EXCLUSIONS = [
+      'rated r', 'tv-ma', 'mature', 'explicit', 'violence', 'horror', 'scary'
+    ];
+
+    // BACKGROUND NOISE BUREAU - Comfort rewatches & ambient content
+    const BACKGROUND_CRITERIA = {
+      rewatchables: ['goodfellas', 'lebowski', 'office space', 'full metal jacket',
+        'shawshank', 'forrest gump', 'jurassic park', 'back to the future',
+        'die hard', 'matrix', 'pulp fiction', 'fight club', 'truman show',
+        'groundhog day', 'princess bride', 'big lebowski', 'tombstone',
+        'heat', 'casino', 'departed', 'social network', 'moneyball'],
+      procedurals: ['law order', 'ncis', 'criminal minds', 'bones', 'csi',
+        'house', 'scrubs', 'parks and rec', 'office', 'friends', 'seinfeld',
+        'how i met', 'brooklyn nine', 'community', 'arrested'],
+      ambient: ['planet earth', 'blue planet', 'chef', 'cooking', 'baking',
+        'nature', 'travel', 'anthony bourdain', 'salt fat acid', 'mind',
+        'explained', 'documentary', 'ken burns', 'david attenborough'],
+      dialogue: ['tarantino', 'sorkin', 'kevin smith', 'richard linklater',
+        'quentin', 'aaron sorkin', 'west wing', 'newsroom', 'studio 60'],
+      timeOfDay: {
+        morning: ['chef', 'cooking', 'baking', 'planet', 'nature', 'travel', 'how it'],
+        afternoon: ['sports', 'competition', 'race', 'game', 'tournament', 'championship'],
+        evening: ['office', 'parks', 'friends', 'seinfeld', 'scrubs', 'community'],
+        latenight: ['noir', 'jazz', 'criterion', 'classic', 'godfather', 'chinatown']
+      }
+    };
+
+    // ---- Random palette generator ----
+    function applyRandomPalette() {
+      const root = document.documentElement;
+      const r = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+      const hsl = (h, s, l) => `hsl(${h}, ${s}%, ${l}%)`;
+
+      const wild = Math.random() < 0.25;
+
+      const hue = r(0, 360);
+      const dark = Math.random() < 0.6;
+      const bgLight = dark ? r(3, 14) : r(82, 94);
+
+      const bgSat = wild ? r(30, 70) : r(5, 25);
+      const textSat = wild ? r(30, 60) : r(5, 20);
+
+      root.style.setProperty('--bg', hsl(hue, bgSat, bgLight));
+      root.style.setProperty('--text', hsl(hue, textSat, dark ? r(88, 96) : r(4, 12)));
+
+      // softer, belonging stamp
+      root.style.setProperty(
+        '--stamp',
+        bgLight < 50
+          ? hsl((hue + 180) % 360, 30, 70)
+          : hsl((hue + 180) % 360, 30, 30)
+      );
+
+      const sealHue = wild ? r(0, 360) : r(90, 140);
+      root.style.setProperty('--seal',
+        dark
+          ? hsl(sealHue, wild ? r(50, 90) : r(30, 50), r(85, 92))
+          : hsl(sealHue, wild ? r(40, 80) : r(25, 45), r(20, 30))
+      );
+    }
 
     function getTimeOfDay() {
       const hour = new Date().getHours();
@@ -416,61 +458,104 @@
       return 'latenight';
     }
 
-    function getTimeFlavor() {
+    function getTimeFlavor(mode) {
       const timeOfDay = getTimeOfDay();
+
       const flavors = {
-        morning: 'Cerebral sci-fi & arthouse',
-        afternoon: 'Adventure & action classics',
-        evening: 'Horror, thrillers & noir',
-        latenight: 'Cult classics & weird stuff'
+        primetime: {
+          morning: 'Cerebral sci-fi & arthouse',
+          afternoon: 'Adventure & action classics',
+          evening: 'Horror, thrillers & noir',
+          latenight: 'Cult classics & weird stuff'
+        },
+        saturday: {
+          morning: 'Animated adventures & magic',
+          afternoon: 'Action heroes & quests',
+          evening: 'Family comedies & feel-goods',
+          latenight: 'Cozy bedtime stories'
+        },
+        background: {
+          morning: 'Cooking shows & nature docs',
+          afternoon: 'Sports & competition',
+          evening: 'Comfort sitcoms & rewatches',
+          latenight: 'Film noir & jazz-era classics'
+        }
       };
-      return flavors[timeOfDay];
+
+      return flavors[mode]?.[timeOfDay] || '';
     }
 
     function updateTimeFlavor() {
-      if (document.getElementById('nerd-mode').checked) {
-        timeFlavorEl.textContent = `Now showing: ${getTimeFlavor()}`;
+      const mode = document.getElementById('mode-select').value;
+      if (mode !== 'off') {
+        timeFlavorEl.textContent = `Now showing: ${getTimeFlavor(mode)}`;
       } else {
         timeFlavorEl.textContent = '';
       }
     }
 
-    function matchesNerdCriteria(title) {
-      const nerdMode = document.getElementById('nerd-mode').checked;
-      if (!nerdMode) return true;
+    function handleModeChange() {
+      applyRandomPalette();
+      applyFilters();
+    }
+
+    function matchesModeCriteria(title) {
+      const mode = document.getElementById('mode-select').value;
+      if (mode === 'off') return true;
 
       const titleLower = title.title.toLowerCase();
       const synopsisLower = (title.synopsis || '').toLowerCase();
       const combined = titleLower + ' ' + synopsisLower;
+      const year = parseInt(title.year);
+      const timeOfDay = getTimeOfDay();
 
-      // Exclusions first
-      if (NERD_EXCLUSIONS.some(ex => combined.includes(ex))) {
-        return false;
+      if (mode === 'primetime') {
+        // Exclusions first
+        if (PRIMETIME_EXCLUSIONS.some(ex => combined.includes(ex))) {
+          return false;
+        }
+
+        const is80s = year >= 1980 && year <= 1989;
+        const hasDirector = PRIMETIME_CRITERIA.directors.some(d => combined.includes(d));
+        const hasClassic = PRIMETIME_CRITERIA.classics.some(c => titleLower.includes(c));
+        const hasHorror = PRIMETIME_CRITERIA.horror.some(h => titleLower.includes(h));
+        const hasAdventure = PRIMETIME_CRITERIA.adventure.some(a => titleLower.includes(a));
+        const hasPrestige = PRIMETIME_CRITERIA.prestige.some(p => combined.includes(p));
+        const hasTimeMatch = PRIMETIME_CRITERIA.timeOfDay[timeOfDay].some(t => titleLower.includes(t));
+
+        return is80s || hasDirector || hasClassic || hasHorror || hasAdventure || hasPrestige || hasTimeMatch;
       }
 
-      // Check year (80s bonus)
-      const year = parseInt(title.year);
-      const is80s = year >= 1980 && year <= 1989;
+      if (mode === 'saturday') {
+        // Exclusions first
+        if (SATURDAY_EXCLUSIONS.some(ex => combined.includes(ex))) {
+          return false;
+        }
 
-      // Simple keyword matching
-      const hasDirector = NERD_CRITERIA.directors.some(d => combined.includes(d));
-      const hasClassic = NERD_CRITERIA.classics.some(c => titleLower.includes(c));
-      const hasHorror = NERD_CRITERIA.horror.some(h => titleLower.includes(h));
-      const hasAdventure = NERD_CRITERIA.adventure.some(a => titleLower.includes(a));
-      const hasPrestige = NERD_CRITERIA.prestige.some(p => combined.includes(p));
+        const hasKeyword = SATURDAY_CRITERIA.keywords.some(k => combined.includes(k));
+        const hasStudio = SATURDAY_CRITERIA.studios.some(s => combined.includes(s));
+        const hasSafeRating = SATURDAY_CRITERIA.safe.some(r => combined.includes(r));
 
-      // Time-of-day matching
-      const timeOfDay = getTimeOfDay();
-      const hasTimeMatch = NERD_CRITERIA.timeOfDay[timeOfDay].some(t => titleLower.includes(t));
+        return hasKeyword || hasStudio || hasSafeRating;
+      }
 
-      // Pass if matches any criteria (generous filtering)
-      return is80s || hasDirector || hasClassic || hasHorror || hasAdventure || hasPrestige || hasTimeMatch;
+      if (mode === 'background') {
+        const hasRewatchable = BACKGROUND_CRITERIA.rewatchables.some(r => titleLower.includes(r));
+        const hasProcedural = BACKGROUND_CRITERIA.procedurals.some(p => titleLower.includes(p));
+        const hasAmbient = BACKGROUND_CRITERIA.ambient.some(a => combined.includes(a));
+        const hasDialogue = BACKGROUND_CRITERIA.dialogue.some(d => combined.includes(d));
+        const hasTimeMatch = BACKGROUND_CRITERIA.timeOfDay[timeOfDay].some(t => combined.includes(t));
+
+        return hasRewatchable || hasProcedural || hasAmbient || hasDialogue || hasTimeMatch;
+      }
+
+      return true;
     }
 
     const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
     alphabetEl.innerHTML = letters.map(l =>
       `<button data-letter="${l}">${l}</button>`
-    ).join('') + '<div style="display: grid; row-gap: .8em;">' + '<button class="random" id="random-btn">Fate decides</button>' +
+    ).join('') + '<div style="display: flex; gap: .5em;">' + '<button class="random" id="random-btn">Fate decides</button>' +
       '<button class="random" id="randomize-btn">Randomize</button>' + '</div>';
 
     alphabetEl.addEventListener('click', (e) => {
@@ -482,7 +567,7 @@
 
         const eligible = allTitles.filter(t =>
           ((t.type === 'movie' && showMovies) || (t.type === 'series' && showSeries)) &&
-          matchesNerdCriteria(t) &&
+          matchesModeCriteria(t) &&
           t.netflix_id
         );
 
@@ -535,7 +620,17 @@
       const data = await res.json();
       allTitles = normalizeFromWorker(data.results);
       document.body.classList.remove('is-loading');
-      snapshotEl.textContent = `Snapshot: ${data.day} · ${allTitles.length} titles`;
+      snapshotEl.textContent = `
+                                                                    
+▖  ▖    ▝▜                       ▗          ▗▖ ▖     ▗   ▗▀  ▝      
+▌▐ ▌ ▄▖  ▐   ▄▖  ▄▖ ▗▄▄  ▄▖     ▗▟▄  ▄▖     ▐▚ ▌ ▄▖ ▗▟▄ ▗▟▄ ▗▄  ▗ ▗ 
+▘▛▌▌▐▘▐  ▐  ▐▘▝ ▐▘▜ ▐▐▐ ▐▘▐      ▐  ▐▘▜     ▐▐▖▌▐▘▐  ▐   ▐   ▐   ▙▌ 
+▐▌█▘▐▀▀  ▐  ▐   ▐ ▐ ▐▐▐ ▐▀▀      ▐  ▐ ▐     ▐ ▌▌▐▀▀  ▐   ▐   ▐   ▟▖ 
+▐ ▐ ▝▙▞  ▝▄ ▝▙▞ ▝▙▛ ▐▐▐ ▝▙▞      ▝▄ ▝▙▛     ▐ ▐▌▝▙▞  ▝▄  ▐  ▗▟▄ ▗▘▚ 
+                                                                    
+                                                                    
+                                                                                                                                                                  
+                                                                                   `;
       applyFilters();
     }
 
@@ -550,7 +645,7 @@
         .filter(t =>
           (!q || t.title.toLowerCase().includes(q)) &&
           ((t.type === 'movie' && showMovies) || (t.type === 'series' && showSeries)) &&
-          matchesNerdCriteria(t)
+          matchesModeCriteria(t)
         );
 
       // Sort: randomized or A-Z
@@ -588,7 +683,7 @@
         `;
       }).join('');
 
-      const countText = isRandomized ? `${filtered.length} titles (randomized)` : `${filtered.length} titles`;
+      const countText = isRandomized ? `${filtered.length} titles (randomized)` : `${filtered.length} titles available`;
       document.getElementById('count').textContent = countText;
     }
 
@@ -613,6 +708,9 @@
         '"': '&quot;', "'": '&#39;'
       }[c]));
     }
+
+    // Apply initial random palette on load
+    applyRandomPalette();
 
     loadCatalog();
   </script>
