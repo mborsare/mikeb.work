@@ -13,10 +13,6 @@ local TEST_MODE = true
 -- ---- UTILITIES ---------------------------------------
 -- ======================================================
 
-local function clear_screen()
-  os.execute("clear")
-end
-
 local function hide_cursor()
   io.write("\27[?25l")
   io.flush()
@@ -71,7 +67,6 @@ end
 -- ---- UNLOCK SEQUENCE ---------------------------------
 -- ======================================================
 
-clear_screen()
 print_colored([[
  ██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████ 
 ▓██░  ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█   ▀ 
@@ -114,7 +109,7 @@ print()
 
 local script_path = debug.getinfo(1, "S").source:sub(2)
 local script_dir = script_path:match("(.*/)")
-local doctrine_path = script_dir .. "../Sites/mikeb.work/backoffice/doctrine.json"
+local doctrine_path = script_dir .. "../backoffice/doctrine.json"
 
 local handle = io.popen("jq -r '.[].doctrineItem' '" .. doctrine_path .. "' 2>/dev/null")
 
@@ -191,19 +186,29 @@ safe_sleep(1)
 -- ---- WARMUP / TIMER ---------------------------------
 -- ======================================================
 
-local GRID_COLS, GRID_ROWS = 80, 10
+local GRID_COLS, GRID_ROWS = 80, 20
 local GRID_SIZE = GRID_COLS * GRID_ROWS
 
 local warmup_art = [[
+
+
+
+
+
+
    ______     __     _          ______             
   / ____/__  / /_   (_)___     / __/ /___ _      __
  / / __/ _ \/ __/  / / __ \   / /_/ / __ \ | /| / /
 / /_/ /  __/ /_   / / / / /  / __/ / /_/ / |/ |/ / 
 \____/\___/\__/  /_/_/ /_/  /_/ /_/\____/|__/|__/  
-                                          
 ]]
 
 local ascii_art = [[
+
+
+
+
+
                                ▒██  ███                 
   ▒███▒          █             █░     █             █   
  ░█▒ ░█          █             █      █             █   
@@ -215,9 +220,6 @@ local ascii_art = [[
  ▒█░ ░█ ▓▓  █    █░            █      █░   █░ ▓█    █░  
   ▒███▒  ███▒    ▒██           █      ▒██  ▒██▒█    ▒██ 
 
-
-
-
    ▄▄▄▄▀ █▄▄▄▄ ██   ██▄   ▄███▄       ▄█▄    ██   █    █▀▄▀█ 
 ▀▀▀ █    █  ▄▀ █ █  █  █  █▀   ▀      █▀ ▀▄  █ █  █    █ █ █ 
     █    █▀▀▌  █▄▄█ █   █ ██▄▄        █   ▀  █▄▄█ █    █ ▄ █ 
@@ -225,100 +227,138 @@ local ascii_art = [[
   ▀        █      █ ███▀  ▀███▀       ▀███▀     █     ▀   █  
           ▀      █                             █         ▀   
                 ▀                             ▀              
+    ▄         ▄▄▄▄▄   ▄█   ▄▀     ▄   ▄███▄   ██▄       █▀▄▀█ ▄█ █  █▀ ▄███▄   
+▀▄   █       █     ▀▄ ██ ▄▀        █  █▀   ▀  █  █      █ █ █ ██ █▄█   █▀   ▀  
+  █ ▀      ▄  ▀▀▀▀▄   ██ █ ▀▄  ██   █ ██▄▄    █   █     █ ▄ █ ██ █▀▄   ██▄▄    
+ ▄ █        ▀▄▄▄▄▀    ▐█ █   █ █ █  █ █▄   ▄▀ █  █      █   █ ▐█ █  █  █▄   ▄▀ 
+█   ▀▄                 ▐  ███  █  █ █ ▀███▀   ███▀         █   ▐   █   ▀███▀   
+ ▀                             █   ██                     ▀       ▀            
+                                                                               
+      ___   .___________.   .______        ___   .___________.
+    /   \  |           |   |   _  \      /   \  |           |
+   /  ^  \ `---|  |----`   |  |_)  |    /  ^  \ `---|  |----`
+  /  /_\  \    |  |        |   _  <    /  /_\  \    |  |     
+ /  _____  \   |  |        |  |_)  |  /  _____  \   |  |     
+/__/     \__\  |__|        |______/  /__/     \__\  |__|     
+                                                             
+ ▄▀▀▄▀▀▀▄  ▄▀▀▄▀▀▀▄  ▄▀▀█▄▄▄▄  ▄▀▀▀▀▄  ▄▀▀█▄▄▄▄  ▄▀▀▄ ▀▄  ▄▀▄▄▄▄   ▄▀▀█▄▄▄▄ 
+█   █   █ █   █   █ ▐  ▄▀   ▐ █ █   ▐ ▐  ▄▀   ▐ █  █ █ █ █ █    ▌ ▐  ▄▀   ▐ 
+▐  █▀▀▀▀  ▐  █▀▀█▀    █▄▄▄▄▄     ▀▄     █▄▄▄▄▄  ▐  █  ▀█ ▐ █        █▄▄▄▄▄  
+   █       ▄▀    █    █    ▌  ▀▄   █    █    ▌    █   █    █        █    ▌  
+ ▄▀       █     █    ▄▀▄▄▄▄    █▀▀▀    ▄▀▄▄▄▄   ▄▀   █    ▄▀▄▄▄▄▀  ▄▀▄▄▄▄   
+█         ▐     ▐    █    ▐    ▐       █    ▐   █    ▐   █     ▐   █    ▐   
+▐                    ▐                 ▐        ▐        ▐         ▐        
 
+                ]]
 
-  ▖▖              ▘    ▗ ▌                
-▌▌▛▘▛▌█▌▛▌▛▘▌▌  ▌▛▘  ▜▘▛▌█▌  █▌▛▌█▌▛▛▌▌▌
-▙▌▌ ▙▌▙▖▌▌▙▖▙▌  ▌▄▌  ▐▖▌▌▙▖  ▙▖▌▌▙▖▌▌▌▙▌
-    ▄▌      ▄▌                        ▄▌
-
-
- ██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████ 
-▓██░  ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█   ▀ 
-▓██░ ██▓▒▓██ ░▄█ ▒▒██▒▓██    ▓██░▒███   
-▒██▄█▓▒ ▒▒██▀▀█▄  ░██░▒██    ▒██ ▒▓█  ▄ 
-▒██▒ ░  ░░██▓ ▒██▒░██░▒██▒   ░██▒░▒████▒
-▒▓▒░ ░  ░░ ▒▓ ░▒▓░░▓  ░ ▒░   ░  ░░░ ▒░ ░
-░▒ ░       ░▒ ░ ▒░ ▒ ░░  ░      ░ ░ ░  ░
-░░         ░░   ░  ▒ ░░      ░      ░   
-            ░      ░         ░      ░  ░
-]]
-
-local bg_codes = {
-  "\27[40m",  -- black
-  "\27[41m",  -- red
-  "\27[42m",  -- green
-  "\27[43m",  -- yellow
-  "\27[44m",  -- blue
-  "\27[45m",  -- magenta
-  "\27[46m",  -- cyan
-}
+-- Pre-build grid lines to avoid rebuilding every frame
+local empty_line = "   " .. string.rep(" ", GRID_COLS)
+local filled_line = "   " .. colors("%{green}" .. string.rep("=", GRID_COLS))
 
 local function draw_timer(elapsed, total_seconds, header_art)
-  clear_screen()
-
   local remaining = total_seconds - elapsed
   local filled = math.floor((elapsed * GRID_SIZE) / total_seconds)
-  local bg_index = (math.floor(elapsed / 3) % #bg_codes) + 1
-
-  -- Header (persistent)
+  
+  -- Move to home and clear screen in one go
+  io.write("\27[H\27[2J")
+  
+  -- Header
   if header_art then
-    print(header_art)
-    print()
+    io.write(header_art .. "\n\n")
   end
 
-  io.write(bg_codes[bg_index] .. "\27[37m")
-  io.write("\27[0m")
+  -- Timer display
+  io.write(colors("%{bright red}          -" .. format_time(remaining) .. "           \n\n"))
 
-  print_colored("          -" .. format_time(remaining) .. "           \n", "%{bright red}")
-
-  local stars = 0
+  -- Draw grid efficiently - calculate which rows are filled
+  local filled_rows = math.floor(filled / GRID_COLS)
+  local partial_cols = filled % GRID_COLS
+  
   for r = 1, GRID_ROWS do
-    local line = "   "
-    for c = 1, GRID_COLS do
-      line = line .. (stars < filled and colors("%{blue} • ") or " ")
-      stars = stars + 1
+    if r <= filled_rows then
+      -- Fully filled row
+      io.write(filled_line .. "\n")
+    elseif r == filled_rows + 1 and partial_cols > 0 then
+      -- Partially filled row
+      io.write("   " .. colors("%{black}" .. string.rep("-", partial_cols)) .. string.rep(" ", GRID_COLS - partial_cols) .. "\n")
+    else
+      -- Empty row
+      io.write(empty_line .. "\n")
     end
-    print(line)
   end
+  
+  -- Bottom border marking end of grid
+  io.write("   " .. string.rep("-", GRID_COLS) .. "\n")
+  
+  io.flush()
 end
 
 local function run_timer(minutes, header_art)
   local total_seconds = minutes * 60
   local start_time = socket.gettime()
   local end_time = start_time + total_seconds
-  local frame_time = 1 / 60  -- 60Hz = 16.67ms per frame
+  local frame_time = 1 / 30  -- 30 FPS is smooth enough and reduces tearing
 
   hide_cursor()
-  local next_frame = start_time
+  
   while socket.gettime() < end_time do
     local current_time = socket.gettime()
-    if current_time >= next_frame then
-      draw_timer(current_time - start_time, total_seconds, header_art)
-      next_frame = next_frame + frame_time
+    draw_timer(current_time - start_time, total_seconds, header_art)
+    
+    -- Sleep until next frame
+    local next_frame = current_time + frame_time
+    local sleep_time = next_frame - socket.gettime()
+    if sleep_time > 0 then
+      socket.sleep(sleep_time)
     end
-    socket.sleep(0.001)  -- 1ms sleep to avoid busy-waiting
   end
+  
   show_cursor()
 end
 
 run_timer(flow_minutes, warmup_art)
 run_timer(1, ascii_art)
 
-clear_screen()
 -- ======================================================
 -- ---- PAYOFF ------------------------------------------
 -- ======================================================
 
 local payoff_art = {
   {color = "%{bright cyan}", text = [[
-░██                                       ░██             ░██    ░██                           
-░██                                       ░██             ░██                                  
-░████████  ░██░████  ░███████   ░██████   ░██    ░██   ░████████ ░██░█████████████   ░███████  
-░██    ░██ ░███     ░██    ░██       ░██  ░██   ░██       ░██    ░██░██   ░██   ░██ ░██    ░██ 
-░██    ░██ ░██      ░█████████  ░███████  ░███████        ░██    ░██░██   ░██   ░██ ░█████████ 
-░███   ░██ ░██      ░██        ░██   ░██  ░██   ░██       ░██    ░██░██   ░██   ░██ ░██        
-░██░█████  ░██       ░███████   ░█████░██ ░██    ░██       ░████ ░██░██   ░██   ░██  ░███████  ]]},
+
+
+                                          .`.   _ _
+                                        __;_ \ /,//`
+                                        --, `._) (
+                                         '//,,,  |
+                                              )_/
+                                             /_|
+
+
+ _ _   _      _   _                                 
+(_) |_( )__  | |_(_)_ __ ___   ___                  
+| | __|/ __| | __| | '_ ` _ \ / _ \                 
+| | |_ \__ \ | |_| | | | | | |  __/                 
+|_|\__||___/  \__|_|_| |_| |_|\___|                 
+                                                    
+  __                      _                    _    
+ / _| ___  _ __    __ _  | |__  _ __ ___  __ _| | __
+| |_ / _ \| '__|  / _` | | '_ \| '__/ _ \/ _` | |/ /
+|  _| (_) | |    | (_| | | |_) | | |  __/ (_| |   < 
+|_|  \___/|_|     \__,_| |_.__/|_|  \___|\__,_|_|\_\
+
+
+
+           ^\
+ /        //o__o
+/\       /  __/
+\ \______\  /     
+ \         /
+  \ \----\ \
+   \_\_   \_\_
+
+
+]]},
   {color = "%{bright yellow}", text = [[
 ▗▄▄▖ ▗▄▄▄▖ ▗▄▄▖▗▄▄▄▖▗▄▄▖  ▗▄▖ ▗▄▄▄▖▗▖  ▗▖▗▄▄▄▖    ▗▄▄▖  ▗▄▖▗▖  ▗▖▗▄▄▖                  
 ▐▌ ▐▌▐▌   ▐▌     █  ▐▌ ▐▌▐▌ ▐▌  █  ▐▛▚▖▐▌  █      ▐▌ ▐▌▐▌ ▐▌▝▚▞▘▐▌                     
@@ -340,6 +380,9 @@ local payoff_art = {
 ▐▛▀▜▌▐▌   ▐▌ ▐▌▐▛▀▜▌ ▐▌  ▝▀▚▖    ▐▌     ▐▌ ▐▌   ▐▌     █  ▐▌ ▝▜▌▐▌▝▜▌                  
 ▐▌ ▐▌▐▙▄▄▖▐▙█▟▌▐▌ ▐▌ ▐▌ ▗▄▄▞▘    ▝▚▄▄▖  ▐▌ ▝▚▄▄▖▐▙▄▄▖▗▄█▄▖▐▌  ▐▌▝▚▄▞▘                  ]]}
 }
+
+-- Clear screen before payoff
+os.execute("clear")
 
 for _, art in ipairs(payoff_art) do
   print()
