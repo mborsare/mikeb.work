@@ -7,7 +7,7 @@ local socket = require('socket')
 -- ---- TEST MODE --------------------------------------
 -- ======================================================
 
-local TEST_MODE = true
+local TEST_MODE = false
 
 
 -- ======================================================
@@ -387,56 +387,29 @@ local warmup_art = [[
 ]]
 
 local ascii_art = [[
-
-
-
-
-
-                                    __--XX-
-                                 ^XXXXX^^
-                             _-XXXX-^
-              XXX         --XXX^^
-          XXXX   -XX_--VXXX^^
-        XX      _-^ .=XX^
-      XX     _-^::XX^^^ XXX-_____     ___
-     X    _-^_-^                 ^^^^^   ^^XXXX
-    X  _-^_-^                                  X
-   X_-^_-^              .                       X
- --^_-^                .X                       X----
--.-                    ^^                       XXXX -
- X                                              XXXX-
- X                                              X
- X                                              X
-X      XXX  XX                                 X
-X     XXXXX  X                                X
-X    XXXXXXX  X                              X
-X   XXXXXXXXX X                            XX
-X  XXXXXXXXXXX X                       XXXX
- X XXXXXXXXXXX X                   XXXX
- X XXXXXXXXXXX XXX           XXXXXX
- X XXXXXXXXXXX X XX        XX
- X XXXXXXXXXXX X   X      X                   ___
- X  XXXXXXXXX X     X-XXXXX              __---   ------_
-  X  XXXXXXX X     ^---^  X           __- _---^^^----__ --_
-  X   XXXXX X       X      X        _- -'^.....   .....^'-_-_
-   XX-     XX      X .     XX    _-  _-....   .....   .....= =
-      XXXXX       X   X    X   _-  _-...   .....   .....   .= =
-                XX    X      XX  _-.   .....   .....   .....= =
-               X      X      X/XX....   .....   .....   ....= =
-              XXX      XXXXXX^  X   .....   .....   .....  _-_-
-             X   XX              /<XX    .....   .....   ._-_-
-      ____---^^    XX                X....   .....   ...._-_-
-    (( XXXXXXX(__--^ XXX          <XX .....   .....   .._-_-
-    ( XXXX---^!         XXXXXX  .  X _.   .....   ....._-_-
-   X-      XX-J               XX^XX   -_______________--_
-   X                               X'--_____________----
-    X       X       _          XXXX
-    X        XXXXXXX XXXX  XXXX   _-XX
-     X        X         X   X -XXX    X
-      XX   ,   XXX   XXX     X    . !XX
-       XXX/ .     XXX             LXX
-          XX!     )          _XXXXX
-            XXXXX^ XXXXXXXX-^
+    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa   a
+    8   8               8               8           8                   8   8
+    8   8   aaaaaaaaa   8   aaaaa   aaaa8aaaa   aaaa8   aaaaa   aaaaa   8   8
+    8               8       8   8           8           8   8   8       8   8
+    8aaaaaaaa   a   8aaaaaaa8   8aaaaaaaa   8aaaa   a   8   8   8aaaaaaa8   8
+    8       8   8               8           8   8   8   8   8           8   8
+    8   a   8aaa8aaaaaaaa   a   8   aaaaaaaa8   8aaa8   8   8aaaaaaaa   8   8
+    8   8               8   8   8       8           8           8       8   8
+    8   8aaaaaaaaaaaa   8aaa8   8aaaa   8   aaaaa   8aaaaaaaa   8   aaaa8   8
+    8           8       8   8       8   8       8           8   8           8
+    8   aaaaa   8aaaa   8   8aaaa   8   8aaaaaaa8   a   a   8   8aaaaaaaaaaa8
+    8       8       8   8   8       8       8       8   8   8       8       8
+    8aaaaaaa8aaaa   8   8   8   aaaa8aaaa   8   aaaa8   8   8aaaa   8aaaa   8
+    8           8   8           8       8   8       8   8       8           8
+    8   aaaaa   8   8aaaaaaaa   8aaaa   8   8aaaa   8aaa8   aaaa8aaaaaaaa   8
+    8   8       8           8           8       8   8   8               8   8
+    8   8   aaaa8aaaa   a   8aaaa   aaaa8aaaa   8   8   8aaaaaaaaaaaa   8   8
+    8   8           8   8   8   8   8           8               8   8       8
+    8   8aaaaaaaa   8   8   8   8aaa8   8aaaaaaa8   aaaaaaaaa   8   8aaaaaaa8
+    8   8       8   8   8           8           8   8       8               8
+    8   8   aaaa8   8aaa8   aaaaa   8aaaaaaaa   8aaa8   a   8aaaaaaaa   a   8
+    8   8                   8           8               8               8   8
+    8   8aaaaaaaaaaaaaaaaaaa8aaaaaaaaaaa8aaaaaaaaaaaaaaa8aaaaaaaaaaaaaaa8aaa8
 ]]
 
 -- Pre-build grid lines to avoid rebuilding every frame
@@ -519,8 +492,8 @@ if session_ended then
   exit_gracefully("Session ended early", current_bullets)
 end
 
--- Run live trading session with random duration between 35-45 minutes
-local live_minutes = TEST_MODE and 1 or math.random(35, 45)
+-- Run live trading session with random duration between 5-7 minutes to bend behavior
+local live_minutes = TEST_MODE and 1 or math.random(5, 7)
 run_timer(live_minutes, ascii_art, current_bullets)
 
 -- ======================================================
