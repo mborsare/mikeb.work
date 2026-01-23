@@ -597,6 +597,7 @@ print()
 -- ======================================================
 
 safe_exec("pkill -f MotiveWave 2>/dev/null || true")
+safe_exec("pkill -f Bookmap 2>/dev/null || true")
 safe_exec("sudo mkdir -p /usr/local/etc/dnsmasq.d")
 safe_exec("echo 'address=/rithmic.com/127.0.0.1' | sudo tee /usr/local/etc/dnsmasq.d/block-rithmic.conf >/dev/null")
 safe_exec("sudo brew services restart dnsmasq >/dev/null 2>&1")
