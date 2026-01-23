@@ -75,10 +75,10 @@
     "doctrineItem": "PnL is execution points. 1EXP = 1USD"
   },
   {
-    "doctrineItem": "Draw a clean sheet and accept it"
+    "doctrineItem": "Draw a positive variance sheet and accept it"
   },
   {
-    "doctrineItem": "Draw a red sheet and accept it"
+    "doctrineItem": "Draw a negative variance sheet and accept it"
   },
   {
     "doctrineItem": "Draw days together. It's a campaign"
