@@ -7,7 +7,8 @@ local socket = require('socket')
 -- ---- TEST MODE --------------------------------------
 -- ======================================================
 
-local TEST_MODE = false
+local TEST_MODE = true
+
 
 -- ======================================================
 -- ---- UTILITIES ---------------------------------------
@@ -44,7 +45,18 @@ end
 
 local function exit_with_error(message)
   print_colored(message, "%{bright red}")
+  show_cursor()
   os.exit(1)
+end
+
+local function exit_gracefully(message, bullets)
+  print()
+  print_colored(message or "Session ended", "%{yellow}")
+  print()
+  print_colored("Bullets remaining: " .. show_bullets(bullets), "%{white}")
+  print()
+  show_cursor()
+  os.exit(0)
 end
 
 local function safe_exec(cmd)
@@ -57,15 +69,129 @@ end
 
 local function safe_sleep(seconds)
   if TEST_MODE then
-    os.execute("sleep 3")
+    os.execute("sleep 0.5")
     return
   end
   os.execute("sleep " .. tonumber(seconds))
 end
 
+local function check_end_key()
+  local handle = io.popen("bash -c 'read -t 0.001 -n 1 key 2>/dev/null && echo $key'")
+  if handle then
+    local result = handle:read("*a")
+    handle:close()
+    if result and (result:match("e") or result:match("E")) then
+      return true
+    end
+  end
+  return false
+end
+
+
+-- ======================================================
+-- ---- BULLET SYSTEM -----------------------------------
+-- ======================================================
+
+local BULLETS_PER_DAY = 3
+local TEST_BULLETS = BULLETS_PER_DAY
+local bullets_file = os.getenv("HOME") .. "/.prime_bullets"
+
+local function get_bullets_data()
+  local file = io.open(bullets_file, "r")
+  if not file then
+    return { date = os.date("%Y-%m-%d"), count = BULLETS_PER_DAY }
+  end
+
+  local content = file:read("*all")
+  file:close()
+
+  local date, count = content:match("(%d%d%d%d%-%d%d%-%d%d):(%d+)")
+  return { date = date or os.date("%Y-%m-%d"), count = tonumber(count) or BULLETS_PER_DAY }
+end
+
+local function save_bullets_data(data)
+  local file = io.open(bullets_file, "w")
+  if file then
+    file:write(data.date .. ":" .. data.count)
+    file:close()
+  end
+end
+
+local function get_current_bullets()
+  if TEST_MODE then
+    return TEST_BULLETS
+  end
+
+  local data = get_bullets_data()
+  local today = os.date("%Y-%m-%d")
+
+  if data.date ~= today then
+    data.date = today
+    data.count = BULLETS_PER_DAY
+    save_bullets_data(data)
+  end
+
+  return data.count
+end
+
+local function use_bullet()
+  if TEST_MODE then
+    return true
+  end
+
+  local data = get_bullets_data()
+  local today = os.date("%Y-%m-%d")
+
+  if data.date ~= today then
+    data.date = today
+    data.count = BULLETS_PER_DAY
+  end
+
+  if data.count > 0 then
+    data.count = data.count - 1
+    save_bullets_data(data)
+    return true
+  end
+
+  return false
+end
+
+local function time_until_restock()
+  local now = os.time()
+  local tomorrow = os.date("*t")
+  tomorrow.day = tomorrow.day + 1
+  tomorrow.hour = 0
+  tomorrow.min = 0
+  tomorrow.sec = 0
+
+  local seconds = os.difftime(os.time(tomorrow), now)
+  local hours = math.floor(seconds / 3600)
+  local minutes = math.floor((seconds % 3600) / 60)
+
+  return string.format("%d hours %d minutes", hours, minutes)
+end
+
+local function show_bullets(bullets)
+  local bullet_display = ""
+  for i = 1, BULLETS_PER_DAY do
+    if i <= bullets then
+      bullet_display = bullet_display .. colors("%{bright yellow}●")
+    else
+      bullet_display = bullet_display .. colors("%{dim}○")
+    end
+    if i < BULLETS_PER_DAY then
+      bullet_display = bullet_display .. " "
+    end
+  end
+  return bullet_display
+end
+
+
 -- ======================================================
 -- ---- UNLOCK SEQUENCE ---------------------------------
 -- ======================================================
+
+local current_bullets = get_current_bullets()
 
 print_colored([[
  ██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████ 
@@ -82,6 +208,42 @@ print_colored([[
 print()
 print_colored(" * Prime shell activated * ", "%{bright yellow}")
 print()
+print_colored("Bullets: " .. show_bullets(current_bullets), "%{white}")
+print()
+
+if current_bullets == 0 then
+  print_colored("⚠ Out of bullets", "%{bright red}")
+  print_colored("Bullets restock in: " .. time_until_restock(), "%{yellow}")
+  print()
+  print_colored("Make it count until then.", "%{white}")
+  print()
+  os.exit(0)
+end
+
+print_colored("Ready to use 1 bullet?", "%{bright white}")
+print_colored("  [y] Yes, let's trade", "%{dim}")
+print_colored("  [n] No, save it", "%{dim}")
+print()
+
+local confirm = TEST_MODE and "y" or get_input("(y/n): ")
+if confirm ~= "y" and confirm ~= "Y" then
+  exit_gracefully("Bullet saved. Trade another day.", current_bullets)
+end
+
+if not use_bullet() then
+  exit_with_error("Failed to use bullet")
+end
+
+if not TEST_MODE then
+  current_bullets = current_bullets - 1
+end
+
+print()
+print_colored("✔ Bullet used (" .. current_bullets .. " remaining today)", "%{green}")
+print()
+
+-- (rest of file continues unchanged)
+
 
 -- ======================================================
 -- ---- RANDOM EQUATION GATE ----------------------------
@@ -122,9 +284,10 @@ if handle then
 end
 
 if #lines == 0 then
-  print_colored("[TEST] doctrine skipped", "%{dim}")
+  print_colored("[SKIP] doctrine not found", "%{dim}")
 else
   print_colored(" * Match each line (" .. #lines .. " total) * ", "%{yellow}")
+  print_colored("Bullets: " .. show_bullets(current_bullets), "%{dim}")
   print()
 
   for index, line in ipairs(lines) do
@@ -140,6 +303,7 @@ else
       print_colored("✔ doctrine auto-passed", "%{dim}")
     end
 
+    print_colored("✔ the work is the win", "%{green}")
     print()
   end
 end
@@ -151,7 +315,7 @@ end
 print_colored("🔓 Removing Rithmic DNS block…", "%{bright yellow}")
 safe_exec("sudo rm -f /usr/local/etc/dnsmasq.d/block-rithmic.conf")
 safe_exec("sudo rm -f /etc/resolver/rithmic.com")
-safe_exec("sudo brew services restart dnsmasq")
+safe_exec("sudo brew services restart dnsmasq >/dev/null 2>&1")
 print_colored("✔ Enjoy the session", "%{green}")
 print()
 
@@ -160,13 +324,15 @@ print()
 -- ======================================================
 
 print_colored("🚀 Launching Tools…", "%{bright blue}")
-safe_exec("open -a 'MotiveWave'")
-safe_exec("open -a 'Bookmap'")
+safe_exec("open -a 'MotiveWave' 2>/dev/null || true")
+safe_exec("open -a 'Bookmap' 2>/dev/null || true")
 
 print()
 print_colored(" * Unlock sequence complete * ", "%{bright yellow}")
 print()
 print_colored('"Trade the market in front of you, not the one you wish existed."', "%{white}")
+print()
+print_colored("Bullets: " .. show_bullets(current_bullets), "%{dim}")
 print()
 print_colored("▶ entering prime", "%{bright cyan}")
 print()
@@ -177,7 +343,24 @@ safe_sleep(1)
 -- ---- FLOW WINDOW SELECTION ---------------------------
 -- ======================================================
 
-local flow_minutes = TEST_MODE and 1 or ({["1"]=1,["2"]=15,["3"]=20,["4"]=25})[get_input("Select (1–4): ")]
+print()
+print()
+print()
+print_colored("Select flow window:", "%{bright white}")
+print_colored("Bullets: " .. show_bullets(current_bullets), "%{dim}")
+print()
+print_colored("  [1]  1 minute",  "%{dim}")
+print_colored("  [2] 15 minutes", "%{dim}")
+print_colored("  [3] 20 minutes", "%{dim}")
+print_colored("  [4] 25 minutes", "%{dim}")
+print()
+
+local flow_minutes
+if TEST_MODE then
+  flow_minutes = 1
+else
+  flow_minutes = ({["1"]=1,["2"]=15,["3"]=20,["4"]=25})[get_input("Select (1–4): ")]
+end
 
 print("\n✔ Flow window set: " .. flow_minutes .. " minutes")
 safe_sleep(1)
@@ -186,7 +369,7 @@ safe_sleep(1)
 -- ---- WARMUP / TIMER ---------------------------------
 -- ======================================================
 
-local GRID_COLS, GRID_ROWS = 80, 20
+local GRID_COLS, GRID_ROWS = 81, 6
 local GRID_SIZE = GRID_COLS * GRID_ROWS
 
 local warmup_art = [[
@@ -209,53 +392,60 @@ local ascii_art = [[
 
 
 
-                               ▒██  ███                 
-  ▒███▒          █             █░     █             █   
- ░█▒ ░█          █             █      █             █   
- █▒      ███   █████         █████    █    ░███░  █████ 
- █      ▓▓ ▒█    █             █      █    █▒ ▒█    █   
- █   ██ █   █    █             █      █        █    █   
-  █   █ █████    █             █      █    ▒████    █   
- █▒   █ █        █             █      █    █▒  █    █   
- ▒█░ ░█ ▓▓  █    █░            █      █░   █░ ▓█    █░  
-  ▒███▒  ███▒    ▒██           █      ▒██  ▒██▒█    ▒██ 
-
-   ▄▄▄▄▀ █▄▄▄▄ ██   ██▄   ▄███▄       ▄█▄    ██   █    █▀▄▀█ 
-▀▀▀ █    █  ▄▀ █ █  █  █  █▀   ▀      █▀ ▀▄  █ █  █    █ █ █ 
-    █    █▀▀▌  █▄▄█ █   █ ██▄▄        █   ▀  █▄▄█ █    █ ▄ █ 
-   █     █  █  █  █ █  █  █▄   ▄▀     █▄  ▄▀ █  █ ███▄ █   █ 
-  ▀        █      █ ███▀  ▀███▀       ▀███▀     █     ▀   █  
-          ▀      █                             █         ▀   
-                ▀                             ▀              
-    ▄         ▄▄▄▄▄   ▄█   ▄▀     ▄   ▄███▄   ██▄       █▀▄▀█ ▄█ █  █▀ ▄███▄   
-▀▄   █       █     ▀▄ ██ ▄▀        █  █▀   ▀  █  █      █ █ █ ██ █▄█   █▀   ▀  
-  █ ▀      ▄  ▀▀▀▀▄   ██ █ ▀▄  ██   █ ██▄▄    █   █     █ ▄ █ ██ █▀▄   ██▄▄    
- ▄ █        ▀▄▄▄▄▀    ▐█ █   █ █ █  █ █▄   ▄▀ █  █      █   █ ▐█ █  █  █▄   ▄▀ 
-█   ▀▄                 ▐  ███  █  █ █ ▀███▀   ███▀         █   ▐   █   ▀███▀   
- ▀                             █   ██                     ▀       ▀            
-                                                                               
-      ___   .___________.   .______        ___   .___________.
-    /   \  |           |   |   _  \      /   \  |           |
-   /  ^  \ `---|  |----`   |  |_)  |    /  ^  \ `---|  |----`
-  /  /_\  \    |  |        |   _  <    /  /_\  \    |  |     
- /  _____  \   |  |        |  |_)  |  /  _____  \   |  |     
-/__/     \__\  |__|        |______/  /__/     \__\  |__|     
-                                                             
- ▄▀▀▄▀▀▀▄  ▄▀▀▄▀▀▀▄  ▄▀▀█▄▄▄▄  ▄▀▀▀▀▄  ▄▀▀█▄▄▄▄  ▄▀▀▄ ▀▄  ▄▀▄▄▄▄   ▄▀▀█▄▄▄▄ 
-█   █   █ █   █   █ ▐  ▄▀   ▐ █ █   ▐ ▐  ▄▀   ▐ █  █ █ █ █ █    ▌ ▐  ▄▀   ▐ 
-▐  █▀▀▀▀  ▐  █▀▀█▀    █▄▄▄▄▄     ▀▄     █▄▄▄▄▄  ▐  █  ▀█ ▐ █        █▄▄▄▄▄  
-   █       ▄▀    █    █    ▌  ▀▄   █    █    ▌    █   █    █        █    ▌  
- ▄▀       █     █    ▄▀▄▄▄▄    █▀▀▀    ▄▀▄▄▄▄   ▄▀   █    ▄▀▄▄▄▄▀  ▄▀▄▄▄▄   
-█         ▐     ▐    █    ▐    ▐       █    ▐   █    ▐   █     ▐   █    ▐   
-▐                    ▐                 ▐        ▐        ▐         ▐        
-
-                ]]
+                                    __--XX-
+                                 ^XXXXX^^
+                             _-XXXX-^
+              XXX         --XXX^^
+          XXXX   -XX_--VXXX^^
+        XX      _-^ .=XX^
+      XX     _-^::XX^^^ XXX-_____     ___
+     X    _-^_-^                 ^^^^^   ^^XXXX
+    X  _-^_-^                                  X
+   X_-^_-^              .                       X
+ --^_-^                .X                       X----
+-.-                    ^^                       XXXX -
+ X                                              XXXX-
+ X                                              X
+ X                                              X
+X      XXX  XX                                 X
+X     XXXXX  X                                X
+X    XXXXXXX  X                              X
+X   XXXXXXXXX X                            XX
+X  XXXXXXXXXXX X                       XXXX
+ X XXXXXXXXXXX X                   XXXX
+ X XXXXXXXXXXX XXX           XXXXXX
+ X XXXXXXXXXXX X XX        XX
+ X XXXXXXXXXXX X   X      X                   ___
+ X  XXXXXXXXX X     X-XXXXX              __---   ------_
+  X  XXXXXXX X     ^---^  X           __- _---^^^----__ --_
+  X   XXXXX X       X      X        _- -'^.....   .....^'-_-_
+   XX-     XX      X .     XX    _-  _-....   .....   .....= =
+      XXXXX       X   X    X   _-  _-...   .....   .....   .= =
+                XX    X      XX  _-.   .....   .....   .....= =
+               X      X      X/XX....   .....   .....   ....= =
+              XXX      XXXXXX^  X   .....   .....   .....  _-_-
+             X   XX              /<XX    .....   .....   ._-_-
+      ____---^^    XX                X....   .....   ...._-_-
+    (( XXXXXXX(__--^ XXX          <XX .....   .....   .._-_-
+    ( XXXX---^!         XXXXXX  .  X _.   .....   ....._-_-
+   X-      XX-J               XX^XX   -_______________--_
+   X                               X'--_____________----
+    X       X       _          XXXX
+    X        XXXXXXX XXXX  XXXX   _-XX
+     X        X         X   X -XXX    X
+      XX   ,   XXX   XXX     X    . !XX
+       XXX/ .     XXX             LXX
+          XX!     )          _XXXXX
+            XXXXX^ XXXXXXXX-^
+]]
 
 -- Pre-build grid lines to avoid rebuilding every frame
 local empty_line = "   " .. string.rep(" ", GRID_COLS)
-local filled_line = "   " .. colors("%{green}" .. string.rep("=", GRID_COLS))
+local filled_line = "   " .. colors("%{green}" .. string.rep("*", GRID_COLS))
 
-local function draw_timer(elapsed, total_seconds, header_art)
+local session_ended = false
+
+local function draw_timer(elapsed, total_seconds, header_art, bullets)
   local remaining = total_seconds - elapsed
   local filled = math.floor((elapsed * GRID_SIZE) / total_seconds)
   
@@ -267,8 +457,9 @@ local function draw_timer(elapsed, total_seconds, header_art)
     io.write(header_art .. "\n\n")
   end
 
-  -- Timer display
-  io.write(colors("%{bright red}          -" .. format_time(remaining) .. "           \n\n"))
+  -- Timer display with bullets
+  io.write(colors("%{bright red}          -" .. format_time(remaining) .. "           \n"))
+  io.write(colors("%{dim}          Bullets: " .. show_bullets(bullets) .. "  (press e to end)           \n\n"))
 
   -- Draw grid efficiently - calculate which rows are filled
   local filled_rows = math.floor(filled / GRID_COLS)
@@ -280,7 +471,7 @@ local function draw_timer(elapsed, total_seconds, header_art)
       io.write(filled_line .. "\n")
     elseif r == filled_rows + 1 and partial_cols > 0 then
       -- Partially filled row
-      io.write("   " .. colors("%{black}" .. string.rep("-", partial_cols)) .. string.rep(" ", GRID_COLS - partial_cols) .. "\n")
+      io.write("   " .. colors("%{green}" .. string.rep("=", partial_cols)) .. string.rep(" ", GRID_COLS - partial_cols) .. "\n")
     else
       -- Empty row
       io.write(empty_line .. "\n")
@@ -293,17 +484,22 @@ local function draw_timer(elapsed, total_seconds, header_art)
   io.flush()
 end
 
-local function run_timer(minutes, header_art)
+local function run_timer(minutes, header_art, bullets)
   local total_seconds = minutes * 60
   local start_time = socket.gettime()
   local end_time = start_time + total_seconds
-  local frame_time = 1 / 30  -- 30 FPS is smooth enough and reduces tearing
+  local frame_time = 1 / 30  -- 30 FPS
 
   hide_cursor()
   
   while socket.gettime() < end_time do
+    if check_end_key() then
+      session_ended = true
+      break
+    end
+    
     local current_time = socket.gettime()
-    draw_timer(current_time - start_time, total_seconds, header_art)
+    draw_timer(current_time - start_time, total_seconds, header_art, bullets)
     
     -- Sleep until next frame
     local next_frame = current_time + frame_time
@@ -316,8 +512,16 @@ local function run_timer(minutes, header_art)
   show_cursor()
 end
 
-run_timer(flow_minutes, warmup_art)
-run_timer(1, ascii_art)
+-- Run warmup timer
+run_timer(flow_minutes, warmup_art, current_bullets)
+
+if session_ended then
+  exit_gracefully("Session ended early", current_bullets)
+end
+
+-- Run live trading session with random duration between 35-45 minutes
+local live_minutes = TEST_MODE and 1 or math.random(35, 45)
+run_timer(live_minutes, ascii_art, current_bullets)
 
 -- ======================================================
 -- ---- PAYOFF ------------------------------------------
@@ -392,13 +596,18 @@ end
 print()
 print_colored("States are chemical. They come and go. You are all of them. Discipline is state control.", "%{white}")
 print()
+print_colored("Bullets remaining today: " .. show_bullets(current_bullets), "%{dim}")
+print()
 
 -- ======================================================
 -- ---- SHUTDOWN / BLOCK -------------------------------
 -- ======================================================
 
-safe_exec("pkill -f MotiveWave")
+safe_exec("pkill -f MotiveWave 2>/dev/null || true")
 safe_exec("sudo mkdir -p /usr/local/etc/dnsmasq.d")
-safe_exec("sudo brew services restart dnsmasq")
+safe_exec("echo 'address=/rithmic.com/127.0.0.1' | sudo tee /usr/local/etc/dnsmasq.d/block-rithmic.conf >/dev/null")
+safe_exec("sudo brew services restart dnsmasq >/dev/null 2>&1")
 
-print_colored("[TEST MODE COMPLETE]", "%{dim}")
+if TEST_MODE then
+  print_colored("[TEST MODE COMPLETE]", "%{dim}")
+end
