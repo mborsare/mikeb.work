@@ -296,8 +296,9 @@ else
     print_colored('"' .. line .. '"', "%{cyan}")
 
     if not TEST_MODE then
-      if get_input("> ") ~= line then
-        exit_with_error("Can you catch the mistake? Try again")
+      local input = get_input("> ")
+      if input ~= "mjb" and input ~= "MJB" then
+        exit_with_error("Type mjb to continue")
       end
     else
       print_colored("✔ doctrine auto-passed", "%{dim}")
