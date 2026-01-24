@@ -464,7 +464,7 @@ local function draw_timer(elapsed, total_seconds, header_art, bullets)
 	local filled = math.floor((elapsed * GRID_SIZE) / total_seconds)
 
 	-- Move to home and clear screen in one go
-	-- io.write("\27[H\27[2J")
+	io.write("\27[H\27[2J") -- uncomment this to remove multivision
 
 	-- Header
 	if header_art then
@@ -543,18 +543,6 @@ local live_minutes = TEST_MODE and 1 or math.random(5, 7)
 run_timer(live_minutes, ascii_art, current_bullets)
 
 -- ======================================================
--- ---- PAYOFF ------------------------------------------
--- ======================================================
-
--- ======================================================
--- ---- PAYOFF + COOLDOWN TIMER -------------------------
--- ======================================================
-
--- ======================================================
--- ---- PAYOFF + COOLDOWN TIMER -------------------------
--- ======================================================
-
--- ======================================================
 -- ---- PAYOFF + COOLDOWN TIMER -------------------------
 -- ======================================================
 
@@ -563,12 +551,14 @@ local payoff_art = {
 		color = "%{bright cyan}",
 		text = [[
 
-                                          .`.   _ _
-                                        __;_ \ /,//`
-                                        --, `._) (
-                                         '//,,,  |
-                                              )_/
-                                             /_|
+           ^\
+ /        //o__o
+/\       /  __/
+\ \______\  /     
+ \         /
+  \ \----\ \
+   \_\_   \_\_
+
  _ _   _      _   _                                 
 (_) |_( )__  | |_(_)_ __ ___   ___                  
 | | __|/ __| | __| | '_ ` _ \ / _ \                 
@@ -582,63 +572,36 @@ local payoff_art = {
 |_|  \___/|_|     \__,_| |_.__/|_|  \___|\__,_|_|\_\
 
 
-
-           ^\
- /        //o__o
-/\       /  __/
-\ \______\  /     
- \         /
-  \ \----\ \
-   \_\_   \_\_
-
-
 ]],
 	},
 	{
-		color = "%{bright yellow}",
+		color = "%{green}",
 		text = [[
-▗▄▄▖ ▗▄▄▄▖ ▗▄▄▖▗▄▄▄▖▗▄▄▖  ▗▄▖ ▗▄▄▄▖▗▖  ▗▖▗▄▄▄▖    ▗▄▄▖  ▗▄▖▗▖  ▗▖▗▄▄▖                  
-▐▌ ▐▌▐▌   ▐▌     █  ▐▌ ▐▌▐▌ ▐▌  █  ▐▛▚▖▐▌  █      ▐▌ ▐▌▐▌ ▐▌▝▚▞▘▐▌                     
-▐▛▀▚▖▐▛▀▀▘ ▝▀▚▖  █  ▐▛▀▚▖▐▛▀▜▌  █  ▐▌ ▝▜▌  █      ▐▛▀▘ ▐▛▀▜▌ ▐▌  ▝▀▚▖                  
-▐▌ ▐▌▐▙▄▄▖▗▄▄▞▘  █  ▐▌ ▐▌▐▌ ▐▌▗▄█▄▖▐▌  ▐▌  █      ▐▌   ▐▌ ▐▌ ▐▌ ▗▄▄▞▘                  ]],
-	},
-	{
-		color = "%{bright magenta}",
-		text = [[
-▗▄▄▄▖▗▖  ▗▖ ▗▄▄▖▗▄▄▄▖▗▄▄▄▖ ▗▄▖ ▗▖  ▗▖ ▗▄▄▖     ▗▄▄▖ ▗▄▄▖ ▗▄▄▄▖     ▗▄▄▖▗▄▄▄▖▗▄▖▗▄▄▄▖▗▄▄▄▖
-▐▌   ▐▛▚▞▜▌▐▌ ▐▌ █    █  ▐▌ ▐▌▐▛▚▖▐▌▐▌       ▐▌ ▐▌▐▌ ▐▌▐▌       ▐▌     █ ▐▌ ▐▌ █  ▐▌   
-▐▛▀▀▘▐▌  ▐▌▐▌ ▐▌ █    █  ▐▌ ▐▌▐▌ ▝▜▌ ▝▀▚▖    ▐▛▀▜▌▐▛▀▚▖▐▛▀▀▘     ▝▀▚▖  █ ▐▛▀▜▌ █  ▐▛▀▀▘
-▐▙▄▄▖▐▌  ▐▌▝▚▄▞▘ █  ▗▄█▄▖▝▚▄▞▘▐▌  ▐▌▗▄▄▞▘    ▐▌ ▐▌▐▌ ▐▌▐▙▄▄▖    ▗▄▄▞▘  █ ▐▌ ▐▌ █  ▐▙▄▄▖]],
-	},
-	{
-		color = "%{bright green}",
-		text = [[
- ▗▄▄▖ ▗▄▖ ▗▖  ▗▖▗▄▄▄▖     ▗▄▄▖ ▗▄▖ ▗▖  ▗▖▗▖  ▗▖ ▗▄▄▖  ▗▄▄▖                              
-▐▌   ▐▌ ▐▌▐▛▚▞▜▌▐▌       ▐▌   ▐▌ ▐▌▐▛▚▖▐▌▐▌  ▐▌▐▌ ▐▌▐▌                                 
- ▝▀▚▖▐▛▀▜▌▐▌  ▐▌▐▛▀▀▘    ▐▌   ▐▛▀▜▌▐▌ ▝▜▌▐▌  ▐▌▐▛▀▜▌ ▝▀▚▖                              
-▗▄▄▞▘▐▌ ▐▌▐▌  ▐▌▐▙▄▄▖    ▝▚▄▄▖▐▌ ▐▌▐▌  ▐▌ ▝▚▞▘ ▐▌ ▐▌▗▄▄▞▘                              ]],
-	},
-	{
-		color = "%{bright blue}",
-		text = [[
- ▗▄▖ ▗▖   ▗▖ ▗▖ ▗▄▖▗▖  ▗▖▗▄▄▖     ▗▄▄▖▗▖  ▗▖▗▄▄▖▗▖   ▗▄▄▄▖▗▖  ▗▖ ▗▄▄▖                  
-▐▌ ▐▌▐▌   ▐▌ ▐▌▐▌ ▐▌▝▚▞▘▐▌       ▐▌    ▝▚▞▘▐▌   ▐▌     █  ▐▛▚▖▐▌▐▌                     
-▐▛▀▜▌▐▌   ▐▌ ▐▌▐▛▀▜▌ ▐▌  ▝▀▚▖    ▐▌     ▐▌ ▐▌   ▐▌     █  ▐▌ ▝▜▌▐▌▝▜▌                  
-▐▌ ▐▌▐▙▄▄▖▐▙█▟▌▐▌ ▐▌ ▐▌ ▗▄▄▞▘    ▝▚▄▄▖  ▐▌ ▝▚▄▄▖▐▙▄▄▖▗▄█▄▖▐▌  ▐▌▝▚▄▞▘                  ]],
-	},
+  ___        _            _                                            
+ | _ \___ __| |_ _ _ __ _(_)_ _    _ __  __ _ _  _ ___                 
+ |   / -_|_-<  _| '_/ _` | | ' \  | '_ \/ _` | || (_-<                 
+ |_|_\___/__/\__|_| \__,_|_|_||_| | .__/\__,_|\_, /__/_        _       
+ | __|_ __  ___| |_(_)___ _ _  ___|_|_ _ _ _ _|__/ __| |_ __ _| |_ ___ 
+ | _|| '  \/ _ \  _| / _ \ ' \(_-< / _` | '_/ -_) (_-<  _/ _` |  _/ -_)
+ |___|_|_|_\___/\__|_\___/_||_/__/ \__,_|_| \___| /__/\__\__,_|\__\___|
+ / __| __ _ _ __  ___   __ __ _ _ ___ ____ _ ___                       
+ \__ \/ _` | '  \/ -_) / _/ _` | ' \ V / _` (_-<                       
+ |___/\__,_|_|_|_\___| \__\__,_|_||_\_/\__,_/__/                       
+   /_\ | |_ __ ____ _ _  _ ___  __ _  _ __| (_)_ _  __ _               
+  / _ \| \ V  V / _` | || (_-< / _| || / _| | | ' \/ _` |              
+ /_/ \_\_|\_/\_/\__,_|\_, /__/ \__|\_, \__|_|_|_||_\__, |              
+                      |__/         |__/            |___/                       
+ ]],
+	}
 }
 
 -- Build static payoff header (once)
 local payoff_header = ""
 for _, art in ipairs(payoff_art) do
-	payoff_header = payoff_header .. "\n" .. colors(art.color .. art.text)
+	payoff_header = payoff_header .. colors(art.color .. art.text) .. "\n"
 end
-payoff_header = payoff_header .. "\n\n" 
-	.. colors("%{white}States are chemical. They come and go. You are all of them. Discipline is state control.\n")
-	.. "\n"
-	.. colors("%{dim}Bullets remaining today: " .. show_bullets(current_bullets) .. "\n")
-	.. "\n"
-
+payoff_header = payoff_header 
+	.. colors("%{white}States are chemical. They come and go. You are all of them. Discipline is state control.")
 
 -- ======================================================
 -- ---- SHUTDOWN / BLOCK -------------------------------
@@ -646,13 +609,43 @@ payoff_header = payoff_header .. "\n\n"
 
 safe_exec("pkill -f MotiveWave 2>/dev/null || true")
 safe_exec("pkill -f Bookmap 2>/dev/null || true")
--- safe_exec("sudo mkdir -p /usr/local/etc/dnsmasq.d")
--- safe_exec("echo 'address=/rithmic.com/127.0.0.1' | sudo tee /usr/local/etc/dnsmasq.d/block-rithmic.conf >/dev/null")
--- safe_exec("sudo brew services restart dnsmasq >/dev/null 2>&1")
+safe_exec("sudo mkdir -p /usr/local/etc/dnsmasq.d")
+safe_exec("echo 'address=/rithmic.com/127.0.0.1' | sudo tee /usr/local/etc/dnsmasq.d/block-rithmic.conf >/dev/null")
+safe_exec("sudo brew services restart dnsmasq >/dev/null 2>&1")
 
 -- Run cooldown timer with payoff art (reusing run_timer)
 local cooldown_minutes = TEST_MODE and 1 or math.random(25, 35)
 run_timer(cooldown_minutes, payoff_header, current_bullets)
+
+-- ======================================================
+-- ---- FINAL REVIEW MESSAGE ----------------------------
+-- ======================================================
+
+if session_ended then
+	exit_gracefully("Session ended early", current_bullets)
+end
+
+os.execute("clear")
+print()
+print_colored([[
+██████  ███████ ██    ██ ██ ███████ ██     ██                                    
+██   ██ ██      ██    ██ ██ ██      ██     ██                                    
+██████  █████   ██    ██ ██ █████   ██  █  ██                                    
+██   ██ ██       ██  ██  ██ ██      ██ ███ ██                                    
+██   ██ ███████   ████   ██ ███████  ███ ███                                     
+                                                                                 
+                                                                                 
+██     ██ ██   ██ ███████ ███    ██     ██████  ███████  █████  ██████  ██    ██ 
+██     ██ ██   ██ ██      ████   ██     ██   ██ ██      ██   ██ ██   ██  ██  ██  
+██  █  ██ ███████ █████   ██ ██  ██     ██████  █████   ███████ ██   ██   ████   
+██ ███ ██ ██   ██ ██      ██  ██ ██     ██   ██ ██      ██   ██ ██   ██    ██    
+ ███ ███  ██   ██ ███████ ██   ████     ██   ██ ███████ ██   ██ ██████     ██    
+]], "%{bright cyan}")
+print()
+print_colored("Bullets remaining: " .. show_bullets(current_bullets), "%{dim}")
+print()
+
+safe_sleep(2)
 
 if TEST_MODE then
 	print_colored("[TEST MODE COMPLETE]", "%{dim}")
