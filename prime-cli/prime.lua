@@ -7,84 +7,7 @@ local socket = require("socket")
 -- ---- TEST MODE --------------------------------------
 -- ======================================================
 
-local TEST_MODE = false
-
--- ======================================================
--- ---- UTILITIES ---------------------------------------
--- ======================================================
-
-local function hide_cursor()
-	io.write("\27[?25l")
-	io.flush()
-end
-
-local function show_cursor()
-	io.write("\27[?25h")
-	io.flush()
-end
-
-local function format_time(seconds)
-	local ms = math.floor((seconds * 1000) % 1000)
-	local total_sec = math.floor(seconds)
-	return string.format("%02d:%02d.%03d", math.floor(total_sec / 60), total_sec % 60, ms)
-end
-
-local function print_colored(text, color)
-	print(colors(color .. text))
-end
-
-local function get_input(prompt, color)
-	if TEST_MODE then
-		print_colored("[TEST INPUT AUTO-ACCEPTED]", "%{dim}")
-		return ""
-	end
-	io.write(colors((color or "%{bright green}") .. prompt))
-	return io.read()
-end
-
-local function exit_with_error(message)
-	print_colored(message, "%{bright red}")
-	show_cursor()
-	os.exit(1)
-end
-
-local function exit_gracefully(message, bullets)
-	print()
-	print_colored(message or "Session ended", "%{yellow}")
-	print()
-	print_colored("Bullets remaining: " .. show_bullets(bullets), "%{white}")
-	print()
-	show_cursor()
-	os.exit(0)
-end
-
-local function safe_exec(cmd)
-	if TEST_MODE then
-		print_colored("[TEST] " .. cmd, "%{dim}")
-		return true
-	end
-	return os.execute(cmd)
-end
-
-local function safe_sleep(seconds)
-	if TEST_MODE then
-		os.execute("sleep 0.5")
-		return
-	end
-	os.execute("sleep " .. tonumber(seconds))
-end
-
-local function check_end_key()
-	local handle = io.popen("bash -c 'read -t 0.001 -n 1 key 2>/dev/null && echo $key'")
-	if handle then
-		local result = handle:read("*a")
-		handle:close()
-		if result and (result:match("e") or result:match("E")) then
-			return true
-		end
-	end
-	return false
-end
+local TEST_MODE = true
 
 -- ======================================================
 -- ---- BULLET SYSTEM -----------------------------------
@@ -185,6 +108,124 @@ local function show_bullets(bullets)
 end
 
 -- ======================================================
+-- ---- UTILITIES ---------------------------------------
+-- ======================================================
+
+local function hide_cursor()
+	io.write("\27[?25l")
+	io.flush()
+end
+
+local function show_cursor()
+	io.write("\27[?25h")
+	io.flush()
+end
+
+local function format_time(seconds)
+	local ms = math.floor((seconds * 1000) % 1000)
+	local total_sec = math.floor(seconds)
+	return string.format("%02d:%02d.%03d", math.floor(total_sec / 60), total_sec % 60, ms)
+end
+
+local function run_payoff_timer(minutes)
+	local total_seconds = minutes * 60
+	local end_time = socket.gettime() + total_seconds
+  
+	hide_cursor()
+  
+	while socket.gettime() < end_time do
+	  if check_end_key() then
+		break
+	  end
+  
+	  local remaining = end_time - socket.gettime()
+  
+	  -- jump to bottom line and overwrite only that line
+	  io.write("\27[s")            -- save cursor
+	  io.write("\27[999;1H")       -- go to bottom
+	  io.write("\27[2K")           -- clear line
+	  io.write(colors(
+		"%{bright red}  -" .. format_time(remaining) .. "   %{dim}(press e to end)"
+	  ))
+	  io.write("\27[u")            -- restore cursor
+  
+	  io.flush()
+	  socket.sleep(0.2)
+	end
+  
+	show_cursor()
+  end
+  
+
+local function print_colored(text, color)
+	print(colors(color .. text))
+end
+
+local function get_input(prompt, color)
+	if TEST_MODE then
+		print_colored("[TEST INPUT AUTO-ACCEPTED]", "%{dim}")
+		return ""
+	end
+	io.write(colors((color or "%{bright green}") .. prompt))
+	return io.read()
+end
+
+local function exit_with_error(message)
+	print_colored(message, "%{bright red}")
+	show_cursor()
+	os.exit(1)
+end
+
+local function exit_gracefully(message, bullets)
+	print()
+	print_colored(message or "Session ended", "%{yellow}")
+	print()
+	print_colored("Bullets remaining: " .. show_bullets(bullets), "%{white}")
+	print()
+	show_cursor()
+	os.exit(0)
+end
+
+local function safe_exec(cmd)
+	if TEST_MODE then
+		print_colored("[TEST] " .. cmd, "%{dim}")
+		return true
+	end
+	return os.execute(cmd)
+end
+
+local function safe_sleep(seconds)
+	if TEST_MODE then
+		os.execute("sleep 0.5")
+		return
+	end
+	os.execute("sleep " .. tonumber(seconds))
+end
+
+local function check_end_key()
+	-- put tty into raw, non-blocking mode
+	os.execute("stty raw -echo min 0 time 0 < /dev/tty")
+  
+	local tty = io.open("/dev/tty", "r")
+	if not tty then return false end
+  
+	local char = tty:read(1)
+  
+	tty:close()
+  
+	-- restore terminal
+	os.execute("stty echo cooked < /dev/tty")
+  
+	if char == "e" or char == "E" then
+	  return true
+	end
+  
+	return false
+  end
+  
+  
+
+-- ======================================================
 -- ---- UNLOCK SEQUENCE ---------------------------------
 -- ======================================================
 
@@ -221,8 +262,8 @@ if current_bullets == 0 then
 end
 
 print_colored("Ready to use 1 bullet?", "%{bright white}")
-print_colored("  [y] Yes, let's trade", "%{dim}")
-print_colored("  [n] No, save it", "%{dim}")
+print_colored("  [y] mjb", "%{dim}")
+print_colored("  [n] no", "%{dim}")
 print()
 
 local confirm = TEST_MODE and "y" or get_input("(y/n): ")
@@ -369,7 +410,7 @@ safe_sleep(1)
 -- ---- WARMUP / TIMER ---------------------------------
 -- ======================================================
 
-local GRID_COLS, GRID_ROWS = 81, 6
+local GRID_COLS, GRID_ROWS = 90, 9
 local GRID_SIZE = GRID_COLS * GRID_ROWS
 
 local warmup_art = [[
@@ -423,7 +464,7 @@ local function draw_timer(elapsed, total_seconds, header_art, bullets)
 	local filled = math.floor((elapsed * GRID_SIZE) / total_seconds)
 
 	-- Move to home and clear screen in one go
-	io.write("\27[H\27[2J")
+	-- io.write("\27[H\27[2J")
 
 	-- Header
 	if header_art then
@@ -505,11 +546,22 @@ run_timer(live_minutes, ascii_art, current_bullets)
 -- ---- PAYOFF ------------------------------------------
 -- ======================================================
 
+-- ======================================================
+-- ---- PAYOFF + COOLDOWN TIMER -------------------------
+-- ======================================================
+
+-- ======================================================
+-- ---- PAYOFF + COOLDOWN TIMER -------------------------
+-- ======================================================
+
+-- ======================================================
+-- ---- PAYOFF + COOLDOWN TIMER -------------------------
+-- ======================================================
+
 local payoff_art = {
 	{
 		color = "%{bright cyan}",
 		text = [[
-
 
                                           .`.   _ _
                                         __;_ \ /,//`
@@ -517,8 +569,6 @@ local payoff_art = {
                                          '//,,,  |
                                               )_/
                                              /_|
-
-
  _ _   _      _   _                                 
 (_) |_( )__  | |_(_)_ __ ___   ___                  
 | | __|/ __| | __| | '_ ` _ \ / _ \                 
@@ -555,7 +605,7 @@ local payoff_art = {
 	{
 		color = "%{bright magenta}",
 		text = [[
-▗▄▄▄▖▗▖  ▗▖ ▗▄▖▗▄▄▄▖▗▄▄▄▖ ▗▄▖ ▗▖  ▗▖ ▗▄▄▖     ▗▄▖ ▗▄▄▖ ▗▄▄▄▖     ▗▄▄▖▗▄▄▄▖▗▄▖▗▄▄▄▖▗▄▄▄▖
+▗▄▄▄▖▗▖  ▗▖ ▗▄▄▖▗▄▄▄▖▗▄▄▄▖ ▗▄▖ ▗▖  ▗▖ ▗▄▄▖     ▗▄▄▖ ▗▄▄▖ ▗▄▄▄▖     ▗▄▄▖▗▄▄▄▖▗▄▖▗▄▄▄▖▗▄▄▄▖
 ▐▌   ▐▛▚▞▜▌▐▌ ▐▌ █    █  ▐▌ ▐▌▐▛▚▖▐▌▐▌       ▐▌ ▐▌▐▌ ▐▌▐▌       ▐▌     █ ▐▌ ▐▌ █  ▐▌   
 ▐▛▀▀▘▐▌  ▐▌▐▌ ▐▌ █    █  ▐▌ ▐▌▐▌ ▝▜▌ ▝▀▚▖    ▐▛▀▜▌▐▛▀▚▖▐▛▀▀▘     ▝▀▚▖  █ ▐▛▀▜▌ █  ▐▛▀▀▘
 ▐▙▄▄▖▐▌  ▐▌▝▚▄▞▘ █  ▗▄█▄▖▝▚▄▞▘▐▌  ▐▌▗▄▄▞▘    ▐▌ ▐▌▐▌ ▐▌▐▙▄▄▖    ▗▄▄▞▘  █ ▐▌ ▐▌ █  ▐▙▄▄▖]],
@@ -563,7 +613,7 @@ local payoff_art = {
 	{
 		color = "%{bright green}",
 		text = [[
- ▗▄▄▖ ▗▄▖ ▗▖  ▗▖▗▄▄▄▖     ▗▄▄▖ ▗▄▖ ▗▖  ▗▖▗▖  ▗▖ ▗▄▖  ▗▄▄▖                              
+ ▗▄▄▖ ▗▄▖ ▗▖  ▗▖▗▄▄▄▖     ▗▄▄▖ ▗▄▖ ▗▖  ▗▖▗▖  ▗▖ ▗▄▄▖  ▗▄▄▖                              
 ▐▌   ▐▌ ▐▌▐▛▚▞▜▌▐▌       ▐▌   ▐▌ ▐▌▐▛▚▖▐▌▐▌  ▐▌▐▌ ▐▌▐▌                                 
  ▝▀▚▖▐▛▀▜▌▐▌  ▐▌▐▛▀▀▘    ▐▌   ▐▛▀▜▌▐▌ ▝▜▌▐▌  ▐▌▐▛▀▜▌ ▝▀▚▖                              
 ▗▄▄▞▘▐▌ ▐▌▐▌  ▐▌▐▙▄▄▖    ▝▚▄▄▖▐▌ ▐▌▐▌  ▐▌ ▝▚▞▘ ▐▌ ▐▌▗▄▄▞▘                              ]],
@@ -578,19 +628,17 @@ local payoff_art = {
 	},
 }
 
--- Clear screen before payoff
-os.execute("clear")
-
+-- Build static payoff header (once)
+local payoff_header = ""
 for _, art in ipairs(payoff_art) do
-	print()
-	print_colored(art.text, art.color)
+	payoff_header = payoff_header .. "\n" .. colors(art.color .. art.text)
 end
+payoff_header = payoff_header .. "\n\n" 
+	.. colors("%{white}States are chemical. They come and go. You are all of them. Discipline is state control.\n")
+	.. "\n"
+	.. colors("%{dim}Bullets remaining today: " .. show_bullets(current_bullets) .. "\n")
+	.. "\n"
 
-print()
-print_colored("States are chemical. They come and go. You are all of them. Discipline is state control.", "%{white}")
-print()
-print_colored("Bullets remaining today: " .. show_bullets(current_bullets), "%{dim}")
-print()
 
 -- ======================================================
 -- ---- SHUTDOWN / BLOCK -------------------------------
@@ -598,9 +646,13 @@ print()
 
 safe_exec("pkill -f MotiveWave 2>/dev/null || true")
 safe_exec("pkill -f Bookmap 2>/dev/null || true")
-safe_exec("sudo mkdir -p /usr/local/etc/dnsmasq.d")
-safe_exec("echo 'address=/rithmic.com/127.0.0.1' | sudo tee /usr/local/etc/dnsmasq.d/block-rithmic.conf >/dev/null")
-safe_exec("sudo brew services restart dnsmasq >/dev/null 2>&1")
+-- safe_exec("sudo mkdir -p /usr/local/etc/dnsmasq.d")
+-- safe_exec("echo 'address=/rithmic.com/127.0.0.1' | sudo tee /usr/local/etc/dnsmasq.d/block-rithmic.conf >/dev/null")
+-- safe_exec("sudo brew services restart dnsmasq >/dev/null 2>&1")
+
+-- Run cooldown timer with payoff art (reusing run_timer)
+local cooldown_minutes = TEST_MODE and 1 or math.random(25, 35)
+run_timer(cooldown_minutes, payoff_header, current_bullets)
 
 if TEST_MODE then
 	print_colored("[TEST MODE COMPLETE]", "%{dim}")
