@@ -7,7 +7,7 @@ local socket = require("socket")
 -- ---- TEST MODE --------------------------------------
 -- ======================================================
 
-local TEST_MODE = true
+local TEST_MODE = false
 
 -- ======================================================
 -- ---- BULLET SYSTEM -----------------------------------
@@ -130,32 +130,29 @@ end
 local function run_payoff_timer(minutes)
 	local total_seconds = minutes * 60
 	local end_time = socket.gettime() + total_seconds
-  
+
 	hide_cursor()
-  
+
 	while socket.gettime() < end_time do
-	  if check_end_key() then
-		break
-	  end
-  
-	  local remaining = end_time - socket.gettime()
-  
-	  -- jump to bottom line and overwrite only that line
-	  io.write("\27[s")            -- save cursor
-	  io.write("\27[999;1H")       -- go to bottom
-	  io.write("\27[2K")           -- clear line
-	  io.write(colors(
-		"%{bright red}  -" .. format_time(remaining) .. "   %{dim}(press e to end)"
-	  ))
-	  io.write("\27[u")            -- restore cursor
-  
-	  io.flush()
-	  socket.sleep(0.2)
+		if check_end_key() then
+			break
+		end
+
+		local remaining = end_time - socket.gettime()
+
+		-- jump to bottom line and overwrite only that line
+		io.write("\27[s") -- save cursor
+		io.write("\27[999;1H") -- go to bottom
+		io.write("\27[2K") -- clear line
+		io.write(colors("%{bright red}  -" .. format_time(remaining) .. "   %{dim}(press e to end)"))
+		io.write("\27[u") -- restore cursor
+
+		io.flush()
+		socket.sleep(0.2)
 	end
-  
+
 	show_cursor()
-  end
-  
+end
 
 local function print_colored(text, color)
 	print(colors(color .. text))
@@ -205,25 +202,25 @@ end
 local function check_end_key()
 	-- put tty into raw, non-blocking mode
 	os.execute("stty raw -echo min 0 time 0 < /dev/tty")
-  
+
 	local tty = io.open("/dev/tty", "r")
-	if not tty then return false end
-  
+	if not tty then
+		return false
+	end
+
 	local char = tty:read(1)
-  
+
 	tty:close()
-  
+
 	-- restore terminal
 	os.execute("stty echo cooked < /dev/tty")
-  
+
 	if char == "e" or char == "E" then
-	  return true
+		return true
 	end
-  
+
 	return false
-  end
-  
-  
+end
 
 -- ======================================================
 -- ---- UNLOCK SEQUENCE ---------------------------------
@@ -592,7 +589,7 @@ local payoff_art = {
  /_/ \_\_|\_/\_/\__,_|\_, /__/ \__|\_, \__|_|_|_||_\__, |              
                       |__/         |__/            |___/                       
  ]],
-	}
+	},
 }
 
 -- Build static payoff header (once)
@@ -600,7 +597,7 @@ local payoff_header = ""
 for _, art in ipairs(payoff_art) do
 	payoff_header = payoff_header .. colors(art.color .. art.text) .. "\n"
 end
-payoff_header = payoff_header 
+payoff_header = payoff_header
 	.. colors("%{white}States are chemical. They come and go. You are all of them. Discipline is state control.")
 
 -- ======================================================
@@ -627,7 +624,8 @@ end
 
 os.execute("clear")
 print()
-print_colored([[
+print_colored(
+	[[
 ██████  ███████ ██    ██ ██ ███████ ██     ██                                    
 ██   ██ ██      ██    ██ ██ ██      ██     ██                                    
 ██████  █████   ██    ██ ██ █████   ██  █  ██                                    
@@ -640,7 +638,9 @@ print_colored([[
 ██  █  ██ ███████ █████   ██ ██  ██     ██████  █████   ███████ ██   ██   ████   
 ██ ███ ██ ██   ██ ██      ██  ██ ██     ██   ██ ██      ██   ██ ██   ██    ██    
  ███ ███  ██   ██ ███████ ██   ████     ██   ██ ███████ ██   ██ ██████     ██    
-]], "%{bright cyan}")
+]],
+	"%{bright cyan}"
+)
 print()
 print_colored("Bullets remaining: " .. show_bullets(current_bullets), "%{dim}")
 print()
@@ -650,3 +650,4 @@ safe_sleep(2)
 if TEST_MODE then
 	print_colored("[TEST MODE COMPLETE]", "%{dim}")
 end
+
