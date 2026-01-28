@@ -135,6 +135,7 @@
     nav {
       display: grid;
       gap: 1rem;
+      padding-bottom: 4rem;
     }
 
     @media (min-width: 40rem) {
@@ -142,6 +143,10 @@
         grid-template-columns: repeat(4, 1fr);
       }
 }
+
+  #palette-score {
+    color: var(--stamp);
+  }
   </style>
 </head>
 
@@ -167,24 +172,21 @@
         background: var(--btn-fill);
         color: var(--btn-text);
         border: 2px solid var(--seal);
-        border-radius: 1em;
+        border-radius: 1rem;
         white-space: normal;
-        font-size: .25em;
-        padding: 1.5em .5em;
+        font-size: .25rem;
+        padding: 1.25rem 1.5rem .75rem .5rem;
         font-family:'ComicMono', monospace;
         cursor: pointer;
       ">
       <pre class="ascii">
-                                                                                          
-        ▄▄▄▄▄▄                              ▄▄                         ██                        
-        ██▀▀▀▀██                            ██                         ▀▀                        
-        ██    ██   ▄█████▄  ██▄████▄   ▄███▄██   ▄████▄   ████▄██▄   ████     ████████   ▄████▄  
-        ███████    ▀ ▄▄▄██  ██▀   ██  ██▀  ▀██  ██▀  ▀██  ██ ██ ██     ██         ▄█▀   ██▄▄▄▄██ 
-        ██  ▀██▄  ▄██▀▀▀██  ██    ██  ██    ██  ██    ██  ██ ██ ██     ██       ▄█▀     ██▀▀▀▀▀▀ 
-        ██    ██  ██▄▄▄███  ██    ██  ▀██▄▄███  ▀██▄▄██▀  ██ ██ ██  ▄▄▄██▄▄▄  ▄██▄▄▄▄▄  ▀██▄▄▄▄█ 
-        ▀▀    ▀▀▀  ▀▀▀▀ ▀▀  ▀▀    ▀▀    ▀▀▀ ▀▀    ▀▀▀▀    ▀▀ ▀▀ ▀▀  ▀▀▀▀▀▀▀▀  ▀▀▀▀▀▀▀▀    ▀▀▀▀▀  
-                                                                                                 
-                                                                                                                                   
+        ▄▀▀█▄▄▄▄  ▄▀▀█▄   ▄▀▀▄▀▀▀▄  ▄▀▀▄ ▀▄      ▄▀▀▄▀▀▀▄  ▄▀▀▀▀▄   ▄▀▀█▀▄    ▄▀▀▄ ▀▄  ▄▀▀▀█▀▀▄ 
+        ▐  ▄▀   ▐ ▐ ▄▀ ▀▄ █   █   █ █  █ █ █     █   █   █ █      █ █   █  █  █  █ █ █ █    █  ▐ 
+          █▄▄▄▄▄    █▄▄▄█ ▐  █▀▀█▀  ▐  █  ▀█     ▐  █▀▀▀▀  █      █ ▐   █  ▐  ▐  █  ▀█ ▐   █     
+          █    ▌   ▄▀   █  ▄▀    █    █   █         █      ▀▄    ▄▀     █       █   █     █      
+         ▄▀▄▄▄▄   █   ▄▀  █     █   ▄▀   █        ▄▀         ▀▀▀▀    ▄▀▀▀▀▀▄  ▄▀   █    ▄▀       
+         █    ▐   ▐   ▐   ▐     ▐   █    ▐       █                  █       █ █    ▐   █         
+         ▐                          ▐            ▐                  ▐       ▐ ▐        ▐         
       </pre>
   </div>
 
@@ -409,13 +411,13 @@
 
           // Check milestones
           if (score === 1) {
-            showToast('Keep going! Checkpoint 1@15');
+            showToast('Point scored! Checkpoint at +15');
           } else if (score === 15) {
-            showToast('Getting warm! Checkpoint 2@30');
+            showToast('+15 bagged! Checkpoint at +30');
           } else if (score === 30) {
-            showToast('Heating up! Checkpoint 3@60');
+            showToast('+30 and heating up! Checkpoint at +60');
           } else if (score === 60) {
-            showToast("You're on fire! Last checkpoint @99");
+            showToast("+60 and on fire! Checkpoint at +99");
           } else if (score === 99) {
             showToast('Boomshakalaka!!!');
             btn.disabled = true;
