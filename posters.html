@@ -186,7 +186,7 @@
     (async () => {
       const gallery = document.getElementById('gallery');
 
-      const res = await fetch('./backoffice/posters/');
+      const res = await fetch('/backoffice/posters/');
       const html = await res.text();
 
       const doc = new DOMParser().parseFromString(html, 'text/html');
@@ -204,7 +204,7 @@
         card.className = 'card';
 
         const img = document.createElement('img');
-        img.src = `./backoffice/posters/${file}`;
+        img.src = `/backoffice/posters/${file}`;
         img.loading = 'lazy';
 
         const meta = document.createElement('div');
