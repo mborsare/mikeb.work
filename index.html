@@ -163,7 +163,7 @@
       </nav>
       
     <span>Score</span>
-    <span id="palette-score" style="padding: 1em">0</span>
+    <span id="palette-score">0</span>
 
   <div style="display:flex; justify-content:center; align-items:center;">
     <button id="palette-btn" style="
@@ -391,64 +391,66 @@
       }
 
       function processUpdate() {
-        if (pendingUpdates === 0) {
-          isProcessing = false;
-          return;
-        }
+  if (pendingUpdates === 0) {
+    isProcessing = false;
+    return;
+  }
 
-        isProcessing = true;
-        pendingUpdates--;
+  isProcessing = true;
+  pendingUpdates--;
 
-        // Update score immediately for responsiveness
-        score++;
-        scoreEl.textContent = score;
+  // Update score immediately for responsiveness
+  score++;
+  scoreEl.textContent = score;
 
-        // Defer heavy visual updates to avoid blocking
-        requestAnimationFrame(() => {
-          applyRandomPalette();
-          randomizeStamps();
+  // Defer heavy visual updates to avoid blocking
+  requestAnimationFrame(() => {
+    applyRandomPalette();
+    randomizeStamps();
 
-          // Check milestones
-          if (score === 1) {
-            showToast('Point scored! Checkpoint at +15');
-          } else if (score === 15) {
-            showToast('+15 bagged! Checkpoint at +30');
-          } else if (score === 30) {
-            showToast('+30 and heating up! Checkpoint at +60');
-          } else if (score === 60) {
-            showToast("+60 and on fire! Checkpoint at +99");
-          } else if (score === 99) {
-            showToast('Boomshakalaka!!!');
-            btn.disabled = true;
-            btn.style.opacity = '0.5';
-            btn.style.cursor = 'not-allowed';
+    // Check milestones
+    if (score === 1) {
+      showToast('Point scored! Checkpoint at +15');
+    } else if (score === 15) {
+      showToast('+15 bagged! Checkpoint at +30');
+    } else if (score === 30) {
+      showToast('+30 and heating up! Checkpoint at +60');
+    } else if (score === 60) {
+      showToast("+60 and on fire! Checkpoint at +99");
+    } else if (score === 99) {
+      showToast('Boomshakalaka!!!');
+      btn.disabled = true;
+      btn.style.opacity = '0.5';
+      btn.style.cursor = 'not-allowed';
 
-            setTimeout(() => {
-              score = 0;
-              scoreEl.textContent = 0;
-              btn.disabled = false;
-              btn.style.opacity = '1';
-              btn.style.cursor = 'pointer';
-            }, 3000);
-            isProcessing = false;
-            pendingUpdates = 0;
-            return;
-          }
+      setTimeout(() => {
+        score = 0;
+        scoreEl.textContent = 0;
+        showToast('Points reset to 0');  // ← ADD THIS LINE HERE
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.style.cursor = 'pointer';
+      }, 5000);
+      isProcessing = false;
+      pendingUpdates = 0;
+      return;
+    }
 
-          clearTimeout(timer);
-          timer = setTimeout(() => {
-            score = 0;
-            scoreEl.textContent = 0;
-          }, 3000);
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      score = 0;
+      scoreEl.textContent = 0;
+      showToast('Points reset to 0');  // ← ADD THIS LINE HERE TOO
+    }, 5000);
 
-          // Process next pending update if any
-          if (pendingUpdates > 0) {
-            requestAnimationFrame(processUpdate);
-          } else {
-            isProcessing = false;
-          }
-        });
-      }
+    // Process next pending update if any
+    if (pendingUpdates > 0) {
+      requestAnimationFrame(processUpdate);
+    } else {
+      isProcessing = false;
+    }
+  });
+}
 
       btn.addEventListener('click', e => {
         e.preventDefault();
