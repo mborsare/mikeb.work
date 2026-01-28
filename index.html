@@ -132,6 +132,16 @@
       transform: translateX(-50%) translateY(0);
       opacity: 1;
     }
+    nav {
+      display: grid;
+      gap: 1rem;
+    }
+
+    @media (min-width: 40rem) {
+      nav {
+        grid-template-columns: repeat(4, 1fr);
+      }
+}
   </style>
 </head>
 
@@ -140,46 +150,50 @@
   <div class="container">
     <h1 style="font-size:0.275rem;">Mike Borsare</h1>
     <time id="clock"></time>
-
-
     <div style="padding:1rem;">
-      <nav>
-        <a href="backgrounds.html" class="ascii">NEW FEATURE! Backgrounds for prime</a>
-        <a href="netflix.html" class="ascii">FEATURE Netflix. A to Z</a>
-        <a href="auction.html" class="ascii">EXPERIMENT Auction. Feel the pulse</a>
-        <a href="jumble.html" class="ascii">FEATURE Jumble. Bring your own paper</a>
+      <nav> 
+        <a href="posters.html" class="ascii">NEW! Posters</a>
+        <a href="netflix.html" class="ascii">Netfix</a>
+        <a href="auction.html" class="ascii">Lab</a>
+        <a href="jumble.html" class="ascii">Jumble</a>
+        <a href="mailto:mb@mikeb.work" style="color: var(--seal);">mb@mikeb.work</a>
       </nav>
-      <pre class="ascii" style="font-size:0.5rem;">
-            ▄         ▄▄▄▄▄   ▄█   ▄▀     ▄   ▄███▄   ██▄       █▀▄▀█ ▄█ █  █▀ ▄███▄   
-        ▀▄   █       █     ▀▄ ██ ▄▀        █  █▀   ▀  █  █      █ █ █ ██ █▄█   █▀   ▀  
-          █ ▀      ▄  ▀▀▀▀▄   ██ █ ▀▄  ██   █ ██▄▄    █   █     █ ▄ █ ██ █▀▄   ██▄▄    
-         ▄ █        ▀▄▄▄▄▀    ▐█ █   █ █ █  █ █▄   ▄▀ █  █      █   █ ▐█ █  █  █▄   ▄▀ 
-        █   ▀▄                 ▐  ███  █  █ █ ▀███▀   ███▀         █   ▐   █   ▀███▀   
-      ▀                             █   ██                     ▀       ▀
+      
+    <span>Score</span>
+    <span id="palette-score" style="padding: 1em">0</span>
+
+  <div style="display:flex; justify-content:center; align-items:center;">
+    <button id="palette-btn" style="
+        background: var(--btn-fill);
+        color: var(--btn-text);
+        border: 2px solid var(--seal);
+        border-radius: 1em;
+        white-space: normal;
+        font-size: .4em;
+        padding: 1.5em .5em;
+        font-family:'ComicMono', monospace;
+        cursor: pointer;
+      ">
+      <pre class="ascii">
+                                                                                          
+        ▄▄▄▄▄▄                              ▄▄                         ██                        
+        ██▀▀▀▀██                            ██                         ▀▀                        
+        ██    ██   ▄█████▄  ██▄████▄   ▄███▄██   ▄████▄   ████▄██▄   ████     ████████   ▄████▄  
+        ███████    ▀ ▄▄▄██  ██▀   ██  ██▀  ▀██  ██▀  ▀██  ██ ██ ██     ██         ▄█▀   ██▄▄▄▄██ 
+        ██  ▀██▄  ▄██▀▀▀██  ██    ██  ██    ██  ██    ██  ██ ██ ██     ██       ▄█▀     ██▀▀▀▀▀▀ 
+        ██    ██  ██▄▄▄███  ██    ██  ▀██▄▄███  ▀██▄▄██▀  ██ ██ ██  ▄▄▄██▄▄▄  ▄██▄▄▄▄▄  ▀██▄▄▄▄█ 
+        ▀▀    ▀▀▀  ▀▀▀▀ ▀▀  ▀▀    ▀▀    ▀▀▀ ▀▀    ▀▀▀▀    ▀▀ ▀▀ ▀▀  ▀▀▀▀▀▀▀▀  ▀▀▀▀▀▀▀▀    ▀▀▀▀▀  
+                                                                                                 
+                                                                                                                                   
       </pre>
-      <a href="mailto:mb@mikeb.work" style="color: var(--seal);">mb@mikeb.work</a>
+  </div>
+
+
+ 
 
     </div>
-
-    <div style="display:flex; justify-content:center; align-items:center;">
-
-      <button id="palette-btn" style="
-          background: var(--btn-fill);
-          color: var(--btn-text);
-          border: 2px solid var(--seal);
-          border-radius: 1em;
-          white-space: normal;
-          font-size: 1em;
-          padding: 1.5em;
-          margin: 0 1em;
-          font-family:'ComicMono', monospace;
-          cursor: pointer;
-        ">
-        Randomize
-      </button>
-      <div><span id="palette-score">0</span></div>
-    </div>
-
+    <pre class="ascii">/backoffice/doctrine.json</pre>
+    <pre class="ascii">------------------------</pre>
     <div id="doctrine-list"></div>
     <pre class="ascii" style="font-size:0.4rem;">
       ██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████ 
