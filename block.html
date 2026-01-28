@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Mike Borsare</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    :root {
+      --bg: #000000;
+      --text: #c0c0c0;
+      --stamp: #888888;
+      --seal: #eaffea;
+
+      /* derived button colors */
+      --btn-fill: color-mix(in hsl,
+          var(--bg),
+          var(--seal) 20%);
+      --btn-text: #ffffff;
+    }
+
+    html {
+      font-size: 14px;
+    }
+
+    @font-face {
+      font-family: 'ComicMono';
+      src: url('/fonts/ComicMono-Regular.woff') format('woff');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow-y: auto;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'ComicMono', monospace;
+      font-size: 1rem;
+    }
+
+    .container {
+      min-width: 20rem;
+      max-width: 60rem;
+      width: 100%;
+      padding: clamp(0.75rem, 2vw, 1.25rem);
+      margin: auto 0;
+      text-align: center;
+      white-space: pre-line;
+      line-height: 1.5;
+    }
+
+    h1 {
+      color: var(--bg);
+    }
+
+    .list-item {
+      padding: 0.5rem 1rem;
+    }
+
+    .list-item::after {
+      color: var(--stamp);
+      content: "MJB";
+      white-space: pre;
+      font-size: 1rem;
+      margin-left: 1rem;
+      vertical-align: middle;
+      display: inline-block;
+      position: relative;
+      letter-spacing: 0.25rem;
+      line-height: 1;
+      transform:
+        translate(var(--mjb-x, -2px), var(--mjb-y, -2px)) rotate(var(--mjb-tilt, -7deg));
+    }
+
+    @media (max-width: 60rem) {
+      .list-item {
+        font-size: 1.5rem;
+        text-align: center;
+      }
+    }
+
+    .ascii {
+      white-space: pre;
+      line-height: 1.1;
+      color: var(--seal);
+    }
+
+    #clock {
+      color: var(--seal);
+      opacity: 0.45;
+      filter: blur(0.25px);
+      will-change: opacity;
+      display: inline-block;
+    }
+
+    /* ---- MOBILE TAP FIX ---- */
+    #palette-btn {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    button:active {
+      scale: 0.9;
+    }
+
+    #toast {
+      position: fixed;
+      top: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100px);
+      background: var(--seal);
+      color: var(--bg);
+      padding: 1rem 2rem;
+      border-radius: 0.5rem;
+      font-size: 1.5rem;
+      font-weight: bold;
+      opacity: 0;
+      transition: all 0.3s ease;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    #toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="toast"></div>
+  <div class="container">
+    <h1 style="font-size:0.275rem;">Mike Borsare</h1>
+    <time id="clock"></time>
+
+
+    <div style="padding:1rem;">
+      <nav>
+        <a href="index.html" class="ascii">back</a>
+      </nav>
+      <pre class="ascii" style="font-size:0.5rem;">
+            ▄         ▄▄▄▄▄   ▄█   ▄▀     ▄   ▄███▄   ██▄       █▀▄▀█ ▄█ █  █▀ ▄███▄   
+        ▀▄   █       █     ▀▄ ██ ▄▀        █  █▀   ▀  █  █      █ █ █ ██ █▄█   █▀   ▀  
+          █ ▀      ▄  ▀▀▀▀▄   ██ █ ▀▄  ██   █ ██▄▄    █   █     █ ▄ █ ██ █▀▄   ██▄▄    
+         ▄ █        ▀▄▄▄▄▀    ▐█ █   █ █ █  █ █▄   ▄▀ █  █      █   █ ▐█ █  █  █▄   ▄▀ 
+        █   ▀▄                 ▐  ███  █  █ █ ▀███▀   ███▀         █   ▐   █   ▀███▀   
+      ▀                             █   ██                     ▀       ▀
+      </pre>
+      <a href="mailto:mb@mikeb.work" style="color: var(--seal);">mb@mikeb.work</a>
+
+    </div>
+
+    <div style="display:flex; justify-content:center; align-items:center;">
+    </div>
+
+    <main>foo</main>
+    <pre class="ascii" style="font-size:0.4rem;">
+      ██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████ 
+      ▓██░  ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█   ▀ 
+      ▓██░ ██▓▒▓██ ░▄█ ▒▒██▒▓██    ▓██░▒███   
+      ▒██▄█▓▒ ▒▒██▀▀█▄  ░██░▒██    ▒██ ▒▓█  ▄ 
+      ▒██▒ ░  ░░██▓ ▒██▒░██░▒██▒   ░██▒░▒████▒
+      ▒▓▒░ ░  ░░ ▒▓ ░▒▓░░▓  ░ ▒░   ░  ░░░ ▒░ ░
+      ░▒ ░       ░▒ ░ ▒░ ▒ ░░  ░      ░ ░ ░  ░
+      ░░         ░░   ░  ▒ ░░      ░      ░   
+                  ░      ░         ░      ░  ░
+                                              
+    </pre>
+    <div >
+      <a href="https://hotlinewebring.club/mikeb/previous" style="color: var(--seal); font-size: 0.8rem;">
+        < Previous</a>
+      <span style="color: var(--seal); padding: 0 2em;">Proud member of Hotline Webring</span>
+      <a href="https://hotlinewebring.club/mikeb/next" style="color: var(--seal); font-size: 0.8rem;">Next ></a>
+    </div>
+  </div>
+
+  <script>
+    // ---- Clock + pulse ----
+    (() => {
+      const clock = document.getElementById('clock');
+      let t = 0;
+
+      function updateClock() {
+        const now = new Date();
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        clock.textContent =
+          `${days[now.getDay()]} ${months[now.getMonth()]} ${now.getDate()} ` +
+          `${String(now.getHours()).padStart(2, '0')}:` +
+          `${String(now.getMinutes()).padStart(2, '0')}:` +
+          `${String(now.getSeconds()).padStart(2, '0')}:` +
+          `${String(now.getMilliseconds()).padStart(3, '0')}`;
+      }
+
+      function pulse() {
+        t += 0.02;
+        clock.style.opacity = 0.35 + (Math.sin(t) + 1) * 0.15;
+        requestAnimationFrame(pulse);
+      }
+
+      updateClock();
+      setInterval(updateClock, 50);
+      pulse();
+    })();
+  </script>
+</body>
+
+</html>
