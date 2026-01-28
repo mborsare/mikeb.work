@@ -70,13 +70,19 @@
       display: inline-block;
     }
 
-    /* ---- BACKGROUND BROWSER ---- */
+    /* ---- POSTER GRID ---- */
 
     .gallery {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+      grid-template-columns: repeat(2, 1fr);
       gap: 1rem;
       margin: 2rem 0;
+    }
+
+    @media (min-width: 80rem) {
+      .gallery {
+        grid-template-columns: repeat(4, 1fr);
+      }
     }
 
     .card {
@@ -123,13 +129,13 @@
       </nav>
 
       <pre class="ascii" style="font-size:0.5rem;">
-        ░█████████                           ░██                                   
-        ░██     ░██                          ░██                                   
-        ░██     ░██  ░███████   ░███████  ░████████  ░███████  ░██░████  ░███████  
-        ░█████████  ░██    ░██ ░██           ░██    ░██    ░██ ░███     ░██        
-        ░██         ░██    ░██  ░███████     ░██    ░█████████ ░██       ░███████  
-        ░██         ░██    ░██        ░██    ░██    ░██        ░██             ░██ 
-        ░██          ░███████   ░███████      ░████  ░███████  ░██       ░███████  
+░█████████                           ░██                                   
+░██     ░██                          ░██                                   
+░██     ░██  ░███████   ░███████  ░████████  ░███████  ░██░████  ░███████  
+░█████████  ░██    ░██ ░██           ░██    ░██    ░██ ░███     ░██        
+░██         ░██    ░██  ░███████     ░██    ░█████████ ░██       ░███████  
+░██         ░██    ░██        ░██    ░██    ░██        ░██             ░██ 
+░██          ░███████   ░███████      ░████  ░███████  ░██       ░███████  
       </pre>
 
       <a href="mailto:mb@mikeb.work" style="color: var(--seal);">mb@mikeb.work</a>
@@ -140,15 +146,15 @@
     </main>
 
     <pre class="ascii" style="font-size:0.4rem;">
-      ██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████ 
-      ▓██░  ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█   ▀ 
-      ▓██░ ██▓▒▓██ ░▄█ ▒▒██▒▓██    ▓██░▒███   
-      ▒██▄█▓▒ ▒▒██▀▀█▄  ░██░▒██    ▒██ ▒▓█  ▄ 
-      ▒██▒ ░  ░░██▓ ▒██▒░██░▒██▒   ░██▒░▒████▒
-      ▒▓▒░ ░  ░░ ▒▓ ░▒▓░░▓  ░ ▒░   ░  ░░░ ▒░ ░
-      ░▒ ░       ░▒ ░ ▒░ ▒ ░░  ░      ░ ░ ░  ░
-      ░░         ░░   ░  ▒ ░░      ░      ░   
-                  ░      ░         ░      ░  ░
+██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████ 
+▓██░  ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█   ▀ 
+▓██░ ██▓▒▓██ ░▄█ ▒▒██▒▓██    ▓██░▒███   
+▒██▄█▓▒ ▒▒██▀▀█▄  ░██░▒██    ▒██ ▒▓█  ▄ 
+▒██▒ ░  ░░██▓ ▒██▒░██░▒██▒   ░██▒░▒████▒
+▒▓▒░ ░  ░░ ▒▓ ░▒▓░░▓  ░ ▒░   ░  ░░░ ▒░ ░
+░▒ ░       ░▒ ░ ▒░ ▒ ░░  ░      ░ ░ ░  ░
+░░         ░░   ░  ▒ ░░      ░      ░   
+            ░      ░         ░      ░  ░
     </pre>
   </div>
 
@@ -182,22 +188,12 @@
       pulse();
     })();
 
-    // ---- Background directory crawl ----
+    // ---- Posters via JSON (production-safe) ----
     (async () => {
       const gallery = document.getElementById('gallery');
 
-      const res = await fetch('/backoffice/posters/');
-      const html = await res.text();
-
-      const doc = new DOMParser().parseFromString(html, 'text/html');
-
-      const files = Array.from(doc.querySelectorAll('a'))
-        .map(a => a.getAttribute('href'))
-        .filter(href =>
-          href &&
-          !href.startsWith('?') &&
-          /\.(png|jpg|jpeg|webp|gif)$/i.test(href)
-        );
+      const res = await fetch('/backoffice/posters/posters.json');
+      const files = await res.json();
 
       files.forEach(file => {
         const card = document.createElement('div');
