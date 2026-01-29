@@ -244,8 +244,6 @@ print_colored(
 )
 
 print()
-print_colored(" * Prime shell activated * ", "%{bright yellow}")
-print()
 print_colored("Bullets: " .. show_bullets(current_bullets), "%{white}")
 print()
 
@@ -372,8 +370,6 @@ print_colored('"Trade the market in front of you, not the one you wish existed."
 print()
 print_colored("Bullets: " .. show_bullets(current_bullets), "%{dim}")
 print()
-print_colored("▶ entering prime", "%{bright cyan}")
-print()
 
 safe_sleep(1)
 
@@ -407,7 +403,7 @@ safe_sleep(1)
 -- ---- WARMUP / TIMER ---------------------------------
 -- ======================================================
 
-local GRID_COLS, GRID_ROWS = 90, 9
+local GRID_COLS, GRID_ROWS = 60, 6
 local GRID_SIZE = GRID_COLS * GRID_ROWS
 
 local warmup_art = [[
@@ -611,7 +607,7 @@ safe_exec("echo 'address=/rithmic.com/127.0.0.1' | sudo tee /usr/local/etc/dnsma
 safe_exec("sudo brew services restart dnsmasq >/dev/null 2>&1")
 
 -- Run cooldown timer with payoff art (reusing run_timer)
-local cooldown_minutes = TEST_MODE and 1 or math.random(25, 35)
+local cooldown_minutes = TEST_MODE and 1 or math.random(20, 30)
 run_timer(cooldown_minutes, payoff_header, current_bullets)
 
 -- ======================================================
@@ -650,4 +646,3 @@ safe_sleep(2)
 if TEST_MODE then
 	print_colored("[TEST MODE COMPLETE]", "%{dim}")
 end
-
