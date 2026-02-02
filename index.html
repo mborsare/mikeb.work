@@ -164,6 +164,7 @@
       
     <span>Score</span>
     <span id="palette-score">0</span>
+    
 
   <div style="display:flex; justify-content:center; align-items:center;">
     <button id="palette-btn" style="
@@ -174,7 +175,6 @@
         white-space: normal;
         font-size: .25rem;
         padding: 1.25rem 1.5rem .75rem .5rem;
-        margin-bottom: 6rem;
         font-family:'ComicMono', monospace;
         cursor: pointer;
       ">
@@ -188,6 +188,10 @@
          ▐                          ▐            ▐                  ▐       ▐ ▐        ▐         
       </pre>
     </div>
+    <label style="display:inline-block; margin-left:1rem; margin-bottom: 6rem; cursor:pointer;">
+      <input type="checkbox" id="sound-mute" /> Mute sounds
+    </label>
+    
     </div>
     <div id="doctrine-list"></div>
     <h2 style="text-transform: uppercase; letter-spacing: .2rem; font-size: 1rem;">Parts and pieces</h2>
@@ -376,11 +380,18 @@
       const btn = document.getElementById('palette-btn');
       const scoreEl = document.getElementById('palette-score');
       const toast = document.getElementById('toast');
+      const soundMute = document.getElementById('sound-mute');
       let score = 0;
       let previousScore = 0;
       let timer;
       let isProcessing = false;
       let pendingUpdates = 0;
+
+      function playSound(path) {
+        if (soundMute && soundMute.checked) return;
+        const a = new Audio(path);
+        a.play().catch(() => {});
+      }
 
       function showToast(message) {
         toast.textContent = message;
@@ -426,6 +437,7 @@
 
     // Check milestones - detect when crossing thresholds
     if (score >= 99 && previousScore < 99) {
+      playSound('/backoffice/the-stacks/boomshakalaka.mp3');
       showToast('Boomshakalaka!!!');
       btn.disabled = true;
       btn.style.opacity = '0.5';
@@ -435,6 +447,7 @@
         score = 0;
         previousScore = 0;
         scoreEl.textContent = 0;
+        playSound('/backoffice/the-stacks/reset.wav');
         showToast('Points reset to 0');
         btn.disabled = false;
         btn.style.opacity = '1';
@@ -444,12 +457,16 @@
       pendingUpdates = 0;
       return;
     } else if (score >= 60 && previousScore < 60) {
+      playSound('/backoffice/the-stacks/checkpoint.m4a');
       showToast("+60 and on fire! Checkpoint at +99");
     } else if (score >= 30 && previousScore < 30) {
+      playSound('/backoffice/the-stacks/checkpoint.m4a');
       showToast('+30 and heating up! Checkpoint at +60');
     } else if (score >= 15 && previousScore < 15) {
+      playSound('/backoffice/the-stacks/checkpoint.m4a');
       showToast('+15 bagged! Checkpoint at +30');
     } else if (score >= 1 && previousScore < 1) {
+      playSound('/backoffice/the-stacks/checkpoint.m4a');
       showToast('Point scored! Checkpoint at +15');
     }
 
@@ -458,6 +475,7 @@
       score = 0;
       previousScore = 0;
       scoreEl.textContent = 0;
+      playSound('/backoffice/the-stacks/reset.wav');
       showToast('Points reset to 0');
     }, 5000);
 
@@ -475,6 +493,8 @@
 
         if (btn.disabled) return;
 
+        if (score === 0) playSound('/backoffice/the-stacks/unlock.wav');
+        playSound('/backoffice/the-stacks/tap.wav');
         pendingUpdates++;
 
         if (!isProcessing) {
