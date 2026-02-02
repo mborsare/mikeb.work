@@ -546,16 +546,16 @@
       return;
     } else if (score >= 60 && previousScore < 60) {
       playSound('/backoffice/the-stacks/checkpoint.m4a');
-      showToast("+60 and on fire! Checkpoint at +99");
+      showToast("Next checkpoint +99");
     } else if (score >= 30 && previousScore < 30) {
       playSound('/backoffice/the-stacks/checkpoint.m4a');
-      showToast('+30 and heating up! Checkpoint at +60');
+      showToast('Next checkpoint +60');
     } else if (score >= 15 && previousScore < 15) {
       playSound('/backoffice/the-stacks/checkpoint.m4a');
-      showToast('+15 bagged! Checkpoint at +30');
+      showToast('Next checkpoint +30');
     } else if (score >= 1 && previousScore < 1) {
       playSound('/backoffice/the-stacks/checkpoint.m4a');
-      showToast('Point scored! Checkpoint at +15');
+      showToast('+1! Next checkpoint +15');
     }
 
     clearTimeout(timer);
