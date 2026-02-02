@@ -179,12 +179,7 @@
         <a href="jumble.html" class="ascii">Jumble</a>
         <a href="mailto:mb@mikeb.work" style="color: var(--seal);">mb@mikeb.work</a>
       </nav>
-
-      
-    
-    
     <time id="clock"></time>
-
   <div style="display:flex; justify-content:center; align-items:center;">
 
     <button id="palette-btn" style="
@@ -425,9 +420,7 @@
       let isProcessing = false;
       let pendingUpdates = 0;
 
-      const SOUND_PATHS = [
-        '/backoffice/the-stacks/tap.wav',
-        '/backoffice/the-stacks/unlock.wav',
+      const SOUND_PATHS_PREUNLOCK = [
         '/backoffice/the-stacks/reset.wav',
         '/backoffice/the-stacks/checkpoint.m4a',
         '/backoffice/the-stacks/boomshakalaka.mp3'
@@ -436,7 +429,7 @@
 
       function unlockAudio() {
         if (Object.keys(audioCache).length > 0) return;
-        SOUND_PATHS.forEach(path => {
+        SOUND_PATHS_PREUNLOCK.forEach(path => {
           const a = new Audio(path);
           a.volume = 0;
           a.play().then(() => a.pause()).catch(() => {});
@@ -444,6 +437,8 @@
           a.currentTime = 0;
           audioCache[path] = a;
         });
+        audioCache['/backoffice/the-stacks/tap.wav'] = new Audio('/backoffice/the-stacks/tap.wav');
+        audioCache['/backoffice/the-stacks/unlock.wav'] = new Audio('/backoffice/the-stacks/unlock.wav');
       }
 
       function playSound(path) {
