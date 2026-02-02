@@ -107,6 +107,20 @@
       user-select: none;
     }
 
+    #palette-disabled-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    #palette-disabled-overlay.is-active {
+      display: block;
+      pointer-events: auto;
+    }
+
     button:active {
       scale: 0.9;
     }
@@ -150,6 +164,7 @@
 
 <body>
   <div id="toast"></div>
+  <div id="palette-disabled-overlay" aria-hidden="true"></div>
   <div class="container">
     <h1 style="font-size:0.275rem;">Mike Borsare</h1>
     <span>Player 1</span>
@@ -385,7 +400,24 @@
       const scoreEl = document.getElementById('palette-score');
       const toast = document.getElementById('toast');
       const soundMute = document.getElementById('sound-mute');
+      const disabledOverlay = document.getElementById('palette-disabled-overlay');
       let score = 0;
+
+      function preventZoom(e) {
+        e.preventDefault();
+      }
+
+      function showDisabledOverlay() {
+        if (!disabledOverlay) return;
+        disabledOverlay.classList.add('is-active');
+        disabledOverlay.addEventListener('touchstart', preventZoom, { passive: false });
+      }
+
+      function hideDisabledOverlay() {
+        if (!disabledOverlay) return;
+        disabledOverlay.classList.remove('is-active');
+        disabledOverlay.removeEventListener('touchstart', preventZoom);
+      }
       let previousScore = 0;
       let timer;
       let isProcessing = false;
@@ -473,6 +505,7 @@
       btn.disabled = true;
       btn.style.opacity = '0.5';
       btn.style.cursor = 'not-allowed';
+      showDisabledOverlay();
 
       setTimeout(() => {
         score = 0;
@@ -483,6 +516,7 @@
         btn.disabled = false;
         btn.style.opacity = '1';
         btn.style.cursor = 'pointer';
+        hideDisabledOverlay();
       }, 5000);
       isProcessing = false;
       pendingUpdates = 0;
