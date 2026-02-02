@@ -387,9 +387,36 @@
       let isProcessing = false;
       let pendingUpdates = 0;
 
+      const SOUND_PATHS = [
+        '/backoffice/the-stacks/tap.wav',
+        '/backoffice/the-stacks/unlock.wav',
+        '/backoffice/the-stacks/reset.wav',
+        '/backoffice/the-stacks/checkpoint.m4a',
+        '/backoffice/the-stacks/boomshakalaka.mp3'
+      ];
+      const audioCache = {};
+
+      function unlockAudio() {
+        if (Object.keys(audioCache).length > 0) return;
+        SOUND_PATHS.forEach(path => {
+          const a = new Audio(path);
+          a.volume = 0;
+          a.play().then(() => a.pause()).catch(() => {});
+          a.volume = 1;
+          a.currentTime = 0;
+          audioCache[path] = a;
+        });
+      }
+
       function playSound(path) {
         if (soundMute && soundMute.checked) return;
-        const a = new Audio(path);
+        let a = audioCache[path];
+        if (!a) {
+          a = new Audio(path);
+          audioCache[path] = a;
+        }
+        a.currentTime = 0;
+        a.volume = 1;
         a.play().catch(() => {});
       }
 
@@ -493,6 +520,7 @@
 
         if (btn.disabled) return;
 
+        unlockAudio();
         if (score === 0) playSound('/backoffice/the-stacks/unlock.wav');
         playSound('/backoffice/the-stacks/tap.wav');
         pendingUpdates++;
