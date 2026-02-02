@@ -159,6 +159,24 @@
   #palette-score {
     color: var(--stamp);
   }
+
+    /* ---- Boomshakalaka slam ---- */
+    @keyframes slam {
+      0%   { transform: translate(0, 0) scale(1); }
+      6%   { transform: translate(0, 14px) scale(1.02); }
+      14%  { transform: translate(0, -5px) scale(0.98); }
+      22%  { transform: translate(0, 3px) scale(1); }
+      35%  { transform: translate(-5px, 0) scale(1); }
+      48%  { transform: translate(5px, 0) scale(1); }
+      61%  { transform: translate(-3px, 0) scale(1); }
+      74%  { transform: translate(2px, 0) scale(1); }
+      87%  { transform: translate(-1px, 0) scale(1); }
+      100% { transform: translate(0, 0) scale(1); }
+    }
+
+    body.slam .container {
+      animation: slam 0.75s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
   </style>
 </head>
 
@@ -497,6 +515,14 @@
 
     // Check milestones - detect when crossing thresholds
     if (score >= 99 && previousScore < 99) {
+      const container = document.querySelector('.container');
+      document.body.classList.add('slam');
+      container.addEventListener('animationend', function removeSlam(e) {
+        if (e.animationName === 'slam') {
+          document.body.classList.remove('slam');
+          container.removeEventListener('animationend', removeSlam);
+        }
+      });
       playSound('/backoffice/the-stacks/boomshakalaka.mp3');
       showToast('Boomshakalaka!!!');
       btn.disabled = true;
