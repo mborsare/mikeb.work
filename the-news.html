@@ -189,6 +189,8 @@
       const query = `
         query {
           getPodcastSeries(name: "${PODCAST_NAME}") {
+            uuid
+            name
             episodes(limitPerPage: 25) {
               uuid
               name
@@ -198,6 +200,7 @@
           }
         }
       `;
+
 
       try {
         const res = await fetch(WORKER_URL, {
