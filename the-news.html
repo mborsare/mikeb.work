@@ -23,8 +23,6 @@
     @font-face {
       font-family: 'ComicMono';
       src: url('/fonts/ComicMono-Regular.woff') format('woff');
-      font-weight: 400;
-      font-style: normal;
       font-display: swap;
     }
 
@@ -38,7 +36,6 @@
       background: var(--bg);
       color: var(--text);
       font-family: 'ComicMono', monospace;
-      font-size: 1rem;
     }
 
     .container {
@@ -46,15 +43,12 @@
       max-width: 60rem;
       width: 100%;
       padding: clamp(0.75rem, 2vw, 1.25rem);
-      margin: auto 0;
       text-align: center;
-      white-space: pre-line;
       line-height: 1.5;
     }
 
     .list-item {
       padding: 0.5rem 1rem;
-      font-size: 0.95rem;
       cursor: pointer;
       transition: color 0.2s;
     }
@@ -72,7 +66,6 @@
     #clock {
       color: var(--seal);
       opacity: 0.45;
-      display: inline-block;
     }
 
     .loading {
@@ -89,13 +82,14 @@
 
 <body>
   <div class="container">
-    <h1 style="font-size:0.275rem; color: transparent">Mike Borsare</h1>
+    <h1 style="font-size:0.275rem;color:transparent">Mike Borsare</h1>
     <time id="clock"></time>
-    <nav style="padding: 1rem;">
+
+    <nav style="padding:1rem">
       <a href="index.html" class="ascii">Back</a>
     </nav>
-    <pre class="ascii" style="font-size:0.5rem;">
 
+    <pre class="ascii" style="font-size:0.5rem;">
   ****           *   *                                                                             
  *  *************  **                                                                              
 *     *********    **                                            **                                
@@ -111,36 +105,33 @@
       ***     *    **     ** ****    *      **    **   ****    *    ******* *******     * **** *   
        *******     **     **  *******       ***   ***   *******      *****   *****         ****    
          ***        **    **   *****         ***   ***   *****                                     
-                          *                                                                        
-                         *                                                                         
-                        *                                                                          
-                       *                                                                           
-      </pre>
-    <div style="padding: 2rem 0;">
-      <h2 style="color: var(--seal); font-size: 1.2rem;">Latest Episode</h2>
-      <audio id="audio-player" controls preload="none" style="width: 100%; max-width: 600px;"></audio>
+    </pre>
+
+    <div style="padding:2rem 0">
+      <h2 style="color:var(--seal)">Latest Episode</h2>
+      <audio id="audio-player" controls preload="none" style="width:100%;max-width:600px"></audio>
       <p id="episode-title">Loading…</p>
     </div>
 
     <main>
-      <h2 style="color: var(--seal); font-size: 1.2rem; margin: 2rem 0 1rem 0;">Archive</h2>
-      <ul id="episode-list" style="list-style:none;padding:1rem;text-align:left;max-width:600px;margin:0 auto"
-        class="loading">
+      <h2 style="color:var(--seal);margin:2rem 0 1rem">Archive</h2>
+      <ul id="episode-list" class="loading"
+        style="list-style:none;padding:1rem;text-align:left;max-width:600px;margin:0 auto">
         <li class="list-item">Loading episodes…</li>
       </ul>
     </main>
 
     <pre class="ascii" style="font-size:0.4rem;">
-      ██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████ 
-      ▓██░  ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█   ▀ 
-      ▓██░ ██▓▒▓██ ░▄█ ▒▒██▒▓██    ▓██░▒███   
-      ▒██▄█▓▒ ▒▒██▀▀█▄  ░██░▒██    ▒██ ▒▓█  ▄ 
-      ▒██▒ ░  ░░██▓ ▒██▒░██░▒██▒   ░██▒░▒████▒
-      ▒▓▒░ ░  ░░ ▒▓ ░▒▓░░▓  ░ ▒░   ░  ░░░ ▒░ ░
-      ░▒ ░        ░▒ ░ ▒░ ▒ ░░  ░      ░ ░ ░  ░
-      ░░          ░░   ░  ▒ ░░      ░      ░    
-                   ░      ░         ░      ░  ░
-</pre>
+██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████ 
+▓██░  ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█   ▀ 
+▓██░ ██▓▒▓██ ░▄█ ▒▒██▒▓██    ▓██░▒███   
+▒██▄█▓▒ ▒▒██▀▀█▄  ░██░▒██    ▒██ ▒▓█  ▄ 
+▒██▒ ░  ░░██▓ ▒██▒░██░▒██▒   ░██▒░▒████▒
+▒▓▒░ ░  ░░ ▒▓ ░▒▓░░▓  ░ ▒░   ░  ░░░ ▒░ ░
+░▒ ░        ░▒ ░ ▒░ ▒ ░░  ░      ░ ░ ░  ░
+░░          ░░   ░  ▒ ░░      ░      ░    
+               ░      ░         ░      ░  ░
+    </pre>
   </div>
 
   <script>
@@ -148,155 +139,97 @@
     (() => {
       const clock = document.getElementById('clock');
       let t = 0;
-
       function update() {
-        const d = new Date();
-        clock.textContent = d.toISOString().replace('T', ' ').slice(0, 23);
+        clock.textContent = new Date().toISOString().replace('T', ' ').slice(0, 23);
       }
-
       function pulse() {
         t += 0.02;
         clock.style.opacity = 0.35 + (Math.sin(t) + 1) * 0.15;
         requestAnimationFrame(pulse);
       }
-
       update();
       setInterval(update, 50);
       pulse();
     })();
 
-    /* ---------- PODCAST ---------- */
-    const FEED_URL = 'https://podcast.posttv.com/itunes/the-7.xml';
-    const STORAGE_KEY = 'podcastEpisodes_v1';
-    const STORAGE_TTL_MS = 1000 * 60 * 10;
+    /* ---------- PODCAST (via Cloudflare Worker) ---------- */
+    const WORKER_URL = 'https://the-news.mborsare.workers.dev';
+    const PODCAST_NAME = 'The 7';
+    const STORAGE_KEY = 'podcast_cache_taddy';
 
     const audioPlayer = document.getElementById('audio-player');
     const episodeTitle = document.getElementById('episode-title');
     const episodeList = document.getElementById('episode-list');
 
-    function saveEpisodes(episodes) {
-      const payload = { ts: Date.now(), episodes };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-    }
-
-    function loadEpisodesFromStorage() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return null;
-        const payload = JSON.parse(raw);
-        if (!payload.ts || !payload.episodes) return null;
-        if (Date.now() - payload.ts > STORAGE_TTL_MS) return null;
-        return payload.episodes;
-      } catch { return null; }
-    }
-
     function renderEpisodes(episodes) {
+      if (!episodes?.length) return;
+
       episodeList.innerHTML = '';
       episodeList.classList.remove('loading');
 
       episodes.forEach((ep, idx) => {
-        const { label, url } = ep;
-        if (idx === 0) {
-          episodeTitle.textContent = label;
-          if (!audioPlayer.getAttribute('src')) { audioPlayer.src = url; }
+        if (idx === 0 && !audioPlayer.src) {
+          audioPlayer.src = ep.url;
+          episodeTitle.textContent = ep.label;
         }
+
         const li = document.createElement('li');
         li.className = 'list-item';
-        li.textContent = label;
+        li.textContent = ep.label;
         li.onclick = () => {
-          audioPlayer.pause();
-          audioPlayer.src = url;
-          episodeTitle.textContent = label;
-          audioPlayer.load();
-          audioPlayer.play().catch(e => console.error('Playback failed:', e));
+          audioPlayer.src = ep.url;
+          episodeTitle.textContent = ep.label;
+          audioPlayer.play().catch(() => { });
         };
         episodeList.appendChild(li);
       });
     }
 
-    // ---------------------------------------------------------
-    // REWORKED FETCH: Avoids 1MB limits by using JSON wrappers or large-file friendly proxies
-    // ---------------------------------------------------------
-    async function fetchWithFallback(targetUrl) {
-      const proxies = [
-        // 1. AllOrigins JSON API (Handles large strings better than direct raw fetching)
-        async (u) => {
-          const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(u)}`);
-          const json = await res.json();
-          return json.contents; // This is the stringified XML
-        },
-        // 2. YQL-style Proxy (Higher limits for public feeds)
-        async (u) => {
-          const res = await fetch(`https://cors-anywhere.herokuapp.com/${u}`, {
-            headers: { 'x-requested-with': 'XMLHttpRequest' }
-          });
-          return await res.text();
-        }
-      ];
-
-      for (const fetchMethod of proxies) {
-        try {
-          const text = await fetchMethod(targetUrl);
-          if (text && (text.includes('<rss') || text.includes('<channel'))) {
-            return text;
+    async function fetchEpisodes() {
+      const query = `
+        query {
+          getPodcastSeries(name: "${PODCAST_NAME}") {
+            episodes(limitPerPage: 25) {
+              uuid
+              name
+              audioUrl
+              datePublished
+            }
           }
-        } catch (e) {
-          console.warn('Proxy attempt failed, trying next...');
         }
-      }
-      throw new Error('All proxies failed or exceeded limits');
-    }
+      `;
 
-    async function loadPodcastFeed() {
       try {
-        const cached = loadEpisodesFromStorage();
-        if (cached) {
-          renderEpisodes(cached);
-          refreshFeedSilently();
-          return;
-        }
-        await fetchAndRender();
-      } catch (e) {
-        episodeTitle.textContent = 'Feed size too large for proxy';
-        console.error(e);
-      }
-    }
+        const res = await fetch(WORKER_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query })
+        });
 
-    async function fetchAndRender() {
-      const text = await fetchWithFallback(FEED_URL);
-      const xml = new DOMParser().parseFromString(text, 'application/xml');
-      const items = [...xml.querySelectorAll('item')];
+        const json = await res.json();
+        if (json.errors) throw new Error(json.errors[0].message);
 
-      const episodes = items.slice(0, 30).map((item) => {
-        const title = item.querySelector('title')?.textContent ?? 'Untitled';
-        const pub = new Date(item.querySelector('pubDate')?.textContent);
-        const url = item.querySelector('enclosure')?.getAttribute('url') ?? '';
-        const label = `${pub.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}: ${title}`;
-        return { label, url };
-      }).filter(ep => ep.url);
+        const episodes = json.data.getPodcastSeries.episodes
+          .filter(ep => ep.audioUrl)
+          .map(ep => ({
+            label: `${new Date(ep.datePublished * 1000)
+              .toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}: ${ep.name}`,
+            url: ep.audioUrl
+          }));
 
-      saveEpisodes(episodes);
-      renderEpisodes(episodes);
-    }
-
-    async function refreshFeedSilently() {
-      try {
-        const text = await fetchWithFallback(FEED_URL);
-        const xml = new DOMParser().parseFromString(text, 'application/xml');
-        const items = [...xml.querySelectorAll('item')];
-        const episodes = items.slice(0, 30).map((item) => {
-          const title = item.querySelector('title')?.textContent ?? 'Untitled';
-          const pub = new Date(item.querySelector('pubDate')?.textContent);
-          const url = item.querySelector('enclosure')?.getAttribute('url') ?? '';
-          const label = `${pub.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}: ${title}`;
-          return { label, url };
-        }).filter(ep => ep.url);
-        saveEpisodes(episodes);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(episodes));
         renderEpisodes(episodes);
-      } catch (e) { console.error('Silently failed:', e); }
+
+      } catch (e) {
+        console.error(e);
+        episodeTitle.textContent = 'Error loading episodes';
+      }
     }
 
-    loadPodcastFeed();
+    const cached = localStorage.getItem(STORAGE_KEY);
+    if (cached) renderEpisodes(JSON.parse(cached));
+
+    fetchEpisodes();
   </script>
 </body>
 
