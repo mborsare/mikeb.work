@@ -214,27 +214,37 @@
       });
     }
 
+    // ---------------------------------------------------------
+    // REWORKED FETCH: Avoids 1MB limits by using JSON wrappers or large-file friendly proxies
+    // ---------------------------------------------------------
     async function fetchWithFallback(targetUrl) {
       const proxies = [
-        // 1. AllOrigins (Most reliable for raw XML)
-        (u) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
-        // 2. ThingProxy (Good alternative)
-        (u) => `https://thingproxy.freeboard.io/fetch/${u}`,
-        // 3. Corsproxy.io (Only as a last resort since it's giving 403s)
-        (u) => `https://corsproxy.io/?${encodeURIComponent(u)}`
+        // 1. AllOrigins JSON API (Handles large strings better than direct raw fetching)
+        async (u) => {
+          const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(u)}`);
+          const json = await res.json();
+          return json.contents; // This is the stringified XML
+        },
+        // 2. YQL-style Proxy (Higher limits for public feeds)
+        async (u) => {
+          const res = await fetch(`https://cors-anywhere.herokuapp.com/${u}`, {
+            headers: { 'x-requested-with': 'XMLHttpRequest' }
+          });
+          return await res.text();
+        }
       ];
 
-      for (const buildProxyUrl of proxies) {
+      for (const fetchMethod of proxies) {
         try {
-          const res = await fetch(buildProxyUrl(targetUrl));
-          if (!res.ok) continue;
-          const text = await res.text();
-          if (text.includes('<rss') || text.includes('<channel')) return text;
+          const text = await fetchMethod(targetUrl);
+          if (text && (text.includes('<rss') || text.includes('<channel'))) {
+            return text;
+          }
         } catch (e) {
           console.warn('Proxy attempt failed, trying next...');
         }
       }
-      throw new Error('All proxies failed to fetch feed');
+      throw new Error('All proxies failed or exceeded limits');
     }
 
     async function loadPodcastFeed() {
@@ -247,7 +257,7 @@
         }
         await fetchAndRender();
       } catch (e) {
-        episodeTitle.textContent = 'Connection Error';
+        episodeTitle.textContent = 'Feed size too large for proxy';
         console.error(e);
       }
     }
