@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8" />
   <title>Mike Borsare</title>
@@ -15,7 +16,9 @@
       --btn-text: #ffffff;
     }
 
-    html { font-size: 14px; }
+    html {
+      font-size: 14px;
+    }
 
     @font-face {
       font-family: 'ComicMono';
@@ -72,7 +75,9 @@
       display: inline-block;
     }
 
-    .loading { opacity: 0.5; }
+    .loading {
+      opacity: 0.5;
+    }
 
     #episode-title {
       margin-top: 0.5rem;
@@ -86,11 +91,11 @@
   <div class="container">
     <h1 style="font-size:0.275rem; color: transparent">Mike Borsare</h1>
     <time id="clock"></time>
-      <nav style="padding: 1rem;">
-        <a href="index.html" class="ascii">Back</a>
-      </nav>
-<pre class="ascii" style="font-size:0.5rem;">
-                                                                                                   
+    <nav style="padding: 1rem;">
+      <a href="index.html" class="ascii">Back</a>
+    </nav>
+    <pre class="ascii" style="font-size:0.5rem;">
+
   ****           *   *                                                                             
  *  *************  **                                                                              
 *     *********    **                                            **                                
@@ -111,8 +116,6 @@
                         *                                                                          
                        *                                                                           
       </pre>
-                                                                                                    
-
     <div style="padding: 2rem 0;">
       <h2 style="color: var(--seal); font-size: 1.2rem;">Latest Episode</h2>
       <audio id="audio-player" controls preload="none" style="width: 100%; max-width: 600px;"></audio>
@@ -121,14 +124,13 @@
 
     <main>
       <h2 style="color: var(--seal); font-size: 1.2rem; margin: 2rem 0 1rem 0;">Archive</h2>
-      <ul id="episode-list"
-          style="list-style:none;padding:1rem;text-align:left;max-width:600px;margin:0 auto"
-          class="loading">
+      <ul id="episode-list" style="list-style:none;padding:1rem;text-align:left;max-width:600px;margin:0 auto"
+        class="loading">
         <li class="list-item">Loading episodes…</li>
       </ul>
     </main>
 
-<pre class="ascii" style="font-size:0.4rem;">
+    <pre class="ascii" style="font-size:0.4rem;">
       ██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████ 
       ▓██░  ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█   ▀ 
       ▓██░ ██▓▒▓██ ░▄█ ▒▒██▒▓██    ▓██░▒███   
@@ -141,159 +143,180 @@
 </pre>
   </div>
 
-<script>
-/* ---------- CLOCK ---------- */
-(() => {
-  const clock = document.getElementById('clock');
-  let t = 0;
+  <script>
+    /* ---------- CLOCK ---------- */
+    (() => {
+      const clock = document.getElementById('clock');
+      let t = 0;
 
-  function update() {
-    const d = new Date();
-    clock.textContent = d.toISOString().replace('T',' ').slice(0,23);
-  }
+      function update() {
+        const d = new Date();
+        clock.textContent = d.toISOString().replace('T', ' ').slice(0, 23);
+      }
 
-  function pulse() {
-    t += 0.02;
-    clock.style.opacity = 0.35 + (Math.sin(t) + 1) * 0.15;
-    requestAnimationFrame(pulse);
-  }
+      function pulse() {
+        t += 0.02;
+        clock.style.opacity = 0.35 + (Math.sin(t) + 1) * 0.15;
+        requestAnimationFrame(pulse);
+      }
 
-  update();
-  setInterval(update, 50);
-  pulse();
-})();
+      update();
+      setInterval(update, 50);
+      pulse();
+    })();
 
-/* ---------- PODCAST ---------- */
-const FEED_URL = 'https://podcast.posttv.com/itunes/the-7.xml';
-// Changed: Faster proxy for better loading times
-const PROXY = 'https://corsproxy.io/?'; 
-const STORAGE_KEY = 'podcastEpisodes_v1';
-const STORAGE_TTL_MS = 1000 * 60 * 10; // 10 minutes
+    /* ---------- PODCAST ---------- */
+    const FEED_URL = 'https://podcast.posttv.com/itunes/the-7.xml';
+    const STORAGE_KEY = 'podcastEpisodes_v1';
+    const STORAGE_TTL_MS = 1000 * 60 * 10; // 10 minutes
 
-const audioPlayer = document.getElementById('audio-player');
-const episodeTitle = document.getElementById('episode-title');
-const episodeList = document.getElementById('episode-list');
+    const audioPlayer = document.getElementById('audio-player');
+    const episodeTitle = document.getElementById('episode-title');
+    const episodeList = document.getElementById('episode-list');
 
-function saveEpisodes(episodes) {
-  const payload = { ts: Date.now(), episodes };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-}
+    function saveEpisodes(episodes) {
+      const payload = { ts: Date.now(), episodes };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    }
 
-function loadEpisodesFromStorage() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const payload = JSON.parse(raw);
-    if (!payload.ts || !payload.episodes) return null;
-    if (Date.now() - payload.ts > STORAGE_TTL_MS) return null;
-    return payload.episodes;
-  } catch {
-    return null;
-  }
-}
-
-function renderEpisodes(episodes) {
-  episodeList.innerHTML = '';
-  episodeList.classList.remove('loading');
-
-  episodes.forEach((ep, idx) => {
-    const { label, url } = ep;
-
-    if (idx === 0) {
-      episodeTitle.textContent = label;
-      // Do not auto-load the source, just prep the UI
-      if (!audioPlayer.getAttribute('src')) {
-         // Only set initial src if empty to avoid double loading
-         // We do not call .load() here to respect preload="none"
-         audioPlayer.src = url; 
+    function loadEpisodesFromStorage() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return null;
+        const payload = JSON.parse(raw);
+        if (!payload.ts || !payload.episodes) return null;
+        if (Date.now() - payload.ts > STORAGE_TTL_MS) return null;
+        return payload.episodes;
+      } catch {
+        return null;
       }
     }
 
-    const li = document.createElement('li');
-    li.className = 'list-item';
-    li.textContent = label;
+    function renderEpisodes(episodes) {
+      episodeList.innerHTML = '';
+      episodeList.classList.remove('loading');
 
-    li.onclick = () => {
-      // Changed: Direct src manipulation is faster and more reliable
-      audioPlayer.pause();
-      audioPlayer.src = url;
-      episodeTitle.textContent = label;
-      audioPlayer.load();
-      audioPlayer.play().catch(e => console.error('Autoplay failed:', e));
-    };
+      episodes.forEach((ep, idx) => {
+        const { label, url } = ep;
 
-    episodeList.appendChild(li);
-  });
-}
+        if (idx === 0) {
+          episodeTitle.textContent = label;
+          if (!audioPlayer.getAttribute('src')) {
+            audioPlayer.src = url;
+          }
+        }
 
-async function loadPodcastFeed() {
-  try {
-    const cached = loadEpisodesFromStorage();
-    if (cached && cached.length) {
-      renderEpisodes(cached);
-      refreshFeedSilently();
-      return;
+        const li = document.createElement('li');
+        li.className = 'list-item';
+        li.textContent = label;
+
+        li.onclick = () => {
+          audioPlayer.pause();
+          audioPlayer.src = url;
+          episodeTitle.textContent = label;
+          audioPlayer.load();
+          audioPlayer.play().catch(e => console.error('Autoplay failed:', e));
+        };
+
+        episodeList.appendChild(li);
+      });
     }
 
-    await fetchAndRender();
-  } catch (e) {
-    console.error(e);
-    episodeTitle.textContent = 'Failed to load episodes';
-  }
-}
+    // ---------------------------------------------------------
+    // NEW: Fallback Fetcher (Tries Fast Proxy -> then Reliable Proxy)
+    // ---------------------------------------------------------
+    async function fetchWithFallback(targetUrl) {
+      const proxies = [
+        // 1. Fast, but sometimes blocked/throttled
+        (u) => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+        // 2. Backup: Slower but more reliable
+        (u) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`
+      ];
 
-async function fetchAndRender() {
-  const res = await fetch(PROXY + encodeURIComponent(FEED_URL));
-  if (!res.ok) throw new Error('Feed fetch failed');
-  
-  const text = await res.text();
-  const xml = new DOMParser().parseFromString(text, 'application/xml');
+      let lastError = null;
 
-  if (xml.querySelector('parsererror')) throw new Error('XML parse error');
+      for (const buildProxyUrl of proxies) {
+        try {
+          const res = await fetch(buildProxyUrl(targetUrl));
+          if (!res.ok) throw new Error(`Status: ${res.status}`);
+          const text = await res.text();
+          // Simple check to ensure we got XML, not a proxy error page
+          if (!text.includes('<?xml') && !text.includes('<rss')) {
+            throw new Error('Invalid XML response');
+          }
+          return text;
+        } catch (e) {
+          console.warn('Proxy failed, switching to backup...', e);
+          lastError = e;
+        }
+      }
+      throw lastError || new Error('All proxies failed');
+    }
 
-  const items = [...xml.querySelectorAll('item')];
-  if (!items.length) throw new Error('No items');
+    async function loadPodcastFeed() {
+      try {
+        const cached = loadEpisodesFromStorage();
+        if (cached && cached.length) {
+          renderEpisodes(cached);
+          refreshFeedSilently();
+          return;
+        }
+        await fetchAndRender();
+      } catch (e) {
+        console.error(e);
+        episodeTitle.textContent = 'Failed to load episodes';
+        episodeList.innerHTML = '<li class="list-item">Unavailable (Network Error)</li>';
+      }
+    }
 
-  const episodes = items.slice(0, 30).map((item) => {
-    const title = item.querySelector('title')?.textContent ?? 'Untitled';
-    const pub = new Date(item.querySelector('pubDate')?.textContent);
-    const url = item.querySelector('enclosure')?.getAttribute('url') ?? '';
-    const label = `${pub.toLocaleDateString('en-US',{month:'short',day:'numeric'})}: ${title}`;
-    return { label, url };
-  }).filter(ep => ep.url);
+    async function fetchAndRender() {
+      const text = await fetchWithFallback(FEED_URL);
 
-  saveEpisodes(episodes);
-  renderEpisodes(episodes);
-}
+      const xml = new DOMParser().parseFromString(text, 'application/xml');
+      if (xml.querySelector('parsererror')) throw new Error('XML parse error');
 
-async function refreshFeedSilently() {
-  try {
-    const res = await fetch(PROXY + encodeURIComponent(FEED_URL));
-    if (!res.ok) return;
-    
-    const text = await res.text();
-    const xml = new DOMParser().parseFromString(text, 'application/xml');
-    if (xml.querySelector('parsererror')) return;
+      const items = [...xml.querySelectorAll('item')];
+      if (!items.length) throw new Error('No items');
 
-    const items = [...xml.querySelectorAll('item')];
-    if (!items.length) return;
+      const episodes = items.slice(0, 30).map((item) => {
+        const title = item.querySelector('title')?.textContent ?? 'Untitled';
+        const pub = new Date(item.querySelector('pubDate')?.textContent);
+        const url = item.querySelector('enclosure')?.getAttribute('url') ?? '';
+        const label = `${pub.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}: ${title}`;
+        return { label, url };
+      }).filter(ep => ep.url);
 
-    const episodes = items.slice(0, 30).map((item) => {
-      const title = item.querySelector('title')?.textContent ?? 'Untitled';
-      const pub = new Date(item.querySelector('pubDate')?.textContent);
-      const url = item.querySelector('enclosure')?.getAttribute('url') ?? '';
-      const label = `${pub.toLocaleDateString('en-US',{month:'short',day:'numeric'})}: ${title}`;
-      return { label, url };
-    }).filter(ep => ep.url);
+      saveEpisodes(episodes);
+      renderEpisodes(episodes);
+    }
 
-    saveEpisodes(episodes);
-    renderEpisodes(episodes);
-  } catch (e) {
-    console.error('Background refresh failed:', e);
-  }
-}
+    async function refreshFeedSilently() {
+      try {
+        const text = await fetchWithFallback(FEED_URL);
 
-loadPodcastFeed();
-</script>
+        const xml = new DOMParser().parseFromString(text, 'application/xml');
+        if (xml.querySelector('parsererror')) return;
+
+        const items = [...xml.querySelectorAll('item')];
+        if (!items.length) return;
+
+        const episodes = items.slice(0, 30).map((item) => {
+          const title = item.querySelector('title')?.textContent ?? 'Untitled';
+          const pub = new Date(item.querySelector('pubDate')?.textContent);
+          const url = item.querySelector('enclosure')?.getAttribute('url') ?? '';
+          const label = `${pub.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}: ${title}`;
+          return { label, url };
+        }).filter(ep => ep.url);
+
+        saveEpisodes(episodes);
+        renderEpisodes(episodes);
+      } catch (e) {
+        console.error('Background refresh failed:', e);
+      }
+    }
+
+    loadPodcastFeed();
+  </script>
 </body>
+
 </html>
