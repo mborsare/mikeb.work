@@ -168,7 +168,7 @@
     /* ---------- PODCAST ---------- */
     const FEED_URL = 'https://podcast.posttv.com/itunes/the-7.xml';
     const STORAGE_KEY = 'podcastEpisodes_v1';
-    const STORAGE_TTL_MS = 1000 * 60 * 10; // 10 minutes
+    const STORAGE_TTL_MS = 1000 * 60 * 10;
 
     const audioPlayer = document.getElementById('audio-player');
     const episodeTitle = document.getElementById('episode-title');
@@ -187,9 +187,7 @@
         if (!payload.ts || !payload.episodes) return null;
         if (Date.now() - payload.ts > STORAGE_TTL_MS) return null;
         return payload.episodes;
-      } catch {
-        return null;
-      }
+      } catch { return null; }
     }
 
     function renderEpisodes(episodes) {
@@ -198,85 +196,66 @@
 
       episodes.forEach((ep, idx) => {
         const { label, url } = ep;
-
         if (idx === 0) {
           episodeTitle.textContent = label;
-          if (!audioPlayer.getAttribute('src')) {
-            audioPlayer.src = url;
-          }
+          if (!audioPlayer.getAttribute('src')) { audioPlayer.src = url; }
         }
-
         const li = document.createElement('li');
         li.className = 'list-item';
         li.textContent = label;
-
         li.onclick = () => {
           audioPlayer.pause();
           audioPlayer.src = url;
           episodeTitle.textContent = label;
           audioPlayer.load();
-          audioPlayer.play().catch(e => console.error('Autoplay failed:', e));
+          audioPlayer.play().catch(e => console.error('Playback failed:', e));
         };
-
         episodeList.appendChild(li);
       });
     }
 
-    // ---------------------------------------------------------
-    // NEW: Fallback Fetcher (Tries Fast Proxy -> then Reliable Proxy)
-    // ---------------------------------------------------------
     async function fetchWithFallback(targetUrl) {
       const proxies = [
-        // 1. Fast, but sometimes blocked/throttled
-        (u) => `https://corsproxy.io/?${encodeURIComponent(u)}`,
-        // 2. Backup: Slower but more reliable
-        (u) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`
+        // 1. AllOrigins (Most reliable for raw XML)
+        (u) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+        // 2. ThingProxy (Good alternative)
+        (u) => `https://thingproxy.freeboard.io/fetch/${u}`,
+        // 3. Corsproxy.io (Only as a last resort since it's giving 403s)
+        (u) => `https://corsproxy.io/?${encodeURIComponent(u)}`
       ];
-
-      let lastError = null;
 
       for (const buildProxyUrl of proxies) {
         try {
           const res = await fetch(buildProxyUrl(targetUrl));
-          if (!res.ok) throw new Error(`Status: ${res.status}`);
+          if (!res.ok) continue;
           const text = await res.text();
-          // Simple check to ensure we got XML, not a proxy error page
-          if (!text.includes('<?xml') && !text.includes('<rss')) {
-            throw new Error('Invalid XML response');
-          }
-          return text;
+          if (text.includes('<rss') || text.includes('<channel')) return text;
         } catch (e) {
-          console.warn('Proxy failed, switching to backup...', e);
-          lastError = e;
+          console.warn('Proxy attempt failed, trying next...');
         }
       }
-      throw lastError || new Error('All proxies failed');
+      throw new Error('All proxies failed to fetch feed');
     }
 
     async function loadPodcastFeed() {
       try {
         const cached = loadEpisodesFromStorage();
-        if (cached && cached.length) {
+        if (cached) {
           renderEpisodes(cached);
           refreshFeedSilently();
           return;
         }
         await fetchAndRender();
       } catch (e) {
+        episodeTitle.textContent = 'Connection Error';
         console.error(e);
-        episodeTitle.textContent = 'Failed to load episodes';
-        episodeList.innerHTML = '<li class="list-item">Unavailable (Network Error)</li>';
       }
     }
 
     async function fetchAndRender() {
       const text = await fetchWithFallback(FEED_URL);
-
       const xml = new DOMParser().parseFromString(text, 'application/xml');
-      if (xml.querySelector('parsererror')) throw new Error('XML parse error');
-
       const items = [...xml.querySelectorAll('item')];
-      if (!items.length) throw new Error('No items');
 
       const episodes = items.slice(0, 30).map((item) => {
         const title = item.querySelector('title')?.textContent ?? 'Untitled';
@@ -293,13 +272,8 @@
     async function refreshFeedSilently() {
       try {
         const text = await fetchWithFallback(FEED_URL);
-
         const xml = new DOMParser().parseFromString(text, 'application/xml');
-        if (xml.querySelector('parsererror')) return;
-
         const items = [...xml.querySelectorAll('item')];
-        if (!items.length) return;
-
         const episodes = items.slice(0, 30).map((item) => {
           const title = item.querySelector('title')?.textContent ?? 'Untitled';
           const pub = new Date(item.querySelector('pubDate')?.textContent);
@@ -307,12 +281,9 @@
           const label = `${pub.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}: ${title}`;
           return { label, url };
         }).filter(ep => ep.url);
-
         saveEpisodes(episodes);
         renderEpisodes(episodes);
-      } catch (e) {
-        console.error('Background refresh failed:', e);
-      }
+      } catch (e) { console.error('Silently failed:', e); }
     }
 
     loadPodcastFeed();
