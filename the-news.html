@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Mike Borsare</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    :root {
+      --bg: #000000;
+      --text: #c0c0c0;
+      --stamp: #888888;
+      --seal: #eaffea;
+      --btn-fill: color-mix(in hsl, var(--bg), var(--seal) 20%);
+      --btn-text: #ffffff;
+    }
+
+    html { font-size: 14px; }
+
+    @font-face {
+      font-family: 'ComicMono';
+      src: url('/fonts/ComicMono-Regular.woff') format('woff');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow-y: auto;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'ComicMono', monospace;
+      font-size: 1rem;
+    }
+
+    .container {
+      min-width: 20rem;
+      max-width: 60rem;
+      width: 100%;
+      padding: clamp(0.75rem, 2vw, 1.25rem);
+      margin: auto 0;
+      text-align: center;
+      white-space: pre-line;
+      line-height: 1.5;
+    }
+
+    .list-item {
+      padding: 0.5rem 1rem;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .list-item:hover {
+      color: var(--seal);
+    }
+
+    .ascii {
+      white-space: pre;
+      line-height: 1.1;
+      color: var(--seal);
+    }
+
+    #clock {
+      color: var(--seal);
+      opacity: 0.45;
+      display: inline-block;
+    }
+
+    .loading { opacity: 0.5; }
+
+    #episode-title {
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      color: var(--seal);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1 style="font-size:0.275rem; color: transparent">Mike Borsare</h1>
+    <time id="clock"></time>
+      <nav style="padding: 1rem;">
+        <a href="index.html" class="ascii">Back</a>
+      </nav>
+<pre class="ascii" style="font-size:0.5rem;">
+                                                                                                   
+  ****           *   *                                                                             
+ *  *************  **                                                                              
+*     *********    **                                            **                                
+*     *  *         **                                            **                                
+ **  *  **         **                                             **    ***    ****        ****    
+    *  ***         **  ***      ***       ***  ****       ***      **    ***     ***  *   * **** * 
+   **   **         ** * ***    * ***       **** **** *   * ***     **     ***     ****   **  ****  
+   **   **         ***   ***  *   ***       **   ****   *   ***    **      **      **   ****       
+   **   **         **     ** **    ***      **    **   **    ***   **      **      **     ***      
+   **   **         **     ** ********       **    **   ********    **      **      **       ***    
+    **  **         **     ** *******        **    **   *******     **      **      **         ***  
+     ** *      *   **     ** **             **    **   **          **      **      *     ****  **  
+      ***     *    **     ** ****    *      **    **   ****    *    ******* *******     * **** *   
+       *******     **     **  *******       ***   ***   *******      *****   *****         ****    
+         ***        **    **   *****         ***   ***   *****                                     
+                          *                                                                        
+                         *                                                                         
+                        *                                                                          
+                       *                                                                           
+      </pre>
+                                                                                                    
+
+    <div style="padding: 2rem 0;">
+      <h2 style="color: var(--seal); font-size: 1.2rem;">Latest Episode</h2>
+      <audio id="audio-player" controls preload="none" style="width: 100%; max-width: 600px;"></audio>
+      <p id="episode-title">Loading…</p>
+    </div>
+
+    <main>
+      <h2 style="color: var(--seal); font-size: 1.2rem; margin: 2rem 0 1rem 0;">Archive</h2>
+      <ul id="episode-list"
+          style="list-style:none;padding:1rem;text-align:left;max-width:600px;margin:0 auto"
+          class="loading">
+        <li class="list-item">Loading episodes…</li>
+      </ul>
+    </main>
+
+<pre class="ascii" style="font-size:0.4rem;">
+      ██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████ 
+      ▓██░  ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█   ▀ 
+      ▓██░ ██▓▒▓██ ░▄█ ▒▒██▒▓██    ▓██░▒███   
+      ▒██▄█▓▒ ▒▒██▀▀█▄  ░██░▒██    ▒██ ▒▓█  ▄ 
+      ▒██▒ ░  ░░██▓ ▒██▒░██░▒██▒   ░██▒░▒████▒
+      ▒▓▒░ ░  ░░ ▒▓ ░▒▓░░▓  ░ ▒░   ░  ░░░ ▒░ ░
+      ░▒ ░        ░▒ ░ ▒░ ▒ ░░  ░      ░ ░ ░  ░
+      ░░          ░░   ░  ▒ ░░      ░      ░    
+                   ░      ░         ░      ░  ░
+</pre>
+  </div>
+
+<script>
+/* ---------- CLOCK ---------- */
+(() => {
+  const clock = document.getElementById('clock');
+  let t = 0;
+
+  function update() {
+    const d = new Date();
+    clock.textContent = d.toISOString().replace('T',' ').slice(0,23);
+  }
+
+  function pulse() {
+    t += 0.02;
+    clock.style.opacity = 0.35 + (Math.sin(t) + 1) * 0.15;
+    requestAnimationFrame(pulse);
+  }
+
+  update();
+  setInterval(update, 50);
+  pulse();
+})();
+
+/* ---------- PODCAST ---------- */
+const FEED_URL = 'https://podcast.posttv.com/itunes/the-7.xml';
+// Changed: Faster proxy for better loading times
+const PROXY = 'https://corsproxy.io/?'; 
+const STORAGE_KEY = 'podcastEpisodes_v1';
+const STORAGE_TTL_MS = 1000 * 60 * 10; // 10 minutes
+
+const audioPlayer = document.getElementById('audio-player');
+const episodeTitle = document.getElementById('episode-title');
+const episodeList = document.getElementById('episode-list');
+
+function saveEpisodes(episodes) {
+  const payload = { ts: Date.now(), episodes };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+}
+
+function loadEpisodesFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const payload = JSON.parse(raw);
+    if (!payload.ts || !payload.episodes) return null;
+    if (Date.now() - payload.ts > STORAGE_TTL_MS) return null;
+    return payload.episodes;
+  } catch {
+    return null;
+  }
+}
+
+function renderEpisodes(episodes) {
+  episodeList.innerHTML = '';
+  episodeList.classList.remove('loading');
+
+  episodes.forEach((ep, idx) => {
+    const { label, url } = ep;
+
+    if (idx === 0) {
+      episodeTitle.textContent = label;
+      // Do not auto-load the source, just prep the UI
+      if (!audioPlayer.getAttribute('src')) {
+         // Only set initial src if empty to avoid double loading
+         // We do not call .load() here to respect preload="none"
+         audioPlayer.src = url; 
+      }
+    }
+
+    const li = document.createElement('li');
+    li.className = 'list-item';
+    li.textContent = label;
+
+    li.onclick = () => {
+      // Changed: Direct src manipulation is faster and more reliable
+      audioPlayer.pause();
+      audioPlayer.src = url;
+      episodeTitle.textContent = label;
+      audioPlayer.load();
+      audioPlayer.play().catch(e => console.error('Autoplay failed:', e));
+    };
+
+    episodeList.appendChild(li);
+  });
+}
+
+async function loadPodcastFeed() {
+  try {
+    const cached = loadEpisodesFromStorage();
+    if (cached && cached.length) {
+      renderEpisodes(cached);
+      refreshFeedSilently();
+      return;
+    }
+
+    await fetchAndRender();
+  } catch (e) {
+    console.error(e);
+    episodeTitle.textContent = 'Failed to load episodes';
+  }
+}
+
+async function fetchAndRender() {
+  const res = await fetch(PROXY + encodeURIComponent(FEED_URL));
+  if (!res.ok) throw new Error('Feed fetch failed');
+  
+  const text = await res.text();
+  const xml = new DOMParser().parseFromString(text, 'application/xml');
+
+  if (xml.querySelector('parsererror')) throw new Error('XML parse error');
+
+  const items = [...xml.querySelectorAll('item')];
+  if (!items.length) throw new Error('No items');
+
+  const episodes = items.slice(0, 30).map((item) => {
+    const title = item.querySelector('title')?.textContent ?? 'Untitled';
+    const pub = new Date(item.querySelector('pubDate')?.textContent);
+    const url = item.querySelector('enclosure')?.getAttribute('url') ?? '';
+    const label = `${pub.toLocaleDateString('en-US',{month:'short',day:'numeric'})}: ${title}`;
+    return { label, url };
+  }).filter(ep => ep.url);
+
+  saveEpisodes(episodes);
+  renderEpisodes(episodes);
+}
+
+async function refreshFeedSilently() {
+  try {
+    const res = await fetch(PROXY + encodeURIComponent(FEED_URL));
+    if (!res.ok) return;
+    
+    const text = await res.text();
+    const xml = new DOMParser().parseFromString(text, 'application/xml');
+    if (xml.querySelector('parsererror')) return;
+
+    const items = [...xml.querySelectorAll('item')];
+    if (!items.length) return;
+
+    const episodes = items.slice(0, 30).map((item) => {
+      const title = item.querySelector('title')?.textContent ?? 'Untitled';
+      const pub = new Date(item.querySelector('pubDate')?.textContent);
+      const url = item.querySelector('enclosure')?.getAttribute('url') ?? '';
+      const label = `${pub.toLocaleDateString('en-US',{month:'short',day:'numeric'})}: ${title}`;
+      return { label, url };
+    }).filter(ep => ep.url);
+
+    saveEpisodes(episodes);
+    renderEpisodes(episodes);
+  } catch (e) {
+    console.error('Background refresh failed:', e);
+  }
+}
+
+loadPodcastFeed();
+</script>
+</body>
+</html>
