@@ -144,6 +144,7 @@
       transform: translateX(-50%) translateY(0);
       opacity: 1;
     }
+
     nav {
       display: grid;
       gap: 1rem;
@@ -154,24 +155,53 @@
       nav {
         grid-template-columns: repeat(4, 1fr);
       }
-}
+    }
 
-  #palette-score {
-    color: var(--stamp);
-  }
+    #palette-score {
+      color: var(--stamp);
+    }
 
     /* ---- Boomshakalaka slam ---- */
     @keyframes slam {
-      0%   { transform: translate(0, 0) scale(1); }
-      6%   { transform: translate(0, 14px) scale(1.02); }
-      14%  { transform: translate(0, -5px) scale(0.98); }
-      22%  { transform: translate(0, 3px) scale(1); }
-      35%  { transform: translate(-5px, 0) scale(1); }
-      48%  { transform: translate(5px, 0) scale(1); }
-      61%  { transform: translate(-3px, 0) scale(1); }
-      74%  { transform: translate(2px, 0) scale(1); }
-      87%  { transform: translate(-1px, 0) scale(1); }
-      100% { transform: translate(0, 0) scale(1); }
+      0% {
+        transform: translate(0, 0) scale(1);
+      }
+
+      6% {
+        transform: translate(0, 14px) scale(1.02);
+      }
+
+      14% {
+        transform: translate(0, -5px) scale(0.98);
+      }
+
+      22% {
+        transform: translate(0, 3px) scale(1);
+      }
+
+      35% {
+        transform: translate(-5px, 0) scale(1);
+      }
+
+      48% {
+        transform: translate(5px, 0) scale(1);
+      }
+
+      61% {
+        transform: translate(-3px, 0) scale(1);
+      }
+
+      74% {
+        transform: translate(2px, 0) scale(1);
+      }
+
+      87% {
+        transform: translate(-1px, 0) scale(1);
+      }
+
+      100% {
+        transform: translate(0, 0) scale(1);
+      }
     }
 
     body.slam .container {
@@ -185,12 +215,14 @@
   <div id="palette-disabled-overlay" aria-hidden="true"></div>
   <div class="container">
     <h1 style="font-size:0.275rem;">Mike Borsare</h1>
-    <div style="position: sticky; top: 0.5rem; background: var(--bg); display: flex; gap: 1rem; align-items: center; justify-content: center; z-index:999;">
+    <div
+      style="position: sticky; top: 0.5rem; background: var(--bg); display: flex; gap: 1rem; align-items: center; justify-content: center; z-index:999;">
       <span>Player 1:</span>
       <span id="palette-score">0</span>
     </div>
     <div style="padding:1rem;">
-      <nav> 
+      <nav>
+        <a href="daily.html" class="ascii">The daily</a>
         <a href="the-news.html" class="ascii">The news</a>
         <a href="posters.html" class="ascii">Posters</a>
         <a href="netflix.html" class="ascii">Netfix</a>
@@ -198,10 +230,10 @@
         <a href="jumble.html" class="ascii">Jumble</a>
         <a href="mailto:mb@mikeb.work" style="color: var(--seal);">mb@mikeb.work</a>
       </nav>
-    <time id="clock"></time>
-  <div style="display:flex; justify-content:center; align-items:center;">
+      <time id="clock"></time>
+      <div style="display:flex; justify-content:center; align-items:center;">
 
-    <button id="palette-btn" style="
+        <button id="palette-btn" style="
         background: var(--btn-fill);
         color: var(--btn-text);
         border: 2px solid var(--seal);
@@ -213,45 +245,49 @@
         font-family:'ComicMono', monospace;
         cursor: pointer;
       ">
-      <pre class="ascii">
-        ▄▀▀█▄▄▄▄  ▄▀▀█▄   ▄▀▀▄▀▀▀▄  ▄▀▀▄ ▀▄      ▄▀▀▄▀▀▀▄  ▄▀▀▀▀▄   ▄▀▀█▀▄    ▄▀▀▄ ▀▄  ▄▀▀▀█▀▀▄ 
-        ▐  ▄▀   ▐ ▐ ▄▀ ▀▄ █   █   █ █  █ █ █     █   █   █ █      █ █   █  █  █  █ █ █ █    █  ▐ 
-          █▄▄▄▄▄    █▄▄▄█ ▐  █▀▀█▀  ▐  █  ▀█     ▐  █▀▀▀▀  █      █ ▐   █  ▐  ▐  █  ▀█ ▐   █     
-          █    ▌   ▄▀   █  ▄▀    █    █   █         █      ▀▄    ▄▀     █       █   █     █      
-         ▄▀▄▄▄▄   █   ▄▀  █     █   ▄▀   █        ▄▀         ▀▀▀▀    ▄▀▀▀▀▀▄  ▄▀   █    ▄▀       
-         █    ▐   ▐   ▐   ▐     ▐   █    ▐       █                  █       █ █    ▐   █         
-         ▐                          ▐            ▐                  ▐       ▐ ▐        ▐         
-      </pre>
-    </div>
-    <label style="display:inline-block; margin-left:1rem; margin-bottom: 6rem; cursor:pointer;">
-      <input type="checkbox" id="sound-mute" /> Mute sounds
-    </label>
-    
+          <pre class="ascii">
+            ▄▀▀█▄▄▄▄ ▄▀▀█▄ ▄▀▀▄▀▀▀▄ ▄▀▀▄ ▀▄ ▄▀▀▄▀▀▀▄ ▄▀▀▀▀▄ ▄▀▀█▀▄ ▄▀▀▄ ▀▄ ▄▀▀▀█▀▀▄
+            ▐ ▄▀ ▐ ▐ ▄▀ ▀▄ █ █ █ █ █ █ █ █ █ █ █ █ █ █ █ █ █ █ █ █ █ ▐
+            █▄▄▄▄▄ █▄▄▄█ ▐ █▀▀█▀ ▐ █ ▀█ ▐ █▀▀▀▀ █ █ ▐ █ ▐ ▐ █ ▀█ ▐ █
+            █ ▌ ▄▀ █ ▄▀ █ █ █ █ ▀▄ ▄▀ █ █ █ █
+            ▄▀▄▄▄▄ █ ▄▀ █ █ ▄▀ █ ▄▀ ▀▀▀▀ ▄▀▀▀▀▀▄ ▄▀ █ ▄▀
+            █ ▐ ▐ ▐ ▐ ▐ █ ▐ █ █ █ █ ▐ █
+            ▐ ▐ ▐ ▐ ▐ ▐ ▐
+          </pre>
+      </div>
+      <label style="display:inline-block; margin-left:1rem; margin-bottom: 6rem; cursor:pointer;">
+        <input type="checkbox" id="sound-mute" /> Mute sounds
+      </label>
+
     </div>
     <div id="doctrine-list"></div>
     <h2 style="text-transform: uppercase; letter-spacing: .2rem; font-size: 1rem;">Parts and pieces</h2>
-    <a href="/backoffice/doctrine.json" style="color: var(--stamp); display: block;">Raw doctrine: /backoffice/doctrine.json</a>
-    <a href="//github.com/mborsare/mikeb.work" style="color: var(--stamp); display: block;">Open source and version controlled</a>
-    <a href="//patorjk.com/software/taag/#p=testall&f=Graffiti&t=mikeb.work&x=none&v=4&h=4&w=80&we=true" style="color: var(--stamp); display: block;">Ascii made with taag</a>
-    <a href="//www.washingtonpost.com/newsletters/the-7/" style="color: var(--stamp); display: block;">News from The Washington Post</a>
+    <a href="/backoffice/doctrine.json" style="color: var(--stamp); display: block;">Raw doctrine:
+      /backoffice/doctrine.json</a>
+    <a href="//github.com/mborsare/mikeb.work" style="color: var(--stamp); display: block;">Open source and version
+      controlled</a>
+    <a href="//patorjk.com/software/taag/#p=testall&f=Graffiti&t=mikeb.work&x=none&v=4&h=4&w=80&we=true"
+      style="color: var(--stamp); display: block;">Ascii made with taag</a>
+    <a href="//www.washingtonpost.com/newsletters/the-7/" style="color: var(--stamp); display: block;">News from The
+      Washington Post</a>
 
     <pre class="ascii" style="font-size:0.4rem; margin-top: 9rem;">
-      ██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████ 
-      ▓██░  ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█   ▀ 
-      ▓██░ ██▓▒▓██ ░▄█ ▒▒██▒▓██    ▓██░▒███   
-      ▒██▄█▓▒ ▒▒██▀▀█▄  ░██░▒██    ▒██ ▒▓█  ▄ 
-      ▒██▒ ░  ░░██▓ ▒██▒░██░▒██▒   ░██▒░▒████▒
-      ▒▓▒░ ░  ░░ ▒▓ ░▒▓░░▓  ░ ▒░   ░  ░░░ ▒░ ░
-      ░▒ ░       ░▒ ░ ▒░ ▒ ░░  ░      ░ ░ ░  ░
-      ░░         ░░   ░  ▒ ░░      ░      ░   
-                  ░      ░         ░      ░  ░
-                                              
+      ██▓███ ██▀███ ██▓ ███▄ ▄███▓▓█████
+      ▓██░ ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█ ▀
+      ▓██░ ██▓▒▓██ ░▄█ ▒▒██▒▓██ ▓██░▒███
+      ▒██▄█▓▒ ▒▒██▀▀█▄ ░██░▒██ ▒██ ▒▓█ ▄
+      ▒██▒ ░ ░░██▓ ▒██▒░██░▒██▒ ░██▒░▒████▒
+      ▒▓▒░ ░ ░░ ▒▓ ░▒▓░░▓ ░ ▒░ ░ ░░░ ▒░ ░
+      ░▒ ░ ░▒ ░ ▒░ ▒ ░░ ░ ░ ░ ░ ░
+      ░░ ░░ ░ ▒ ░░ ░ ░
+      ░ ░ ░ ░ ░
+
     </pre>
-    <div >
+    <div>
       <a href="https://hotlinewebring.club/mikeb/previous" style="color: var(--seal); font-size: 0.8rem;">
         < Previous</a>
-      <span style="color: var(--seal); padding: 0 2em;">Proud member of Hotline Webring</span>
-      <a href="https://hotlinewebring.club/mikeb/next" style="color: var(--seal); font-size: 0.8rem;">Next ></a>
+          <span style="color: var(--seal); padding: 0 2em;">Proud member of Hotline Webring</span>
+          <a href="https://hotlinewebring.club/mikeb/next" style="color: var(--seal); font-size: 0.8rem;">Next ></a>
     </div>
   </div>
 
@@ -259,40 +295,40 @@
     // ---- Doctrine data (embedded for file:// protocol support) ----
     // This data is synced from backoffice/doctrine.json
     const DOCTRINE_DATA = [
-      { "doctrineItem": "Forgive yourself. Shame is chemical" },
-      { "doctrineItem": "Show up everyday (it's honorable)" },
-      { "doctrineItem": "Note last night's bedtime" },
-      { "doctrineItem": "Read yesterday's journal" },
-      { "doctrineItem": "Review yesterday's trades" },
-      { "doctrineItem": "The now in Motivewave chooses where to engage" },
-      { "doctrineItem": "The now in Bookmap chooses where to execute" },
-      { "doctrineItem": "The regime and tape choose the target type" },
-      { "doctrineItem": "Focus on the now for signal" },
-      { "doctrineItem": "Environments matter, chaos breeds chaos. Trade calm" },
-      { "doctrineItem": "Run cadence loop: The 7, market map, email" },
-      { "doctrineItem": "Leaks are a chemical event. Debrief why and create a rule" },
-      { "doctrineItem": "Witness distortions. See reality" },
-      { "doctrineItem": "Size is earned instead of imagined" },
-      { "doctrineItem": "Single lots for rhythm and limited exposure, +1 lot on permission" },
-      { "doctrineItem": "Press when green" },
-      { "doctrineItem": "Globex owns the night. Make instead of trade: ops, art, design" },
-      { "doctrineItem": "Globex wants to bargain. Deals with self cost time, money and emotion" },
-      { "doctrineItem": "Hero trades are signal" },
-      { "doctrineItem": "If both sides lose, stand down" },
-      { "doctrineItem": "Attack at edges and breathe" },
-      { "doctrineItem": "Every score is data for improvement" },
-      { "doctrineItem": "PnL is execution points. 1EXP = 1USD" },
-      { "doctrineItem": "Draw a clean sheet and accept it" },
-      { "doctrineItem": "Draw a red sheet and accept it" },
-      { "doctrineItem": "Draws days together. It's a campaign" },
-      { "doctrineItem": "Trust yourself. Returns cost time, money, and emotion" },
-      { "doctrineItem": "Stretch and sync with nature" },
-      { "doctrineItem": "Journal leftie thru-out" },
-      { "doctrineItem": "Vlog and review sessions" },
-      { "doctrineItem": "Regulate with music, movies and the daily worksheet" },
-      { "doctrineItem": "Survival > PnL" },
-      { "doctrineItem": "Use accounts for lessons and new rules instead of shame" },
-      { "doctrineItem": "Obey prime" }
+      {"doctrineItem": "Forgive yourself. Shame is chemical"},
+      {"doctrineItem": "Show up everyday (it's honorable)"},
+      {"doctrineItem": "Note last night's bedtime"},
+      {"doctrineItem": "Read yesterday's journal"},
+      {"doctrineItem": "Review yesterday's trades"},
+      {"doctrineItem": "The now in Motivewave chooses where to engage"},
+      {"doctrineItem": "The now in Bookmap chooses where to execute"},
+      {"doctrineItem": "The regime and tape choose the target type"},
+      {"doctrineItem": "Focus on the now for signal"},
+      {"doctrineItem": "Environments matter, chaos breeds chaos. Trade calm"},
+      {"doctrineItem": "Run cadence loop: The 7, market map, email"},
+      {"doctrineItem": "Leaks are a chemical event. Debrief why and create a rule"},
+      {"doctrineItem": "Witness distortions. See reality"},
+      {"doctrineItem": "Size is earned instead of imagined"},
+      {"doctrineItem": "Single lots for rhythm and limited exposure, +1 lot on permission"},
+      {"doctrineItem": "Press when green"},
+      {"doctrineItem": "Globex owns the night. Make instead of trade: ops, art, design"},
+      {"doctrineItem": "Globex wants to bargain. Deals with self cost time, money and emotion"},
+      {"doctrineItem": "Hero trades are signal"},
+      {"doctrineItem": "If both sides lose, stand down"},
+      {"doctrineItem": "Attack at edges and breathe"},
+      {"doctrineItem": "Every score is data for improvement"},
+      {"doctrineItem": "PnL is execution points. 1EXP = 1USD"},
+      {"doctrineItem": "Draw a clean sheet and accept it"},
+      {"doctrineItem": "Draw a red sheet and accept it"},
+      {"doctrineItem": "Draws days together. It's a campaign"},
+      {"doctrineItem": "Trust yourself. Returns cost time, money, and emotion"},
+      {"doctrineItem": "Stretch and sync with nature"},
+      {"doctrineItem": "Journal leftie thru-out"},
+      {"doctrineItem": "Vlog and review sessions"},
+      {"doctrineItem": "Regulate with music, movies and the daily worksheet"},
+      {"doctrineItem": "Survival > PnL"},
+      {"doctrineItem": "Use accounts for lessons and new rules instead of shame"},
+      {"doctrineItem": "Obey prime"}
     ];
 
     // ---- Load doctrine items from JSON ----
@@ -349,13 +385,13 @@
 
       function disciplined() {
         const e = Math.pow(Math.random(), 3);
-        return { x: -3 - e * 8, y: -3 - e * 6, tilt: -4 - e * 6 };
+        return {x: -3 - e * 8, y: -3 - e * 6, tilt: -4 - e * 6};
       }
       function sloppy() {
-        return { x: -10 + Math.random() * 16, y: -10 + Math.random() * 16, tilt: -18 + Math.random() * 36 };
+        return {x: -10 + Math.random() * 16, y: -10 + Math.random() * 16, tilt: -18 + Math.random() * 36};
       }
       function unhinged() {
-        return { x: Math.random() * 70 - 35, y: Math.random() * 70 - 35, tilt: Math.random() * 80 - 40 };
+        return {x: Math.random() * 70 - 35, y: Math.random() * 70 - 35, tilt: Math.random() * 80 - 40};
       }
 
       items.forEach(item => {
@@ -427,7 +463,7 @@
       function showDisabledOverlay() {
         if (!disabledOverlay) return;
         disabledOverlay.classList.add('is-active');
-        disabledOverlay.addEventListener('touchstart', preventZoom, { passive: false });
+        disabledOverlay.addEventListener('touchstart', preventZoom, {passive: false});
       }
 
       function hideDisabledOverlay() {
@@ -452,7 +488,7 @@
         SOUND_PATHS_PREUNLOCK.forEach(path => {
           const a = new Audio(path);
           a.volume = 0;
-          a.play().then(() => a.pause()).catch(() => {});
+          a.play().then(() => a.pause()).catch(() => { });
           a.volume = 1;
           a.currentTime = 0;
           audioCache[path] = a;
@@ -470,7 +506,7 @@
         }
         a.currentTime = 0;
         a.volume = 1;
-        a.play().catch(() => {});
+        a.play().catch(() => { });
       }
 
       function showToast(message) {
@@ -482,101 +518,101 @@
       }
 
       function processUpdate() {
-  if (pendingUpdates === 0) {
-    isProcessing = false;
-    return;
-  }
-
-  isProcessing = true;
-  pendingUpdates--;
-
-  // Calculate random points: 1-3 points (30% each), 4 points (10% chance)
-  const random = Math.floor(Math.random() * 10) + 1;
-  let pointsEarned;
-  if (random <= 3) {
-    pointsEarned = 1;
-  } else if (random <= 6) {
-    pointsEarned = 2;
-  } else if (random <= 9) {
-    pointsEarned = 3;
-  } else {
-    pointsEarned = 4; // 1 in 10 chance
-  }
-
-  // Store previous score before updating
-  previousScore = score;
-  
-  // Update score immediately for responsiveness
-  score += pointsEarned;
-  scoreEl.textContent = score;
-
-  // Defer heavy visual updates to avoid blocking
-  requestAnimationFrame(() => {
-    applyRandomPalette();
-    randomizeStamps();
-
-    // Check milestones - detect when crossing thresholds
-    if (score >= 99 && previousScore < 99) {
-      const container = document.querySelector('.container');
-      document.body.classList.add('slam');
-      container.addEventListener('animationend', function removeSlam(e) {
-        if (e.animationName === 'slam') {
-          document.body.classList.remove('slam');
-          container.removeEventListener('animationend', removeSlam);
+        if (pendingUpdates === 0) {
+          isProcessing = false;
+          return;
         }
-      });
-      playSound('/backoffice/the-stacks/boomshakalaka.mp3');
-      showToast('Boomshakalaka!!!');
-      btn.disabled = true;
-      btn.style.opacity = '0.5';
-      btn.style.cursor = 'not-allowed';
-      showDisabledOverlay();
 
-      setTimeout(() => {
-        score = 0;
-        previousScore = 0;
-        scoreEl.textContent = 0;
-        playSound('/backoffice/the-stacks/reset.wav');
-        showToast('Points reset to 0');
-        btn.disabled = false;
-        btn.style.opacity = '1';
-        btn.style.cursor = 'pointer';
-        hideDisabledOverlay();
-      }, 5000);
-      isProcessing = false;
-      pendingUpdates = 0;
-      return;
-    } else if (score >= 60 && previousScore < 60) {
-      playSound('/backoffice/the-stacks/checkpoint.m4a');
-      showToast("Next checkpoint +99");
-    } else if (score >= 30 && previousScore < 30) {
-      playSound('/backoffice/the-stacks/checkpoint.m4a');
-      showToast('Next checkpoint +60');
-    } else if (score >= 15 && previousScore < 15) {
-      playSound('/backoffice/the-stacks/checkpoint.m4a');
-      showToast('Next checkpoint +30');
-    } else if (score >= 1 && previousScore < 1) {
-      playSound('/backoffice/the-stacks/checkpoint.m4a');
-      showToast('+1! Next checkpoint +15');
-    }
+        isProcessing = true;
+        pendingUpdates--;
 
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      score = 0;
-      previousScore = 0;
-      scoreEl.textContent = 0;
-      playSound('/backoffice/the-stacks/reset.wav');
-      showToast('Points reset to 0');
-    }, 5000);
+        // Calculate random points: 1-3 points (30% each), 4 points (10% chance)
+        const random = Math.floor(Math.random() * 10) + 1;
+        let pointsEarned;
+        if (random <= 3) {
+          pointsEarned = 1;
+        } else if (random <= 6) {
+          pointsEarned = 2;
+        } else if (random <= 9) {
+          pointsEarned = 3;
+        } else {
+          pointsEarned = 4; // 1 in 10 chance
+        }
 
-    // Process next pending update if any
-    if (pendingUpdates > 0) {
-      requestAnimationFrame(processUpdate);
-    } else {
-      isProcessing = false;
-    }
-  });
-}
+        // Store previous score before updating
+        previousScore = score;
+
+        // Update score immediately for responsiveness
+        score += pointsEarned;
+        scoreEl.textContent = score;
+
+        // Defer heavy visual updates to avoid blocking
+        requestAnimationFrame(() => {
+          applyRandomPalette();
+          randomizeStamps();
+
+          // Check milestones - detect when crossing thresholds
+          if (score >= 99 && previousScore < 99) {
+            const container = document.querySelector('.container');
+            document.body.classList.add('slam');
+            container.addEventListener('animationend', function removeSlam(e) {
+              if (e.animationName === 'slam') {
+                document.body.classList.remove('slam');
+                container.removeEventListener('animationend', removeSlam);
+              }
+            });
+            playSound('/backoffice/the-stacks/boomshakalaka.mp3');
+            showToast('Boomshakalaka!!!');
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+            btn.style.cursor = 'not-allowed';
+            showDisabledOverlay();
+
+            setTimeout(() => {
+              score = 0;
+              previousScore = 0;
+              scoreEl.textContent = 0;
+              playSound('/backoffice/the-stacks/reset.wav');
+              showToast('Points reset to 0');
+              btn.disabled = false;
+              btn.style.opacity = '1';
+              btn.style.cursor = 'pointer';
+              hideDisabledOverlay();
+            }, 5000);
+            isProcessing = false;
+            pendingUpdates = 0;
+            return;
+          } else if (score >= 60 && previousScore < 60) {
+            playSound('/backoffice/the-stacks/checkpoint.m4a');
+            showToast("Next checkpoint +99");
+          } else if (score >= 30 && previousScore < 30) {
+            playSound('/backoffice/the-stacks/checkpoint.m4a');
+            showToast('Next checkpoint +60');
+          } else if (score >= 15 && previousScore < 15) {
+            playSound('/backoffice/the-stacks/checkpoint.m4a');
+            showToast('Next checkpoint +30');
+          } else if (score >= 1 && previousScore < 1) {
+            playSound('/backoffice/the-stacks/checkpoint.m4a');
+            showToast('+1! Next checkpoint +15');
+          }
+
+          clearTimeout(timer);
+          timer = setTimeout(() => {
+            score = 0;
+            previousScore = 0;
+            scoreEl.textContent = 0;
+            playSound('/backoffice/the-stacks/reset.wav');
+            showToast('Points reset to 0');
+          }, 5000);
+
+          // Process next pending update if any
+          if (pendingUpdates > 0) {
+            requestAnimationFrame(processUpdate);
+          } else {
+            isProcessing = false;
+          }
+        });
+      }
 
       btn.addEventListener('click', e => {
         e.preventDefault();
