@@ -336,7 +336,24 @@
      RESPONSIVE - Mobile
      =============================================== */
     @media (max-width: 900px) {
+      .container {
+        padding: 3rem;
+      }
+
+      .cursive-teacher {
+        font-size: 1.5rem;
+        line-height: 2rem;
+      }
+
       .bottom-section {
+        grid-template-columns: 1fr;
+      }
+
+      .draw-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .games-section {
         grid-template-columns: 1fr;
       }
     }
@@ -459,6 +476,7 @@
       /* Draw grid print */
       .draw-grid {
         gap: 0.12in;
+        grid-template-columns: 3fr 3fr 3fr;
       }
 
       .draw-grid li {
