@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trinitron, mikeb.work</title>
+
+  <style>
+    :root {
+      --bg: #000;
+      --text: #b8b8b8;
+      --seal: #9fd8c9;
+      --accent: #2e4a3a;
+      --btn: #1a2a22;
+    }
+
+    html { font-size: 14px; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'ComicMono', monospace;
+      text-align: center;
+    }
+
+    .container {
+      max-width: 56rem;
+      width: 100%;
+      padding: 2rem 1.5rem 3rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    h1 { font-size: .75em; color: var(--seal); }
+    label { font-size: .7em; color: #777; }
+
+    input, textarea {
+      background: #000;
+      color: var(--seal);
+      border: 1px solid #333;
+      padding: .75em;
+      font-family: inherit;
+      width: 100%;
+    }
+
+    button {
+      background: var(--btn);
+      color: var(--seal);
+      border: 2px solid var(--accent);
+      border-radius: .75em;
+      padding: 1.25em;
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    button:hover { background: var(--accent); }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+
+    #status {
+      font-size: .7em;
+      color: #666;
+      min-height: 1.25em;
+    }
+
+    /* ============================
+       CRT
+    ============================ */
+
+    .crt {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: black;
+      border: 1px solid #222;
+      overflow: hidden;
+    }
+
+    .crt::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          rgba(255,255,255,0.03),
+          rgba(255,255,255,0.03) 1px,
+          transparent 1px,
+          transparent 3px
+        );
+      mix-blend-mode: overlay;
+      opacity: .15;
+    }
+
+    .crt.off {
+      background: black;
+    }
+
+    /* Power on collapse */
+    .crt.warming::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: #eaffea;
+      box-shadow: 0 0 20px #eaffea;
+      animation: powerOn .35s ease-out forwards;
+    }
+
+    @keyframes powerOn {
+      from { transform: scaleY(1); opacity: 1; }
+      to   { transform: scaleY(40); opacity: 0; }
+    }
+
+    /* Power off snap */
+    .crt.cooling::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: #eaffea;
+      box-shadow: 0 0 20px #eaffea;
+      animation: powerOff .25s ease-in forwards;
+    }
+
+    @keyframes powerOff {
+      from { transform: scaleY(40); opacity: 1; }
+      to   { transform: scaleY(1); opacity: 0; }
+    }
+
+    .crt.on {
+      animation: bloom .4s ease-out;
+    }
+
+    @keyframes bloom {
+      from { filter: brightness(2) blur(2px); }
+      to   { filter: none; }
+    }
+
+    #player {
+      width: 100%;
+      height: 100%;
+    }
+
+    #title {
+      font-size: .7em;
+      color: #888;
+      opacity: 0;
+      transition: opacity .6s ease;
+    }
+
+    .controls {
+      display: flex;
+      gap: .75rem;
+    }
+
+    .error { color: #ff6b6b; }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <nav><a href="/" style="color: var(--seal)">Back</a></nav>
+
+<pre>
+##                  ##                                            
+##                   ""                  ""       ##                                   
+#######    ##m####   ####     ##m####m   ####     #######    ##m####   m####m   ##m####m 
+  ##       ##"         ##     ##"   ##     ##       ##       ##"      ##"  "##  ##"   ## 
+  ##       ##          ##     ##    ##     ##       ##       ##       ##    ##  ##    ## 
+  ##mmm    ##       mmm##mmm  ##    ##  mmm##mmm    ##mmm    ##       "##mm##"  ##    ## 
+   """"    ""       """"""""  ""    ""  """"""""     """"    ""         """"    ""    "" 
+</pre>
+
+    <label>Seed video (optional)</label>
+    <input id="seed" />
+
+    <label>What to watch</label>
+    <textarea id="queries" rows="3">late night interview, public access tv, experimental documentary</textarea>
+
+    <button id="power">Power</button>
+
+    <div id="status"></div>
+
+    <div id="crt" class="crt off">
+      <div id="player"></div>
+    </div>
+    <div class="controls">
+      <button id="next" disabled>Change channel</button>
+      <button id="jump" disabled>Jump back</button>
+    </div>
+
+    <div id="title"></div>
+  </div>
+
+<script>
+/* ============================
+   CONFIG
+============================ */
+const WORKER_URL = "https://trinitron.mborsare.workers.dev";
+const MAX_RESULTS = 25;
+const ORDERS = ["relevance", "viewCount", "rating"];
+
+/* ============================
+   STATE
+============================ */
+let pool = [];
+let player = null;
+let poweredOn = false;
+let apiReady = false;
+
+let currentVideo = null;
+let previousVideo = null;
+let previousTime = 0;
+
+/* ============================
+   YT BOOT
+============================ */
+window.onYouTubeIframeAPIReady = () => apiReady = true;
+const tag = document.createElement("script");
+tag.src = "https://www.youtube.com/iframe_api";
+document.body.appendChild(tag);
+
+/* ============================
+   HELPERS
+============================ */
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const setStatus = msg => document.getElementById("status").textContent = msg;
+
+/* ============================
+   PLAYER
+============================ */
+function playVideo(id, startSeconds = 0) {
+  if (player) {
+    previousVideo = currentVideo;
+    previousTime = player.getCurrentTime?.() || 0;
+    player.destroy();
+  }
+
+  currentVideo = id;
+  document.getElementById("jump").disabled = !previousVideo;
+
+  player = new YT.Player("player", {
+    videoId: id,
+    playerVars: { autoplay: 1, controls: 1, modestbranding: 1, rel: 0, start: Math.floor(startSeconds) },
+    events: {
+      onReady: e => {
+        const t = e.target.getVideoData().title;
+        document.getElementById("title").textContent = t || "";
+        document.getElementById("title").style.opacity = 1;
+        setStatus("Now Playing");
+      },
+      onStateChange: e => e.data === YT.PlayerState.ENDED && drift()
+    }
+  });
+}
+
+/* ============================
+   DRIFT
+============================ */
+function drift() {
+  if (!poweredOn || !pool.length) return;
+  let next;
+  do {
+    next = pool[Math.floor(Math.random() * pool.length)];
+  } while (next === currentVideo && pool.length > 1);
+  playVideo(next);
+}
+
+/* ============================
+   SEARCH
+============================ */
+async function ytSearch(q) {
+  const res = await fetch(WORKER_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ q, maxResults: MAX_RESULTS, order: ORDERS[Math.floor(Math.random()*3)] })
+  });
+  const data = await res.json();
+  return (data.items || []).map(v => v?.id?.videoId).filter(Boolean);
+}
+
+/* ============================
+   POWER TOGGLE
+============================ */
+document.getElementById("power").onclick = async () => {
+  const crt = document.getElementById("crt");
+  const btn = document.getElementById("power");
+
+  if (!poweredOn) {
+    poweredOn = true;
+    document.getElementById("next").disabled = false;
+
+    crt.className = "crt warming";
+    setStatus("Powering on…");
+    await sleep(400);
+
+    crt.className = "crt on";
+    setStatus("Tuning signal…");
+
+    if (!pool.length) {
+      const seed = document.getElementById("seed").value.trim();
+      const queries = document.getElementById("queries").value.split(",").map(s=>s.trim()).filter(Boolean);
+      let ids = seed ? [seed] : [];
+      for (const q of queries) ids.push(...await ytSearch(q));
+      pool = [...new Set(ids)];
+    }
+
+    drift();
+  } else {
+    poweredOn = false;
+    document.getElementById("next").disabled = true;
+    document.getElementById("jump").disabled = true;
+
+    setStatus("Powering off…");
+    crt.className = "crt cooling";
+    await sleep(300);
+
+    crt.className = "crt off";
+    document.getElementById("title").style.opacity = 0;
+
+    if (player) {
+      player.destroy();
+      player = null;
+    }
+  }
+};
+
+/* ============================
+   CONTROLS
+============================ */
+document.getElementById("next").onclick = () => poweredOn && drift();
+document.getElementById("jump").onclick = () =>
+  poweredOn && previousVideo && playVideo(previousVideo, previousTime);
+</script>
+</body>
+</html>
