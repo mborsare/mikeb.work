@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -152,17 +151,17 @@
       justify-content: center;
     }
 
-    /* PRIME LOGO POWER LIGHT */
+    /* PRIME POWER LED */
     #prime-logo {
-      color: #909090;
+      color: #330000;
       transition: color .25s ease, text-shadow .25s ease;
     }
 
     #prime-logo.on {
-      color: #6aff2a;
+      color: #ff2a2a;
       text-shadow:
-        0 0 6px rgba(91, 140, 40, 0.6),
-        0 0 14px rgba(77, 255, 0, 0.4);
+        0 0 6px rgba(255, 42, 42, 0.6),
+        0 0 14px rgba(255, 42, 42, 0.4);
     }
   </style>
 </head>
@@ -198,7 +197,13 @@
 <div id="crt" class="crt off">
   <div id="player"></div>
 </div>
-<pre id="prime-logo" class="ascii" style="font-size:0.4rem; margin-top: 1rem;">
+
+<div class="controls">
+  <button id="next" disabled>Change channel</button>
+  <button id="jump" disabled>Jump back</button>
+</div>
+
+<pre id="prime-logo" class="ascii" style="font-size:0.4rem; margin-top:9rem;">
   ██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████ 
   ▓██░  ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█   ▀ 
   ▓██░ ██▓▒▓██ ░▄█ ▒▒██▒▓██    ▓██░▒███   
@@ -209,18 +214,13 @@
   ░░         ░░   ░  ▒ ░░      ░      ░   
               ░      ░         ░      ░  ░
 </pre>
-<div class="controls">
-  <button id="next" disabled>Change channel</button>
-  <button id="jump" disabled>Jump back</button>
-</div>
-
-
 
 <div id="title"></div>
 </div>
 
 <script>
 const WORKER_URL = "https://trinitron.mborsare.workers.dev";
+const MIN_RETUNE_INTERVAL = 5000; // protect API
 
 let pool = [];
 let player = null;
@@ -229,6 +229,7 @@ let apiReady = false;
 
 let lastSeed = "";
 let lastQueries = "";
+let lastRetuneAt = 0;
 
 let currentVideo = null;
 let previousVideo = null;
@@ -245,9 +246,10 @@ const retuneBtn = document.getElementById("retune");
 const primeLogo = document.getElementById("prime-logo");
 
 function inputsChanged() {
-  const seedVal = document.getElementById("seed").value.trim();
-  const queriesVal = document.getElementById("queries").value.trim();
-  return seedVal !== lastSeed || queriesVal !== lastQueries;
+  return (
+    document.getElementById("seed").value.trim() !== lastSeed ||
+    document.getElementById("queries").value.trim() !== lastQueries
+  );
 }
 
 ["seed", "queries"].forEach(id => {
@@ -302,26 +304,24 @@ async function ytSearch(q) {
 
 async function retune() {
   if (!poweredOn) return;
+  if (Date.now() - lastRetuneAt < MIN_RETUNE_INTERVAL) return;
 
+  lastRetuneAt = Date.now();
   status("Retuning signal…");
   pool = [];
 
   const seedVal = document.getElementById("seed").value.trim();
-  const qs = document.getElementById("queries")
-    .value.split(",")
-    .map(s => s.trim())
-    .filter(Boolean);
+  const qs = document.getElementById("queries").value.split(",").map(s => s.trim()).filter(Boolean);
 
   let ids = seedVal ? [seedVal] : [];
   for (const q of qs) ids.push(...await ytSearch(q));
 
   pool = [...new Set(ids)];
-
   lastSeed = seedVal;
   lastQueries = document.getElementById("queries").value.trim();
   retuneBtn.disabled = true;
 
-  drift();
+  if (pool.length) playVideo(pool[Math.floor(Math.random() * pool.length)]);
 }
 
 document.getElementById("power").onclick = async () => {
@@ -331,9 +331,10 @@ document.getElementById("power").onclick = async () => {
   if (!poweredOn) {
     poweredOn = true;
     btn.textContent = "Power off";
+    primeLogo.classList.add("on");
+
     document.getElementById("next").disabled = false;
     retuneBtn.disabled = !inputsChanged();
-    primeLogo.classList.add("on");
 
     crt.className = "crt warming";
     status("Powering on…");
@@ -347,13 +348,15 @@ document.getElementById("power").onclick = async () => {
     }
 
     if (!pool.length) await retune();
+    if (pool.length) playVideo(pool[Math.floor(Math.random() * pool.length)]);
   } else {
     poweredOn = false;
     btn.textContent = "Power on";
+    primeLogo.classList.remove("on");
+
     document.getElementById("next").disabled = true;
     document.getElementById("jump").disabled = true;
     retuneBtn.disabled = true;
-    primeLogo.classList.remove("on");
 
     status("Powering off…");
     crt.className = "crt cooling";
@@ -366,6 +369,10 @@ document.getElementById("power").onclick = async () => {
       player.destroy();
       player = null;
     }
+
+    currentVideo = null;
+    previousVideo = null;
+    previousTime = 0;
   }
 };
 
