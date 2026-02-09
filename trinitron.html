@@ -37,7 +37,6 @@
       gap: 1.5rem;
     }
 
-    h1 { font-size: .75em; color: var(--seal); }
     label { font-size: .7em; color: #777; }
 
     input, textarea {
@@ -68,10 +67,7 @@
       min-height: 1.25em;
     }
 
-    /* ============================
-       CRT
-    ============================ */
-
+    /* CRT */
     .crt {
       position: relative;
       width: 100%;
@@ -98,11 +94,8 @@
       opacity: .15;
     }
 
-    .crt.off {
-      background: black;
-    }
+    .crt.off { background: black; }
 
-    /* Power on collapse */
     .crt.warming::before {
       content: "";
       position: absolute;
@@ -120,7 +113,6 @@
       to   { transform: scaleY(40); opacity: 0; }
     }
 
-    /* Power off snap */
     .crt.cooling::before {
       content: "";
       position: absolute;
@@ -138,19 +130,14 @@
       to   { transform: scaleY(1); opacity: 0; }
     }
 
-    .crt.on {
-      animation: bloom .4s ease-out;
-    }
+    .crt.on { animation: bloom .4s ease-out; }
 
     @keyframes bloom {
       from { filter: brightness(2) blur(2px); }
       to   { filter: none; }
     }
 
-    #player {
-      width: 100%;
-      height: 100%;
-    }
+    #player { width: 100%; height: 100%; }
 
     #title {
       font-size: .7em;
@@ -162,15 +149,28 @@
     .controls {
       display: flex;
       gap: .75rem;
+      justify-content: center;
     }
 
-    .error { color: #ff6b6b; }
+    /* PRIME LOGO POWER LIGHT */
+    #prime-logo {
+      color: #909090;
+      transition: color .25s ease, text-shadow .25s ease;
+    }
+
+    #prime-logo.on {
+      color: #6aff2a;
+      text-shadow:
+        0 0 6px rgba(91, 140, 40, 0.6),
+        0 0 14px rgba(77, 255, 0, 0.4);
+    }
   </style>
 </head>
 
 <body>
-  <div class="container">
-    <nav><a href="/" style="color: var(--seal)">Back</a></nav>
+<div class="container">
+
+<nav><a href="/" style="color: var(--seal)">Back</a></nav>
 
 <pre>
 ##                  ##                                            
@@ -182,65 +182,81 @@
    """"    ""       """"""""  ""    ""  """"""""     """"    ""         """"    ""    "" 
 </pre>
 
-    <label>Seed video (optional)</label>
-    <input id="seed" />
+<label>Seed video (optional)</label>
+<input id="seed" />
 
-    <label>What to watch</label>
-    <textarea id="queries" rows="3">late night interview, public access tv, experimental documentary</textarea>
+<label>What to watch</label>
+<textarea id="queries" rows="3">late night interview, public access tv, experimental documentary</textarea>
 
-    <button id="power">Power</button>
+<div class="controls">
+  <button id="power">Power on</button>
+  <button id="retune" disabled>Retune</button>
+</div>
 
-    <div id="status"></div>
+<div id="status"></div>
 
-    <div id="crt" class="crt off">
-      <div id="player"></div>
-    </div>
-    <div class="controls">
-      <button id="next" disabled>Change channel</button>
-      <button id="jump" disabled>Jump back</button>
-    </div>
+<div id="crt" class="crt off">
+  <div id="player"></div>
+</div>
+<pre id="prime-logo" class="ascii" style="font-size:0.4rem; margin-top: 1rem;">
+  ██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████ 
+  ▓██░  ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█   ▀ 
+  ▓██░ ██▓▒▓██ ░▄█ ▒▒██▒▓██    ▓██░▒███   
+  ▒██▄█▓▒ ▒▒██▀▀█▄  ░██░▒██    ▒██ ▒▓█  ▄ 
+  ▒██▒ ░  ░░██▓ ▒██▒░██░▒██▒   ░██▒░▒████▒
+  ▒▓▒░ ░  ░░ ▒▓ ░▒▓░░▓  ░ ▒░   ░  ░░░ ▒░ ░
+  ░▒ ░       ░▒ ░ ▒░ ▒ ░░  ░      ░ ░ ░  ░
+  ░░         ░░   ░  ▒ ░░      ░      ░   
+              ░      ░         ░      ░  ░
+</pre>
+<div class="controls">
+  <button id="next" disabled>Change channel</button>
+  <button id="jump" disabled>Jump back</button>
+</div>
 
-    <div id="title"></div>
-  </div>
+
+
+<div id="title"></div>
+</div>
 
 <script>
-/* ============================
-   CONFIG
-============================ */
 const WORKER_URL = "https://trinitron.mborsare.workers.dev";
-const MAX_RESULTS = 25;
-const ORDERS = ["relevance", "viewCount", "rating"];
 
-/* ============================
-   STATE
-============================ */
 let pool = [];
 let player = null;
 let poweredOn = false;
 let apiReady = false;
 
+let lastSeed = "";
+let lastQueries = "";
+
 let currentVideo = null;
 let previousVideo = null;
 let previousTime = 0;
 
-/* ============================
-   YT BOOT
-============================ */
 window.onYouTubeIframeAPIReady = () => apiReady = true;
 const tag = document.createElement("script");
 tag.src = "https://www.youtube.com/iframe_api";
 document.body.appendChild(tag);
 
-/* ============================
-   HELPERS
-============================ */
 const sleep = ms => new Promise(r => setTimeout(r, ms));
-const setStatus = msg => document.getElementById("status").textContent = msg;
+const status = m => document.getElementById("status").textContent = m;
+const retuneBtn = document.getElementById("retune");
+const primeLogo = document.getElementById("prime-logo");
 
-/* ============================
-   PLAYER
-============================ */
-function playVideo(id, startSeconds = 0) {
+function inputsChanged() {
+  const seedVal = document.getElementById("seed").value.trim();
+  const queriesVal = document.getElementById("queries").value.trim();
+  return seedVal !== lastSeed || queriesVal !== lastQueries;
+}
+
+["seed", "queries"].forEach(id => {
+  document.getElementById(id).addEventListener("input", () => {
+    retuneBtn.disabled = !poweredOn || !inputsChanged();
+  });
+});
+
+function playVideo(id, start = 0) {
   if (player) {
     previousVideo = currentVideo;
     previousTime = player.getCurrentTime?.() || 0;
@@ -252,22 +268,19 @@ function playVideo(id, startSeconds = 0) {
 
   player = new YT.Player("player", {
     videoId: id,
-    playerVars: { autoplay: 1, controls: 1, modestbranding: 1, rel: 0, start: Math.floor(startSeconds) },
+    playerVars: { autoplay: 1, controls: 1, start: Math.floor(start) },
     events: {
       onReady: e => {
-        const t = e.target.getVideoData().title;
-        document.getElementById("title").textContent = t || "";
+        document.getElementById("title").textContent =
+          e.target.getVideoData().title || "";
         document.getElementById("title").style.opacity = 1;
-        setStatus("Now Playing");
+        status("Now Playing");
       },
-      onStateChange: e => e.data === YT.PlayerState.ENDED && drift()
+      onStateChange: e => e.data === 0 && drift()
     }
   });
 }
 
-/* ============================
-   DRIFT
-============================ */
 function drift() {
   if (!poweredOn || !pool.length) return;
   let next;
@@ -277,52 +290,72 @@ function drift() {
   playVideo(next);
 }
 
-/* ============================
-   SEARCH
-============================ */
 async function ytSearch(q) {
-  const res = await fetch(WORKER_URL, {
+  const r = await fetch(WORKER_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ q, maxResults: MAX_RESULTS, order: ORDERS[Math.floor(Math.random()*3)] })
+    body: JSON.stringify({ q })
   });
-  const data = await res.json();
-  return (data.items || []).map(v => v?.id?.videoId).filter(Boolean);
+  const d = await r.json();
+  return (d.items || []).map(v => v.id?.videoId).filter(Boolean);
 }
 
-/* ============================
-   POWER TOGGLE
-============================ */
+async function retune() {
+  if (!poweredOn) return;
+
+  status("Retuning signal…");
+  pool = [];
+
+  const seedVal = document.getElementById("seed").value.trim();
+  const qs = document.getElementById("queries")
+    .value.split(",")
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  let ids = seedVal ? [seedVal] : [];
+  for (const q of qs) ids.push(...await ytSearch(q));
+
+  pool = [...new Set(ids)];
+
+  lastSeed = seedVal;
+  lastQueries = document.getElementById("queries").value.trim();
+  retuneBtn.disabled = true;
+
+  drift();
+}
+
 document.getElementById("power").onclick = async () => {
   const crt = document.getElementById("crt");
   const btn = document.getElementById("power");
 
   if (!poweredOn) {
     poweredOn = true;
+    btn.textContent = "Power off";
     document.getElementById("next").disabled = false;
+    retuneBtn.disabled = !inputsChanged();
+    primeLogo.classList.add("on");
 
     crt.className = "crt warming";
-    setStatus("Powering on…");
+    status("Powering on…");
     await sleep(400);
 
     crt.className = "crt on";
-    setStatus("Tuning signal…");
 
-    if (!pool.length) {
-      const seed = document.getElementById("seed").value.trim();
-      const queries = document.getElementById("queries").value.split(",").map(s=>s.trim()).filter(Boolean);
-      let ids = seed ? [seed] : [];
-      for (const q of queries) ids.push(...await ytSearch(q));
-      pool = [...new Set(ids)];
+    if (!apiReady) {
+      status("Warming tubes…");
+      while (!apiReady) await sleep(50);
     }
 
-    drift();
+    if (!pool.length) await retune();
   } else {
     poweredOn = false;
+    btn.textContent = "Power on";
     document.getElementById("next").disabled = true;
     document.getElementById("jump").disabled = true;
+    retuneBtn.disabled = true;
+    primeLogo.classList.remove("on");
 
-    setStatus("Powering off…");
+    status("Powering off…");
     crt.className = "crt cooling";
     await sleep(300);
 
@@ -336,9 +369,7 @@ document.getElementById("power").onclick = async () => {
   }
 };
 
-/* ============================
-   CONTROLS
-============================ */
+retuneBtn.onclick = retune;
 document.getElementById("next").onclick = () => poweredOn && drift();
 document.getElementById("jump").onclick = () =>
   poweredOn && previousVideo && playVideo(previousVideo, previousTime);
