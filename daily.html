@@ -724,6 +724,21 @@
                                                                           *                                   
                                                                                                               
       </pre>
+
+      <!-- MARKET WEATHER SNAPSHOT -->
+<section id="market-weather" style="margin: 1.5rem 0 2rem;">
+  <h2>Market weather</h2>
+
+  <div id="prime-weather" style="display:grid; gap: .5rem;">
+    <div id="w-regime"></div>
+    <div id="w-range"></div>
+    <div id="w-rp"></div>
+    <div id="w-orders"></div>
+    <div id="w-time"></div>
+  </div>
+  
+</section>
+
   </div>
   <script>
 
@@ -840,34 +855,38 @@
         });
       });
     })();
-
     (async () => {
-      try {
-        const res = await fetch('/backoffice/reflect-prompts.json');
-        const data = await res.json();
+  try {
+    const res = await fetch(
+      'https://weather.mborsare.workers.dev/prime/weather/ES',
+      { cache: 'no-store' }
+    );
+    const data = await res.json();
 
-        // extract prompt strings
-        const prompts = data
-          .map(item => item.prompt)
-          .filter(Boolean);
+    if (!data || !data.regime) return;
 
-        // shuffle
-        for (let i = prompts.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [prompts[i], prompts[j]] = [prompts[j], prompts[i]];
-        }
+    document.getElementById('w-regime').textContent =
+      data.regime.type.toUpperCase();
 
-        document
-          .querySelectorAll('.daily-question')
-          .forEach((el, i) => {
-            el.textContent = prompts[i] ?? '';
-          });
+    document.getElementById('w-range').textContent =
+      `↕️ ${data.regime.rangePts} pts`;
 
-      } catch (err) {
-        console.error('Failed to load reflect-prompts.json', err);
-      }
-    })();
+    document.getElementById('w-rp').textContent =
+      `🎲 ${Math.round(data.edge.rPlusProbability * 100)}%`;
 
+    document.getElementById('w-orders').textContent =
+      data.edge.standDown
+        ? 'No edge. Stand down'
+        : `Base 5/4 · Max ladder ${data.orders.allowedMax}`;
+
+    document.getElementById('w-time').textContent =
+      'As of ' + new Date(data.asOf).toLocaleTimeString();
+
+  } catch (e) {
+    console.warn('Prime weather unavailable');
+  }
+})();
+    
   </script>
 </body>
 
