@@ -872,6 +872,41 @@
       });
     })();
 
+  // Daily Questions
+  (async () => {
+  try {
+    const res = await fetch('/backoffice/reflect-prompts.json');
+    const prompts = await res.json();
+
+    // randomize + take 3
+    const selected = [...prompts]
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 3);
+
+    const els = document.querySelectorAll('.daily-question');
+
+    selected.forEach((q, i) => {
+      if (els[i]) {
+        els[i].textContent = q.prompt;
+      }
+    });
+
+  } catch (e) {
+    console.warn('Prompts unavailable', e);
+
+    const fallbacks = [
+      'What did you learn today?',
+      'What could you improve?',
+      'What are you grateful for?'
+    ];
+
+    document.querySelectorAll('.daily-question').forEach((el, i) => {
+      el.textContent = fallbacks[i] || '';
+    });
+  }
+})();
+
+
     // Prime Weather (CORRECTED - LIST ORDERS)
 (async () => {
   try {
