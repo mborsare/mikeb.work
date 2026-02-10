@@ -25,6 +25,7 @@
       color: var(--text);
       font-family: 'ComicMono', monospace;
       text-align: center;
+      transition: background 1.5s ease;
     }
 
     .container {
@@ -34,6 +35,32 @@
       display: flex;
       flex-direction: column;
       gap: 1.5rem;
+    }
+
+    /* Dim everything except CRT and controls */
+    .container > *:not(#crt):not(.controls) {
+      transition: opacity 0.3s ease;
+    }
+
+    body.dimmed .container > *:not(#crt):not(.controls) {
+      opacity: 0.1;
+      pointer-events: none;
+    }
+
+    /* Dim most control buttons */
+    .controls {
+      transition: opacity 0.3s ease;
+    }
+
+    body.dimmed .controls button:not(#dim-ui) {
+      opacity: 0.1;
+      pointer-events: none;
+    }
+
+    /* Keep quick retune visible when dimmed */
+    body.dimmed #quick-retune {
+      opacity: 1;
+      pointer-events: auto;
     }
 
     label { font-size: .7em; color: #777; }
@@ -59,6 +86,37 @@
 
     button:hover { background: var(--accent); }
     button:disabled { opacity: .5; cursor: not-allowed; }
+
+    #quick-retune {
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+
+    #quick-retune.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .5rem;
+      justify-content: center;
+    }
+
+    .tag {
+      padding: .5em .75em;
+      font-size: .8em;
+      border-radius: .5em;
+      background: var(--btn);
+      border: 1px solid var(--accent);
+    }
+
+    .tag:hover {
+      background: var(--accent);
+      transform: scale(1.05);
+    }
 
     #status {
       font-size: .7em;
@@ -163,6 +221,22 @@
         0 0 6px rgba(255, 42, 42, 0.6),
         0 0 14px rgba(255, 42, 42, 0.4);
     }
+    /* CRT collapsed when off */
+#crt {
+  height: 0;
+  aspect-ratio: unset;
+  overflow: hidden;
+  transition: height 0.35s ease;
+}
+
+/* CRT visible when on */
+#crt.on,
+#crt.warming,
+#crt.cooling {
+  height: auto;
+  aspect-ratio: 16 / 9;
+}
+
   </style>
 </head>
 
@@ -187,9 +261,9 @@
 <label>What to watch</label>
 <textarea id="queries" rows="3">late night interview, public access tv, experimental documentary</textarea>
 
-<div class="controls">
-  <button id="power">Power on</button>
-  <button id="retune" disabled>Retune</button>
+<div id="quick-retune">
+  <label id="quick-retune-label">Quick retune</label>
+  <div class="tags" id="tags-container"></div>
 </div>
 
 <div id="status"></div>
@@ -197,10 +271,13 @@
 <div id="crt" class="crt off">
   <div id="player"></div>
 </div>
-
+<div id="title"></div>
 <div class="controls">
+  <button id="power">Power on</button>
+  <button id="retune" disabled>Retune</button>
   <button id="next" disabled>Change channel</button>
   <button id="jump" disabled>Jump back</button>
+  <button id="dim-ui" disabled>Dim UI</button>
 </div>
 
 <pre id="prime-logo" class="ascii" style="font-size:0.4rem; margin-top:9rem;">
@@ -214,13 +291,11 @@
   ░░         ░░   ░  ▒ ░░      ░      ░   
               ░      ░         ░      ░  ░
 </pre>
-
-<div id="title"></div>
 </div>
 
 <script>
 const WORKER_URL = "https://trinitron.mborsare.workers.dev";
-const MIN_RETUNE_INTERVAL = 5000; // protect API
+const MIN_RETUNE_INTERVAL = 5000;
 
 let pool = [];
 let player = null;
@@ -235,6 +310,11 @@ let currentVideo = null;
 let previousVideo = null;
 let previousTime = 0;
 
+let colorTimer = null;
+let lastAnalyzedTime = 0;
+
+let isDimmed = false;
+
 window.onYouTubeIframeAPIReady = () => apiReady = true;
 const tag = document.createElement("script");
 tag.src = "https://www.youtube.com/iframe_api";
@@ -244,6 +324,99 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 const status = m => document.getElementById("status").textContent = m;
 const retuneBtn = document.getElementById("retune");
 const primeLogo = document.getElementById("prime-logo");
+const dimBtn = document.getElementById("dim-ui");
+const quickRetune = document.getElementById("quick-retune");
+
+// TAG HIERARCHY
+const tagTree = {
+  root: [
+    { label: "Pop Culture", query: "pop up video, behind the music, mtv cribs", children: "popCulture" },
+    { label: "Late Night", query: "late night interview, talk show, conan", children: "lateNight" },
+    { label: "Public Access", query: "public access tv, cable access, local tv", children: "publicAccess" },
+    { label: "Art House", query: "experimental documentary, art film, avant garde", children: "artHouse" },
+    { label: "Commercials", query: "90s commercials, retro ads, infomercial", children: "commercials" },
+    { label: "Music", query: "concert footage, live music, music video", children: "music" },
+    { label: "Cooking", query: "cooking show, food network, recipe", children: "cooking" },
+    { label: "Nature", query: "nature documentary, wildlife, planet earth", children: "nature" }
+  ],
+  popCulture: [
+    { label: "← Back", parent: true },
+    { label: "MTV Cribs", query: "mtv cribs, celebrity homes, MTV" },
+    { label: "Behind the Music", query: "behind the music, VH1, music documentary" },
+    { label: "Pop Up Video", query: "pop up video, VH1, music trivia" },
+    { label: "TRL", query: "total request live, MTV TRL, carson daly" },
+    { label: "Red Carpet", query: "red carpet interviews, celebrity interviews, awards show" },
+    { label: "Reality TV", query: "reality show, MTV, VH1 reality" }
+  ],
+  lateNight: [
+    { label: "← Back", parent: true },
+    { label: "Conan", query: "conan o'brien, late night with conan" },
+    { label: "Letterman", query: "david letterman, late show" },
+    { label: "Craig Ferguson", query: "craig ferguson, late late show" },
+    { label: "Jimmy Fallon", query: "jimmy fallon, tonight show, late night" },
+    { label: "Kimmel", query: "jimmy kimmel live, jimmy kimmel" },
+    { label: "Colbert", query: "stephen colbert, late show, colbert report" },
+    { label: "Monologues", query: "late night monologue, opening monologue" }
+  ],
+  publicAccess: [
+    { label: "← Back", parent: true },
+    { label: "Local News", query: "local news, community access, regional tv" },
+    { label: "Call-in Shows", query: "public access call in, cable access phone" },
+    { label: "Community TV", query: "community television, neighborhood tv" },
+    { label: "Local Events", query: "local event coverage, community events" },
+    { label: "DIY Shows", query: "public access diy, cable access how to" },
+    { label: "Weird Access", query: "weird public access, strange cable access" }
+  ],
+  artHouse: [
+    { label: "← Back", parent: true },
+    { label: "Avant Garde", query: "avant garde film, experimental video art" },
+    { label: "Video Art", query: "video art, media art, digital art" },
+    { label: "Art Films", query: "art film, arthouse cinema, independent film" },
+    { label: "Experimental", query: "experimental documentary, unconventional film" },
+    { label: "Visual Essays", query: "video essay, visual essay, film analysis" },
+    { label: "Performance Art", query: "performance art documentation, live art" }
+  ],
+  commercials: [
+    { label: "← Back", parent: true },
+    { label: "90s Ads", query: "90s commercials, 1990s ads, retro commercials" },
+    { label: "Infomercials", query: "infomercial, as seen on tv, shopping channel" },
+    { label: "Toy Commercials", query: "toy commercial, vintage toy ads, 80s toys" },
+    { label: "Fast Food", query: "fast food commercial, restaurant ads, food commercials" },
+    { label: "Car Ads", query: "car commercial, auto ads, vehicle commercials" },
+    { label: "Super Bowl", query: "super bowl commercial, super bowl ads" },
+    { label: "Old Ads", query: "vintage commercials, old advertisements, retro ads" }
+  ],
+  music: [
+    { label: "← Back", parent: true },
+    { label: "Live Concerts", query: "live concert, concert footage, live performance" },
+    { label: "Music Videos", query: "music video, official video, MTV" },
+    { label: "Unplugged", query: "mtv unplugged, acoustic performance, unplugged sessions" },
+    { label: "Studio Sessions", query: "studio session, live in studio, recording session" },
+    { label: "Festival Sets", query: "festival performance, music festival, live set" },
+    { label: "Tiny Desk", query: "npr tiny desk, tiny desk concert" },
+    { label: "Music Docs", query: "music documentary, band documentary, musician" }
+  ],
+  cooking: [
+    { label: "← Back", parent: true },
+    { label: "Classic Chefs", query: "julia child, jacques pepin, classic cooking show" },
+    { label: "Food Network", query: "food network, cooking channel, chef" },
+    { label: "Recipe Videos", query: "recipe, how to cook, cooking tutorial" },
+    { label: "Baking Shows", query: "baking show, great british bake off, pastry" },
+    { label: "Competition", query: "cooking competition, iron chef, chopped" },
+    { label: "Travel Food", query: "food travel, anthony bourdain, street food" }
+  ],
+  nature: [
+    { label: "← Back", parent: true },
+    { label: "Planet Earth", query: "planet earth, david attenborough, bbc nature" },
+    { label: "Wildlife", query: "wildlife documentary, animal documentary, wild animals" },
+    { label: "Ocean Life", query: "ocean documentary, marine life, underwater" },
+    { label: "Space", query: "space documentary, cosmos, astronomy" },
+    { label: "National Parks", query: "national parks, wilderness, scenic" },
+    { label: "Animal Behavior", query: "animal behavior, nature footage, wildlife" }
+  ]
+};
+
+let currentTagLevel = "root";
 
 function inputsChanged() {
   return (
@@ -258,6 +431,127 @@ function inputsChanged() {
   });
 });
 
+// RENDER TAGS
+function renderTags(level = "root") {
+  currentTagLevel = level;
+  const container = document.getElementById("tags-container");
+  const label = document.getElementById("quick-retune-label");
+
+  // Update label
+  if (level === "root") {
+    label.textContent = "Quick retune";
+  } else {
+    const parentTag = tagTree.root.find(t => t.children === level);
+    label.textContent = parentTag ? `${parentTag.label} →` : "Quick retune";
+  }
+
+  // Clear and rebuild
+  container.innerHTML = "";
+  const tags = tagTree[level] || tagTree.root;
+
+  tags.forEach(tagData => {
+    const btn = document.createElement("button");
+    btn.className = "tag";
+    btn.textContent = tagData.label;
+
+    btn.onclick = async () => {
+      if (!poweredOn) return;
+
+      // Back button
+      if (tagData.parent) {
+        renderTags("root");
+        return;
+      }
+
+      // Has children - navigate deeper
+      if (tagData.children) {
+        renderTags(tagData.children);
+        return;
+      }
+
+      // Leaf node - retune
+      if (tagData.query) {
+        document.getElementById("queries").value = tagData.query;
+        lastRetuneAt = 0;
+        lastQueries = "";
+        await retune();
+      }
+    };
+
+    container.appendChild(btn);
+  });
+}
+
+// Initialize tags
+renderTags();
+
+// DIM UI TOGGLE
+dimBtn.onclick = () => {
+  isDimmed = !isDimmed;
+
+  if (isDimmed) {
+    document.body.classList.add('dimmed');
+    dimBtn.textContent = 'Show UI';
+  } else {
+    document.body.classList.remove('dimmed');
+    dimBtn.textContent = 'Dim UI';
+  }
+};
+
+// DOMINANT COLOR ANALYSIS
+function analyzeThumbnail(videoId) {
+  const img = new Image();
+  img.crossOrigin = "anonymous";
+  img.src = `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`;
+  
+  img.onload = () => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    
+    ctx.drawImage(img, 0, 0);
+    
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+    
+    let r = 0, g = 0, b = 0, count = 0;
+    for (let i = 0; i < data.length; i += 40) {
+      r += data[i];
+      g += data[i + 1];
+      b += data[i + 2];
+      count++;
+    }
+    
+    r = Math.floor(r / count);
+    g = Math.floor(g / count);
+    b = Math.floor(b / count);
+    
+    const darkR = Math.floor(r * 0.2);
+    const darkG = Math.floor(g * 0.2);
+    const darkB = Math.floor(b * 0.2);
+    
+    document.body.style.background = `rgb(${darkR}, ${darkG}, ${darkB})`;
+  };
+  
+  img.onerror = () => {
+    document.body.style.background = '#000';
+  };
+}
+
+function analyzeVideoColor() {
+  if (!player || !player.getPlayerState) return;
+  
+  const now = Date.now();
+  if (now - lastAnalyzedTime < 2000) return;
+  lastAnalyzedTime = now;
+  
+  const videoId = currentVideo;
+  if (!videoId) return;
+  
+  analyzeThumbnail(videoId);
+}
+
 function playVideo(id, start = 0) {
   if (player) {
     previousVideo = currentVideo;
@@ -267,6 +561,8 @@ function playVideo(id, start = 0) {
 
   currentVideo = id;
   document.getElementById("jump").disabled = !previousVideo;
+
+  analyzeThumbnail(id);
 
   player = new YT.Player("player", {
     videoId: id,
@@ -278,7 +574,16 @@ function playVideo(id, start = 0) {
         document.getElementById("title").style.opacity = 1;
         status("Now Playing");
       },
-      onStateChange: e => e.data === 0 && drift()
+      onStateChange: e => {
+        if (e.data === 1) {
+          clearInterval(colorTimer);
+          colorTimer = setInterval(analyzeVideoColor, 2000);
+        } else if (e.data === 2 || e.data === 0) {
+          clearInterval(colorTimer);
+        }
+        
+        if (e.data === 0) drift();
+      }
     }
   });
 }
@@ -334,7 +639,9 @@ document.getElementById("power").onclick = async () => {
     primeLogo.classList.add("on");
 
     document.getElementById("next").disabled = false;
+    dimBtn.disabled = false;
     retuneBtn.disabled = !inputsChanged();
+    quickRetune.classList.add("visible");
 
     crt.className = "crt warming";
     status("Powering on…");
@@ -357,13 +664,27 @@ document.getElementById("power").onclick = async () => {
     document.getElementById("next").disabled = true;
     document.getElementById("jump").disabled = true;
     retuneBtn.disabled = true;
+    dimBtn.disabled = true;
+    quickRetune.classList.remove("visible");
+    renderTags("root"); // Reset to root tags
 
+    // Restore UI if dimmed
+    if (isDimmed) {
+      isDimmed = false;
+      document.body.classList.remove('dimmed');
+      dimBtn.textContent = 'Dim UI';
+    }
+
+    clearInterval(colorTimer);
+    
     status("Powering off…");
     crt.className = "crt cooling";
     await sleep(300);
 
     crt.className = "crt off";
     document.getElementById("title").style.opacity = 0;
+    
+    document.body.style.background = '#000';
 
     if (player) {
       player.destroy();
