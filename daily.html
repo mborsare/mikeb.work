@@ -332,6 +332,19 @@
     }
 
     /* ===============================================
+     MARKET WEATHER
+     =============================================== */
+    #prime-weather {
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+
+    #w-regime {
+      font-weight: bold;
+      color: var(--seal);
+    }
+
+    /* ===============================================
      RESPONSIVE - Mobile
      =============================================== */
     @media (max-width: 900px) {
@@ -392,7 +405,7 @@
       /* Hide screen-only elements */
       .upload-box,
       nav,
-      .video-section {
+      #market-weather {
         display: none !important;
       }
 
@@ -611,7 +624,7 @@
             <h2>Cursive</h2>
             <p class="cursive-teacher">Restraint pays</p>
             <p class="cursive-teacher">Emotions are state</p>
-            <p class="cursive-teacher">Same canvaas</p>
+            <p class="cursive-teacher">Same canvas</p>
             <p class="cursive-teacher">Always cycling</p>
           </div>
         </section>
@@ -725,19 +738,20 @@
                                                                                                               
       </pre>
 
-      <!-- MARKET WEATHER SNAPSHOT -->
-<section id="market-weather" style="margin: 1.5rem 0 2rem;">
-  <h2>Market weather</h2>
+    <!-- MARKET WEATHER SNAPSHOT -->
+    <section id="market-weather" style="margin: 1.5rem 0 2rem;">
+      <h2>Market weather</h2>
 
-  <div id="prime-weather" style="display:grid; gap: .5rem;">
-    <div id="w-regime"></div>
-    <div id="w-range"></div>
-    <div id="w-rp"></div>
-    <div id="w-orders"></div>
-    <div id="w-time"></div>
-  </div>
-  
-</section>
+      <div id="prime-weather" style="display:grid; gap: .5rem;">
+        <div id="w-regime"></div>
+        <div id="w-range"></div>
+        <div id="w-liquidity"></div>
+        <div id="w-rp"></div>
+        <div id="w-orders"></div>
+        <div id="w-time"></div>
+      </div>
+
+    </section>
 
   </div>
   <script>
@@ -820,6 +834,8 @@
 
       window.currentExpand = currentExpand;
     })();
+
+    // Image upload/restore
     (() => {
       const today = new Date().toISOString().slice(0, 10);
 
@@ -855,7 +871,9 @@
         });
       });
     })();
-    (async () => {
+
+    // Prime Weather (CORRECTED - LIST ORDERS)
+(async () => {
   try {
     const res = await fetch(
       'https://weather.mborsare.workers.dev/prime/weather/ES',
@@ -871,22 +889,40 @@
     document.getElementById('w-range').textContent =
       `↕️ ${data.regime.rangePts} pts`;
 
+    document.getElementById('w-liquidity').textContent =
+      `🌊 ${data.liquidity.state}`;
+
     document.getElementById('w-rp').textContent =
       `🎲 ${Math.round(data.edge.rPlusProbability * 100)}%`;
 
-    document.getElementById('w-orders').textContent =
-      data.edge.standDown
-        ? 'No edge. Stand down'
-        : `Base 5/4 · Max ladder ${data.orders.allowedMax}`;
+    // LIST AVAILABLE ORDERS
+    if (data.edge.standDown) {
+      document.getElementById('w-orders').textContent = '⚠️ No edge. Stand down';
+    } else {
+      const allowedCount = data.orders.allowedMax;
+      const availableOrders = data.ladder.slice(1, allowedCount + 1); // Skip 5/4, start at index 1
+      const suggestedTP = data.orders.suggested.tp;
+      
+      const orderList = availableOrders
+        .map(o => {
+          const isSuggested = o.tp === suggestedTP;
+          const prefix = isSuggested ? '→ ' : '';
+          return `${prefix}tp ${o.tp} / sl ${o.sl}`;
+        })
+        .join('  ');
+      
+      document.getElementById('w-orders').textContent = orderList;
+    }
 
     document.getElementById('w-time').textContent =
       'As of ' + new Date(data.asOf).toLocaleTimeString();
 
   } catch (e) {
-    console.warn('Prime weather unavailable');
+    console.warn('Prime weather unavailable', e);
+    document.getElementById('w-regime').textContent = 'Weather unavailable';
   }
 })();
-    
+
   </script>
 </body>
 
