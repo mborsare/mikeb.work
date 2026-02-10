@@ -738,7 +738,7 @@
                                                                                                               
       </pre>
 
-    <!-- MARKET WEATHER SNAPSHOT -->
+    <!-- MARKET WEATHER SNAPSHOT (Prime Weather worker: /prime/weather/ES) -->
     <section id="market-weather" style="margin: 1.5rem 0 2rem;">
       <h2>Market weather</h2>
 
@@ -747,10 +747,9 @@
         <div id="w-range"></div>
         <div id="w-liquidity"></div>
         <div id="w-rp"></div>
-        <div id="w-orders"></div>
+        <div id="w-shape"></div>
         <div id="w-time"></div>
       </div>
-
     </section>
 
   </div>
@@ -907,56 +906,50 @@
 })();
 
 
-    // Prime Weather (CORRECTED - LIST ORDERS)
-(async () => {
-  try {
-    const res = await fetch(
-      'https://weather.mborsare.workers.dev/prime/weather/ES',
-      { cache: 'no-store' }
-    );
-    const data = await res.json();
+    // Prime Weather — matches worker computeESWeather() response
+    (async () => {
+      // Use deployed worker when page is on localhost (static server has no /prime/weather)
+      const weatherBase = ''; // override to force a host, e.g. 'https://weather.mborsare.workers.dev'
+      const isLocal = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)/i.test(location.origin);
+      const baseUrl = weatherBase || (isLocal ? 'https://weather.mborsare.workers.dev' : '');
+      const base = (baseUrl + '/').replace(/\/+/g, '/');
 
-    if (!data || !data.regime) return;
+      try {
+        const res = await fetch(base + 'prime/weather/ES', { cache: 'no-store' });
+        if (!res.ok) throw new Error(res.status + ' ' + res.statusText);
+        const ct = res.headers.get('Content-Type') || '';
+        if (!ct.includes('application/json')) throw new Error('Not JSON');
+        const data = await res.json();
 
-    document.getElementById('w-regime').textContent =
-      data.regime.type.toUpperCase();
+        if (!data || data.regime == null) {
+          document.getElementById('w-regime').textContent = 'Weather unavailable';
+          return;
+        }
 
-    document.getElementById('w-range').textContent =
-      `↕️ ${data.regime.rangePts} pts`;
+        document.getElementById('w-regime').textContent =
+          'Regime: ' + data.regime.toUpperCase();
 
-    document.getElementById('w-liquidity').textContent =
-      `🌊 ${data.liquidity.state}`;
+        document.getElementById('w-range').textContent =
+          '↕️ Range: ' + data.rangePts + ' pts';
 
-    document.getElementById('w-rp').textContent =
-      `🎲 ${Math.round(data.edge.rPlusProbability * 100)}%`;
+        document.getElementById('w-liquidity').textContent =
+          '🌊 Liquidity: ' + data.liquidity;
 
-    // LIST AVAILABLE ORDERS
-    if (data.edge.standDown) {
-      document.getElementById('w-orders').textContent = '⚠️ No edge. Stand down';
-    } else {
-      const allowedCount = data.orders.allowedMax;
-      const availableOrders = data.ladder.slice(1, allowedCount + 1); // Skip 5/4, start at index 1
-      const suggestedTP = data.orders.suggested.tp;
-      
-      const orderList = availableOrders
-        .map(o => {
-          const isSuggested = o.tp === suggestedTP;
-          const prefix = isSuggested ? '→ ' : '';
-          return `${prefix}tp ${o.tp} / sl ${o.sl}`;
-        })
-        .join('  ');
-      
-      document.getElementById('w-orders').textContent = orderList;
-    }
+        document.getElementById('w-rp').textContent =
+          '🎲 r+: ' + (data.rPlus != null ? (data.rPlus * 100).toFixed(0) + '%' : '—');
 
-    document.getElementById('w-time').textContent =
-      'As of ' + new Date(data.asOf).toLocaleTimeString();
+        const so = data.suggestedOrder;
+        document.getElementById('w-shape').textContent =
+          so ? 'Shape: ' + so.tp + '/' + so.sl : '';
 
-  } catch (e) {
-    console.warn('Prime weather unavailable', e);
-    document.getElementById('w-regime').textContent = 'Weather unavailable';
-  }
-})();
+        document.getElementById('w-time').textContent =
+          'As of ' + new Date(data.asOf).toLocaleTimeString();
+
+      } catch (e) {
+        console.warn('Prime weather unavailable', e);
+        document.getElementById('w-regime').textContent = 'Weather unavailable';
+      }
+    })();
 
   </script>
 </body>
