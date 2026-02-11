@@ -906,50 +906,50 @@
 })();
 
 
-    // Prime Weather — matches worker computeESWeather() response
-    (async () => {
-      // Use deployed worker when page is on localhost (static server has no /prime/weather)
-      const weatherBase = 'https://weather.mborsare.workers.dev'; // override to force a host, e.g. 'https://weather.mborsare.workers.dev'
-      const isLocal = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)/i.test(location.origin);
-      const baseUrl = weatherBase || (isLocal ? 'https://weather.mborsare.workers.dev' : '');
-      const base = (baseUrl + '/').replace(/\/+/g, '/');
+    // Prime Weather — matches deployed worker payload
+// Prime Weather — matches deployed worker payload
+(async () => {
+  try {
+    const res = await fetch(
+      'https://weather.mborsare.workers.dev/prime/weather/ES',
+      { cache: 'no-store' }
+    );
 
-      try {
-        const res = await fetch(base + 'prime/weather/ES', { cache: 'no-store' });
-        if (!res.ok) throw new Error(res.status + ' ' + res.statusText);
-        const ct = res.headers.get('Content-Type') || '';
-        if (!ct.includes('application/json')) throw new Error('Not JSON');
-        const data = await res.json();
+    if (!res.ok) throw new Error(res.status);
 
-        if (!data || data.regime == null) {
-          document.getElementById('w-regime').textContent = 'Weather unavailable';
-          return;
-        }
+    const data = await res.json();
+    if (!data?.regime) throw new Error('Invalid payload');
 
-        document.getElementById('w-regime').textContent =
-          'Regime: ' + data.regime.toUpperCase();
+    // Worker returns: regime, liquidity, rPlus, rangePts, suggestedOrder
+    document.getElementById('w-regime').textContent =
+      'Regime: ' + data.regime.toUpperCase();
 
-        document.getElementById('w-range').textContent =
-          '↕️ Range: ' + data.rangePts + ' pts';
+    document.getElementById('w-range').textContent =
+      '↕️ Range: ' + data.rangePts + ' pts';
 
-        document.getElementById('w-liquidity').textContent =
-          '🌊 Liquidity: ' + data.liquidity;
+    document.getElementById('w-liquidity').textContent =
+      '🌊 Liquidity: ' + data.liquidity;
 
-        document.getElementById('w-rp').textContent =
-          '🎲 r+: ' + (data.rPlus != null ? (data.rPlus * 100).toFixed(0) + '%' : '—');
+    document.getElementById('w-rp').textContent =
+      '🎲 r+: ' + Math.round(data.rPlus * 100) + '%';
 
-        const so = data.suggestedOrder;
-        document.getElementById('w-shape').textContent =
-          so ? 'Shape: ' + so.tp + '/' + so.sl : '';
+    const so = data.suggestedOrder;
+    document.getElementById('w-shape').textContent =
+      so ? 'Shape: tp ' + so.tp + ' / sl ' + so.sl : '';
 
-        document.getElementById('w-time').textContent =
-          'As of ' + new Date(data.asOf).toLocaleTimeString();
+    document.getElementById('w-time').textContent =
+      'As of ' + new Date(data.asOf).toLocaleTimeString();
 
-      } catch (e) {
-        console.warn('Prime weather unavailable', e);
-        document.getElementById('w-regime').textContent = 'Weather unavailable';
-      }
-    })();
+  } catch (e) {
+    console.warn('Prime weather unavailable', e);
+    document.getElementById('w-regime').textContent = 'Weather unavailable';
+    document.getElementById('w-range').textContent = '';
+    document.getElementById('w-liquidity').textContent = '';
+    document.getElementById('w-rp').textContent = '';
+    document.getElementById('w-shape').textContent = '';
+    document.getElementById('w-time').textContent = '';
+  }
+})();
 
   </script>
 </body>
