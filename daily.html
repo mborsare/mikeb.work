@@ -909,7 +909,7 @@
     // Prime Weather — matches worker computeESWeather() response
     (async () => {
       // Use deployed worker when page is on localhost (static server has no /prime/weather)
-      const weatherBase = ''; // override to force a host, e.g. 'https://weather.mborsare.workers.dev'
+      const weatherBase = 'https://weather.mborsare.workers.dev'; // override to force a host, e.g. 'https://weather.mborsare.workers.dev'
       const isLocal = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)/i.test(location.origin);
       const baseUrl = weatherBase || (isLocal ? 'https://weather.mborsare.workers.dev' : '');
       const base = (baseUrl + '/').replace(/\/+/g, '/');
