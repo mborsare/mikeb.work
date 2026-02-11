@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Lease agreement</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    :root {
+      --bg: #000000;
+      --text: #c0c0c0;
+      --stamp: #888888;
+      --seal: #eaffea;
+
+      /* derived button colors */
+      --btn-fill: color-mix(in hsl,
+          var(--bg),
+          var(--seal) 20%);
+      --btn-text: #ffffff;
+    }
+
+    html {
+      font-size: 16px;
+    }
+    
+    @media (max-width: 768px) {
+      html {
+        font-size: 18px;
+      }
+    }
+
+    @font-face {
+      font-family: 'ComicMono';
+      src: url('/fonts/ComicMono-Regular.woff') format('woff');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow-y: auto;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'ComicMono', monospace;
+      font-size: 1rem;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      min-width: 20rem;
+      max-width: 60rem;
+      width: 100%;
+      padding: clamp(0.75rem, 2vw, 1.25rem);
+      margin: auto 0;
+      text-align: center;
+      white-space: pre-line;
+      line-height: 1.5;
+    }
+
+    h1 {
+      color: var(--bg);
+    }
+
+    .list-item {
+      padding: 0.5rem 1rem;
+    }
+
+    .list-item::after {
+      color: var(--stamp);
+      content: "MJB";
+      white-space: pre;
+      font-size: 1rem;
+      margin-left: 1rem;
+      vertical-align: middle;
+      display: inline-block;
+      position: relative;
+      letter-spacing: 0.25rem;
+      line-height: 1;
+      transform:
+        translate(var(--mjb-x, -2px), var(--mjb-y, -2px)) rotate(var(--mjb-tilt, -7deg));
+    }
+
+    @media (max-width: 60rem) {
+      .list-item {
+        font-size: 1.5rem;
+        text-align: center;
+      }
+    }
+
+    .ascii {
+      white-space: pre;
+      line-height: 1.2;
+      color: var(--seal);
+      font-size: 0.75rem;
+    }
+    
+    @media (max-width: 768px) {
+      .ascii {
+        font-size: 0.65rem;
+      }
+    }
+
+    #clock {
+      color: var(--seal);
+      opacity: 0.45;
+      filter: blur(0.25px);
+      will-change: opacity;
+      display: inline-block;
+    }
+
+    /* ---- MOBILE TAP FIX ---- */
+    #palette-btn {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    button:active {
+      scale: 0.9;
+    }
+
+    #toast {
+      position: fixed;
+      top: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100px);
+      background: var(--seal);
+      color: var(--bg);
+      padding: 1rem 2rem;
+      border-radius: 0.5rem;
+      font-size: 1.5rem;
+      font-weight: bold;
+      opacity: 0;
+      transition: all 0.3s ease;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    #toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+  
+    /* ---- lease builder ---- */
+    input{
+      width: 100%;
+      box-sizing: border-box;
+      padding: 0.75rem;
+      border-radius: 0.6rem;
+      border: 1px solid color-mix(in hsl, var(--text), transparent 70%);
+      background: color-mix(in hsl, var(--bg), var(--seal) 6%);
+      color: var(--text);
+      font-family: 'ComicMono', monospace;
+      font-size: 1rem;
+      line-height: 1.5;
+      outline: none;
+    }
+    
+    @media (max-width: 768px) {
+      input {
+        padding: 0.85rem;
+        font-size: 16px; /* Prevents zoom on iOS */
+      }
+    }
+    input:focus{
+      border-color: color-mix(in hsl, var(--seal), transparent 35%);
+      box-shadow: 0 0 0 2px color-mix(in hsl, var(--seal), transparent 80%);
+    }
+    button{
+      padding: 0.75rem 1rem;
+      border-radius: 0.6rem;
+      border: 1px solid color-mix(in hsl, var(--seal), transparent 55%);
+      background: var(--btn-fill);
+      color: var(--btn-text);
+      font-family: 'ComicMono', monospace;
+      font-size: 1rem;
+      line-height: 1.5;
+      min-height: 44px; /* Touch target size */
+    }
+    
+    @media (max-width: 768px) {
+      button {
+        padding: 0.85rem 1.25rem;
+        font-size: 1rem;
+      }
+    }
+
+    /* ---- details container ---- */
+    main > details {
+      width: 100%;
+    }
+    
+    /* ---- details styling ---- */
+    details {
+      margin: 0;
+      border: 3px double color-mix(in hsl, var(--text), transparent 60%);
+      border-radius: 0;
+      padding: 1rem;
+      border-bottom: none;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    details:first-child {
+      border-top-left-radius: 0.5rem;
+      border-top-right-radius: 0.5rem;
+    }
+    details:last-child {
+      border-bottom: 3px double color-mix(in hsl, var(--text), transparent 60%);
+      border-bottom-left-radius: 0.5rem;
+      border-bottom-right-radius: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+    details:not(:first-child) {
+      border-top: none;
+    }
+    details summary {
+      cursor: pointer;
+      margin-bottom: 0.5rem;
+      font-size: 1rem;
+      font-weight: bold;
+      padding: 0.5rem 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      text-align: center;
+      list-style: none;
+    }
+    details summary::-webkit-details-marker {
+      display: none;
+    }
+    details summary::marker {
+      display: none;
+    }
+    details summary:hover {
+      opacity: 0.8;
+    }
+    details:not([open]) summary {
+      opacity: 0.85;
+      border-bottom: 1px dashed color-mix(in hsl, var(--text), transparent 80%);
+      padding-bottom: 0.5rem;
+    }
+    details[open] summary {
+      margin-bottom: 0.75rem;
+    }
+    
+    /* Visual indicator that there's more content */
+    details:not([open]) summary::before {
+      content: "+ ";
+      color: #ffff00;
+      opacity: 0.8;
+      font-size: 1.2em;
+      display: inline-block;
+      animation: pulse 2s ease-in-out infinite;
+      transition: transform 0.2s ease;
+    }
+    details[open] summary::before {
+      content: "− ";
+      color: #ffff00;
+      opacity: 0.8;
+      font-size: 1.2em;
+      display: inline-block;
+    }
+    details summary:hover::after {
+      opacity: 0.9;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 0.6; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.1); }
+    }
+    
+    /* ---- costs section: scannable list ---- */
+    details .costs-grid {
+      display: block;
+      margin-top: 1rem;
+    }
+    details .costs-grid .cost-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 1rem;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid color-mix(in hsl, var(--text), transparent 80%);
+      flex-wrap: wrap;
+    }
+    details .costs-grid .cost-row:last-child {
+      border-bottom: none;
+    }
+    details .costs-grid .cost-label {
+      font-size: 0.95rem;
+      color: color-mix(in hsl, var(--text), transparent 20%);
+      flex-shrink: 0;
+    }
+    details .costs-grid .cost-value {
+      font-size: 1rem;
+      font-weight: 600;
+      text-align: right;
+    }
+    details .costs-grid .cost-value .amount {
+      font-weight: 700;
+      color: var(--seal);
+    }
+    details .costs-grid .cost-sub {
+      font-size: 0.85rem;
+      color: color-mix(in hsl, var(--text), transparent 25%);
+      margin-top: 0.25rem;
+      margin-bottom: 0.5rem;
+      padding-left: 0;
+    }
+    details .costs-grid .section-head {
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 1.25rem;
+      margin-bottom: 0.5rem;
+      color: var(--seal);
+      opacity: 0.9;
+    }
+    details .costs-grid .section-head:first-child {
+      margin-top: 0;
+    }
+    
+    /* ---- main content ---- */
+    main {
+      font-size: 1rem;
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
+    
+    #leaseText {
+      font-size: 0.95rem;
+      line-height: 1.7;
+      white-space: pre-wrap;
+    }
+    
+    @media (max-width: 768px) {
+      details .costs-grid .cost-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+      }
+      details .costs-grid .cost-value {
+        text-align: left;
+      }
+      #leaseText {
+        font-size: 0.9rem;
+      }
+    }
+    
+
+  </style>
+</head>
+
+<body>
+  <div id="toast"></div>
+  <div class="container">
+    <h1 style="font-size:0.75rem; opacity:0.5;">Mike Borsare</h1>
+    <time id="clock"></time>
+
+
+    <div style="padding:1rem;">
+      <pre class="ascii" style="font-size:0.4rem;">
+        ░██████       ░██████  ░██                                             ░██               ░██                                                     
+        ░██   ░██     ░██   ░██ ░██                                             ░██               ░██                                                     
+        ░██          ░██        ░██  ░███████  ░████████  ░██    ░██  ░██████   ░██  ░███████     ░██          ░███████   ░██████    ░███████   ░███████  
+        ░███████     ░██  █████ ░██ ░██    ░██ ░██    ░██ ░██    ░██       ░██  ░██ ░██    ░██    ░██         ░██    ░██       ░██  ░██        ░██    ░██ 
+        ░██   ░██    ░██     ██ ░██ ░█████████ ░██    ░██  ░██  ░██   ░███████  ░██ ░█████████    ░██         ░█████████  ░███████   ░███████  ░█████████ 
+        ░██   ░██     ░██  ░███ ░██ ░██        ░██    ░██   ░██░██   ░██   ░██  ░██ ░██           ░██         ░██        ░██   ░██         ░██ ░██        
+         ░██████       ░█████░█ ░██  ░███████  ░██    ░██    ░███     ░█████░██ ░██  ░███████     ░██████████  ░███████   ░█████░██  ░███████   ░███████  
+                                                                                                                                                          
+                                                                                                                                                          
+                                                                                                                                                          </pre>
+      <address style="font-style: normal; line-height: 1.5">
+  6 Glenvale Terrace #2
+  Jamaica Plain, MA 02130
+</address>
+
+    </div>
+
+    <div style="display:flex; justify-content:center; align-items:center;">
+    </div>
+
+   
+<main style="text-align:left; max-width: 52rem; margin: 0 auto; padding: 0;">
+  <details open>
+    <summary style="font-size:1rem; font-weight:bold;">Live in 6 Glenvale #2 (2026–2027)</summary>
+    <div id="leaseCard" style="border:1px solid color-mix(in hsl, var(--text), transparent 65%); border-radius:0.75rem; padding:1rem; margin-bottom:1.25rem;">
+      <div id="leaseText" style="white-space:pre-wrap;"></div>
+    </div>
+  </details>
+  <details>
+    <summary>Costs & What Happens If You Leave Early</summary>
+    <div class="costs-grid">
+      <div class="cost-row">
+        <span class="cost-label">Lease term</span>
+        <span class="cost-value">May 1, 2026 – Aug 31, 2027</span>
+      </div>
+      <div class="cost-row">
+        <span class="cost-label">Monthly rent</span>
+        <span class="cost-value"><span class="amount">$3,000</span> due on the 1st</span>
+      </div>
+      <div class="cost-row">
+        <span class="cost-label">Total upfront at signing</span>
+        <span class="cost-value"><span class="amount">$7,000</span><div class="cost-sub">
+          First month $3,000 · Last month $3,000 · Security deposit $1,000
+        </div></span>
+      </div>
+     
+
+      <div class="section-head">If you leave early</div>
+      <div class="cost-row">
+        <span class="cost-label">Before Jan 1, 2027</span>
+        <span class="cost-value"><span class="amount">$9,000</span> (3 months) + 60 days notice</span>
+      </div>
+      <div class="cost-row">
+        <span class="cost-label">On or after Jan 1, 2027</span>
+        <span class="cost-value"><span class="amount">$6,000</span> (2 months) + 60 days notice</span>
+      </div>
+
+      <div class="cost-row">
+        <span class="cost-label">Security deposit</span>
+        <span class="cost-value">Returned per MA law, less deductions</span>
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary style="font-size:1rem; font-weight:bold;">Change lease terms</summary>
+    <div style="border:1px solid color-mix(in hsl, var(--text), transparent 65%); border-radius:0.75rem; padding:1rem; margin: 1rem 0;">
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; align-items:end;">
+        <label>
+          <div style="opacity:0.75;">Tenant 1</div>
+          <input id="tenant1" value="Alexis Rickmers" />
+        </label>
+        <label>
+          <div style="opacity:0.75;">Tenant 2</div>
+          <input id="tenant2" value="Connor McElroy" />
+        </label>
+
+        <label>
+          <div style="opacity:0.75;">Monthly Rent ($)</div>
+          <input id="rent" inputmode="decimal" value="3000" />
+        </label>
+        <label>
+          <div style="opacity:0.75;">Security Deposit ($)</div>
+          <input id="deposit" inputmode="decimal" value="1000" />
+        </label>
+
+        <label>
+          <div style="opacity:0.75;">Start Date</div>
+          <input id="startDate" value="May 1, 2026" />
+        </label>
+        <label>
+          <div style="opacity:0.75;">End Date</div>
+          <input id="endDate" value="August 31, 2027" />
+        </label>
+
+        <label>
+          <div style="opacity:0.75;">Early Term Fee if notice before Jan 1, 2027 (months)</div>
+          <input id="feeBefore" inputmode="numeric" value="3" />
+        </label>
+        <label>
+          <div style="opacity:0.75;">Early Term Fee if notice on/after Jan 1, 2027 (months)</div>
+          <input id="feeAfter" inputmode="numeric" value="2" />
+        </label>
+      </div>
+
+      <div style="display:flex; gap:0.75rem; flex-wrap:wrap; margin-top: 0.75rem;">
+        <button id="copyBtn" type="button" style="cursor:pointer;">Copy lease text</button>
+        <button id="printBtn" type="button" style="cursor:pointer;">Print</button>
+        <span id="status" style="opacity:0.65; padding-top:0.5rem;"></span>
+      </div>
+    </div>
+  </details>
+
+
+</main>
+
+    <pre class="ascii" style="font-size:0.6rem; color: yellow">
+    ▗▄▄▄▖▄   ▄ 
+      █  █   █ 
+      █   ▀▀▀█ 
+      █  ▄   █ 
+          ▀▀▀  
+               
+    </pre>
+    <p><span style="color: red;">x </span> Mike, Ashley, and Cora</p>
+  </div>
+
+  <script>
+    // ---- Clock + pulse ----
+    (() => {
+      const clock = document.getElementById('clock');
+      let t = 0;
+
+      function updateClock() {
+        const now = new Date();
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        clock.textContent =
+          `${days[now.getDay()]} ${months[now.getMonth()]} ${now.getDate()} ` +
+          `${String(now.getHours()).padStart(2, '0')}:` +
+          `${String(now.getMinutes()).padStart(2, '0')}:` +
+          `${String(now.getSeconds()).padStart(2, '0')}:` +
+          `${String(now.getMilliseconds()).padStart(3, '0')}`;
+      }
+
+      function pulse() {
+        t += 0.02;
+        clock.style.opacity = 0.35 + (Math.sin(t) + 1) * 0.15;
+        requestAnimationFrame(pulse);
+      }
+
+      updateClock();
+      setInterval(updateClock, 50);
+      pulse();
+    })();
+  </script>
+
+  <script>
+    // ---- Lease builder ----
+    (() => {
+      const el = (id) => document.getElementById(id);
+      const toast = document.getElementById('toast');
+
+      const fields = {
+        tenant1: el('tenant1'),
+        tenant2: el('tenant2'),
+        rent: el('rent'),
+        deposit: el('deposit'),
+        startDate: el('startDate'),
+        endDate: el('endDate'),
+        feeBefore: el('feeBefore'),
+        feeAfter: el('feeAfter'),
+      };
+
+      const status = el('status');
+      const leaseText = el('leaseText');
+
+      const TEMPLATE = '\n6 Glenvale – Residential Lease Agreement (2026–2027)\n\nThis Lease is made on April 27, 2026, between:\n\nLandlord:\nMike Borsare & Ashley Dunn\n6 Glenvale Terrace, Unit 3\nJamaica Plain, MA 02130\n\nTenant:\n{TENANT1} & {TENANT2}\n6 Glenvale Terrace, Unit 2\nJamaica Plain, MA 02130\n\nPremises:\n6 Glenvale Terrace, Unit 2, Jamaica Plain, MA 02130\n\n1. Term\nLease term: {START_DATE} through {END_DATE} at 11:59 PM.\n\n2. Rent\nMonthly Rent: ${RENT}/month\nDue: 1st of each month.\nRent is late after 30 days.\n\nFirst and last month’s rent are due at lease signing.\n\n3. Security Deposit\nSecurity Deposit: ${DEPOSIT}\nSecurity deposit handling, notices, receipts, interest (if any), deductions, and return shall comply with Massachusetts law (M.G.L. c. 186, §15B).\nDeposit may not be used as rent.\n\n4. Use and Occupancy\nPremises is for residential use only by the named Tenants.\nNo additional occupants without Landlord’s prior written consent.\nNo business use without written consent.\n\nOvernight guests may not exceed 14 consecutive nights or 28 nights per year without written consent.\n\n5. Utilities\nTenant is responsible for all utilities unless otherwise agreed in writing.\n\n6. Pets\nNo pets without written consent.\nTenant is responsible for all pet-related damage and liability.\n\n7. Condition and Maintenance\nTenant accepts the Premises in good condition at move-in, subject to any statement of condition required by Massachusetts law.\nTenant will keep the Premises clean and sanitary and promptly notify Landlord of problems or needed repairs.\nTenant is responsible for damage caused by Tenant, guests, or negligence, excluding ordinary wear and tear.\n\n8. Alterations\nNo painting, lock changes, installations, or alterations without written consent.\nUnauthorized alterations may be removed and restored at Tenant’s expense.\n\n9. Keys and Locks\nTwo keys provided at move-in.\nReplacement/lockout service: $20 per occurrence.\nNo lock changes without written consent; Tenant must provide copies of any keys.\n\n10. Assignment and Subletting\nNo assignment or subletting without prior written consent.\n\n11. Entry\nLandlord may enter with 24-hour notice for inspections, repairs, or showing.\n48-hour notice for a pre-move-out inspection.\nNo notice required for emergencies or if Tenant consents.\n\n12. Damage or Casualty\nIf the Premises becomes uninhabitable due to casualty not caused by Tenant, rent will be adjusted as required by law and either party may terminate consistent with applicable law.\n\n13. Early Termination by Tenant\nTenant may terminate early by:\n(a) providing 60 days’ written notice, and\n(b) paying an early termination fee.\n\nIf notice is given before January 1, 2027, the fee is {FEE_BEFORE} months’ rent.\nIf notice is given on or after January 1, 2027, the fee is {FEE_AFTER} months’ rent.\n\nTenant remains responsible for rent during the 60-day notice period.\nThe early termination fee is agreed liquidated damages and not a penalty.\n\n14. Default and Eviction\nFailure to pay rent or materially comply with this Lease may result in termination after proper legal notice.\nLandlord may recover possession only through court process as required by Massachusetts law.\n\n15. Notices\nNotices must be in writing and delivered to the addresses above unless updated in writing.\n\n16. Governing Law\nMassachusetts law governs this Lease.\n\n17. Entire Agreement\nThis Lease is the entire agreement and may be changed only in a written amendment signed by all parties.\n\nSignatures\n\nLandlord:\n_________________________  Mike Borsare\n_________________________  Ashley Dunn\n\nTenant:\n_________________________  {TENANT1}\n_________________________  {TENANT2}\n';
+
+      function moneyish(v) {
+        const n = String(v).replace(/[^0-9.]/g,'');
+        return n || '0';
+      }
+
+      function monthsish(v) {
+        const n = String(v).replace(/[^0-9]/g,'');
+        return n || '0';
+      }
+
+      function render() {
+        const t1 = fields.tenant1.value.trim() || 'Tenant One';
+        const t2 = fields.tenant2.value.trim() || 'Tenant Two';
+        const rent = moneyish(fields.rent.value);
+        const dep  = moneyish(fields.deposit.value);
+        const sd   = fields.startDate.value.trim() || 'May 1, 2026';
+        const ed   = fields.endDate.value.trim() || 'August 31, 2027';
+        const fb   = monthsish(fields.feeBefore.value);
+        const fa   = monthsish(fields.feeAfter.value);
+
+        const txt = TEMPLATE
+          .replaceAll('{TENANT1}', t1)
+          .replaceAll('{TENANT2}', t2)
+          .replaceAll('{RENT}', rent)
+          .replaceAll('{DEPOSIT}', dep)
+          .replaceAll('{START_DATE}', sd)
+          .replaceAll('{END_DATE}', ed)
+          .replaceAll('{FEE_BEFORE}', fb)
+          .replaceAll('{FEE_AFTER}', fa);
+
+        leaseText.textContent = txt.trim();
+      }
+
+      Object.values(fields).forEach((inp) => {
+        inp.addEventListener('input', render);
+      });
+
+      function showToast(msg) {
+        if (!toast) return;
+        toast.textContent = msg;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 1400);
+      }
+
+      el('copyBtn').addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(leaseText.textContent);
+          status.textContent = 'Copied.';
+          showToast('Copied');
+        } catch (e) {
+          status.textContent = 'Copy failed (browser blocked clipboard).';
+          showToast('Copy failed');
+        }
+      });
+
+      el('printBtn').addEventListener('click', () => {
+        window.print();
+      });
+
+      render();
+    })();
+  </script>
+
+</body>
+</html>
