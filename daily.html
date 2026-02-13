@@ -605,13 +605,14 @@
             <ul>
               <li>impatient</li>
               <li>compulsive</li>
+              <li>reactive</li>
               <li>hopeful</li>
               <li>fearful</li>
-              <li>angry</li>
               <li>calm</li>
               <li>curious</li>
               <li>exploratory</li>
               <li>trusting</li>
+              <li>goal-chasing</li>
             </ul>
           </div>
         </section>
@@ -646,9 +647,9 @@
         <section class="goals-section">
           <h2>Goals</h2>
           <ul>
-            <li>+40 / −36 daily</li>
-            <li>+120 / −108 weekly</li>
-            <li>Teach the nerves size</li>
+            <li>Teach the nerves 1 trade a day</li>
+            <li>daily ceiling: +400 floor: -450 EXP</li>
+            <li>weekly ceiling: +1500 floor: −1350 EXP</li>
           </ul>
         </section>
       </div>
@@ -871,86 +872,86 @@
       });
     })();
 
-  // Daily Questions
-  (async () => {
-  try {
-    const res = await fetch('/backoffice/reflect-prompts.json');
-    const prompts = await res.json();
+    // Daily Questions
+    (async () => {
+      try {
+        const res = await fetch('/backoffice/reflect-prompts.json');
+        const prompts = await res.json();
 
-    // randomize + take 3
-    const selected = [...prompts]
-      .sort(() => Math.random() - 0.5)
-      .slice(0, 3);
+        // randomize + take 3
+        const selected = [...prompts]
+          .sort(() => Math.random() - 0.5)
+          .slice(0, 3);
 
-    const els = document.querySelectorAll('.daily-question');
+        const els = document.querySelectorAll('.daily-question');
 
-    selected.forEach((q, i) => {
-      if (els[i]) {
-        els[i].textContent = q.prompt;
+        selected.forEach((q, i) => {
+          if (els[i]) {
+            els[i].textContent = q.prompt;
+          }
+        });
+
+      } catch (e) {
+        console.warn('Prompts unavailable', e);
+
+        const fallbacks = [
+          'What did you learn today?',
+          'What could you improve?',
+          'What are you grateful for?'
+        ];
+
+        document.querySelectorAll('.daily-question').forEach((el, i) => {
+          el.textContent = fallbacks[i] || '';
+        });
       }
-    });
-
-  } catch (e) {
-    console.warn('Prompts unavailable', e);
-
-    const fallbacks = [
-      'What did you learn today?',
-      'What could you improve?',
-      'What are you grateful for?'
-    ];
-
-    document.querySelectorAll('.daily-question').forEach((el, i) => {
-      el.textContent = fallbacks[i] || '';
-    });
-  }
-})();
+    })();
 
 
     // Prime Weather — matches deployed worker payload
-// Prime Weather — matches deployed worker payload
-// Prime Weather — matches deployed worker payload
-(async () => {
-  try {
-    const res = await fetch(
-      'https://weather.mborsare.workers.dev/prime/weather/ES',  // ✅ No mikeb.work
-      { cache: 'no-store' }
-    );
+    // Prime Weather — matches deployed worker payload
+    // Prime Weather — matches deployed worker payload
+    (async () => {
+      try {
+        const res = await fetch(
+          'https://weather.mborsare.workers.dev/prime/weather/ES',  // ✅ No mikeb.work
+          { cache: 'no-store' }
+        );
 
-    if (!res.ok) throw new Error(res.status);
+        if (!res.ok) throw new Error(res.status);
 
-    const data = await res.json();
-    if (!data?.regime) throw new Error('Invalid payload');
+        const data = await res.json();
+        if (!data?.regime) throw new Error('Invalid payload');
 
-    // Worker returns: regime, liquidity, rPlus, rangePts, suggestedOrder
-    document.getElementById('w-regime').textContent =
-      'Regime: ' + data.regime.toUpperCase();
+        // Worker returns: regime, liquidity, rPlus, rangePts, suggestedOrder
+        document.getElementById('w-regime').textContent =
+          'Regime: ' + data.regime.toUpperCase();
 
-    document.getElementById('w-range').textContent =
-      '↕️ Range: ' + data.rangePts + ' pts';
+        document.getElementById('w-range').textContent =
+          '↕️ Range: ' + data.rangePts + ' pts';
 
-    document.getElementById('w-liquidity').textContent =
-      '🌊 Liquidity: ' + data.liquidity;
+        document.getElementById('w-liquidity').textContent =
+          '🌊 Liquidity: ' + data.liquidity;
 
-    document.getElementById('w-rp').textContent =
-      '🎲 r+: ' + Math.round(data.rPlus * 100) + '%';
+        document.getElementById('w-rp').textContent =
+          '🎲 r+: ' + Math.round(data.rPlus * 100) + '%';
 
-    const so = data.suggestedOrder;
-    document.getElementById('w-shape').textContent =
-      so ? 'Shape: tp ' + so.tp + ' / sl ' + so.sl : '';
+        const so = data.suggestedOrder;
+        document.getElementById('w-shape').textContent =
+          so ? 'Shape: tp ' + so.tp + ' / sl ' + so.sl : '';
 
-    document.getElementById('w-time').textContent =
-      'As of ' + new Date(data.asOf).toLocaleTimeString();
+        document.getElementById('w-time').textContent =
+          'As of ' + new Date(data.asOf).toLocaleTimeString();
 
-  } catch (e) {
-    console.warn('Prime weather unavailable', e);
-    document.getElementById('w-regime').textContent = 'Weather unavailable';
-    document.getElementById('w-range').textContent = '';
-    document.getElementById('w-liquidity').textContent = '';
-    document.getElementById('w-rp').textContent = '';
-    document.getElementById('w-shape').textContent = '';
-    document.getElementById('w-time').textContent = '';
-  }
-})();
+      } catch (e) {
+        console.warn('Prime weather unavailable', e);
+        document.getElementById('w-regime').textContent = 'Weather unavailable';
+        document.getElementById('w-range').textContent = '';
+        document.getElementById('w-liquidity').textContent = '';
+        document.getElementById('w-rp').textContent = '';
+        document.getElementById('w-shape').textContent = '';
+        document.getElementById('w-time').textContent = '';
+      }
+    })();
 
   </script>
 </body>
