@@ -1,4 +1,5 @@
 <!doctype html>
+
 <html lang="en">
 
 <head>
@@ -17,6 +18,7 @@
       --border-color: rgba(255, 255, 255, 0.2);
       --win: #95e1d3;
       --lose: #f38181;
+      --die-size: 160px;
     }
 
     html {
@@ -38,6 +40,7 @@
       color: var(--text);
       font-family: 'ComicMono', monospace;
       line-height: 1.4;
+      overflow-x: hidden;
     }
 
     .container {
@@ -91,8 +94,8 @@
     }
 
     .die-window {
-      width: 160px;
-      height: 160px;
+      width: var(--die-size);
+      height: var(--die-size);
       background: rgba(255, 255, 255, 0.02);
       overflow: hidden;
       position: relative;
@@ -108,31 +111,18 @@
 
     .die-reel {
       display: grid;
-      grid-template-rows: repeat(20, 160px);
+      grid-template-rows: repeat(20, var(--die-size));
       position: absolute;
       width: 100%;
+      transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
     .die-number {
-      height: 160px;
+      height: var(--die-size);
       display: grid;
       place-items: center;
       font-size: 4rem;
       font-weight: bold;
-    }
-
-    .die-reel.spinning {
-      animation: spin 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    }
-
-    @keyframes spin {
-      0% {
-        transform: translateY(0);
-      }
-
-      100% {
-        transform: translateY(-3200px);
-      }
     }
 
     .status {
@@ -232,39 +222,38 @@
     }
 
     @media (max-width: 900px) {
-      .dice-container {
+      :root {
+        --die-size: 120px;
+      }
+
+      .container {
         gap: 2rem;
+        padding: 2rem 0.5rem;
       }
 
-      .die-window {
-        width: 120px;
-        height: 120px;
-      }
-
-      .die-reel {
-        grid-template-rows: repeat(20, 120px);
+      .dice-container {
+        gap: 1rem;
       }
 
       .die-number {
-        height: 120px;
         font-size: 3rem;
       }
 
-      @keyframes spin {
-        0% {
-          transform: translateY(0);
-        }
-
-        100% {
-          transform: translateY(-2400px);
-        }
+      .die-label {
+        font-size: 0.6rem;
+        letter-spacing: 0.15rem;
       }
 
       .ascii-title {
         font-size: 0.2rem;
       }
+
+      .score-board {
+        gap: 2rem;
+      }
     }
   </style>
+
 </head>
 
 <body>
@@ -273,55 +262,59 @@
       <a href="/">Back</a>
     </nav>
 
-    <pre class="ascii-title" style="font-size: .7rem;">
-      d8b   d8,              
-      88P  `8P               
-     d88                     
- d888888    88b d8888b d8888b
-d8P' ?88    88Pd8P' `Pd8b_,dP
-88b  ,88b  d88 88b    88b    
-`?88P'`88bd88' `?888P'`?888P'
-                                                                 
+```
+<pre class="ascii-title" style="font-size: .7rem;">
+  d8b   d8,              
+  88P  `8P               
+ d88                     
+```
+
+d888888    88b d8888b d8888b
+d8P’ ?88    88Pd8P’ `Pd8b_,dP 88b  ,88b  d88 88b    88b     `?88P’`88bd88' `?888P’`?888P’
+
 </pre>
     <div class="status" id="status">
       Roll the dice to match the target
     </div>
 
-    <div class="dice-container">
-      <div class="die-slot">
-        <div class="die-label">Target</div>
-        <div class="die-window target">
-          <div class="die-reel" id="target-reel"></div>
-        </div>
-      </div>
-
-      <div class="die-slot">
-        <div class="die-label">Your Roll</div>
-        <div class="die-window player">
-          <div class="die-reel" id="player-reel"></div>
-        </div>
-      </div>
+```
+<div class="dice-container">
+  <div class="die-slot">
+    <div class="die-label">Target</div>
+    <div class="die-window target">
+      <div class="die-reel" id="target-reel"></div>
     </div>
+  </div>
 
-
-
-    <div class="controls">
-      <button id="roll-btn">Roll D20</button>
-      <div class="rolls-left">
-        Rolls left: <span id="rolls-count">3</span>
-      </div>
+  <div class="die-slot">
+    <div class="die-label">Your Roll</div>
+    <div class="die-window player">
+      <div class="die-reel" id="player-reel"></div>
     </div>
+  </div>
+</div>
 
-    <div class="score-board">
-      <div class="score-item wins">
-        <h2>Wins</h2>
-        <div class="score-value" id="wins">0</div>
-      </div>
-      <div class="score-item losses">
-        <h2>Losses</h2>
-        <div class="score-value" id="losses">0</div>
-      </div>
-    </div>
+
+
+<div class="controls">
+  <button id="roll-btn">Roll D20</button>
+  <div class="rolls-left">
+    Rolls left: <span id="rolls-count">3</span>
+  </div>
+</div>
+
+<div class="score-board">
+  <div class="score-item wins">
+    <h2>Wins</h2>
+    <div class="score-value" id="wins">0</div>
+  </div>
+  <div class="score-item losses">
+    <h2>Losses</h2>
+    <div class="score-value" id="losses">0</div>
+  </div>
+</div>
+```
+
   </div>
 
   <script>
@@ -338,6 +331,11 @@ d8P' ?88    88Pd8P' `Pd8b_,dP
     let wins = 0;
     let losses = 0;
     let gameActive = false;
+
+    // Get current die size from CSS variable
+    function getDieSize() {
+      return parseInt(getComputedStyle(document.documentElement).getPropertyValue('--die-size'));
+    }
 
     // Create reel with numbers 1-20
     function createReel(container) {
@@ -357,15 +355,14 @@ d8P' ?88    88Pd8P' `Pd8b_,dP
     function spinReel(reel, targetNumber) {
       // Reset position
       reel.style.transform = 'translateY(0)';
-      reel.classList.remove('spinning');
 
       // Force reflow
       void reel.offsetWidth;
 
-      // Calculate final position (show target number)
-      const offset = (targetNumber - 1) * -160;
+      // Calculate final position based on current die size
+      const dieSize = getDieSize();
+      const offset = (targetNumber - 1) * -dieSize;
       reel.style.transform = `translateY(${offset}px)`;
-      reel.classList.add('spinning');
     }
 
     function startNewRound() {
@@ -445,6 +442,7 @@ d8P' ?88    88Pd8P' `Pd8b_,dP
 
     startNewRound();
   </script>
+
 </body>
 
 </html>
