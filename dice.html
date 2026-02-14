@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Dice Duel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    :root {
+      --bg: #000000;
+      --text: #c0c0c0;
+      --stamp: #888888;
+      --seal: #eaffea;
+      --accent-dark: #1a2a22;
+      --accent-mid: #2e4a3a;
+      --border-color: rgba(255, 255, 255, 0.2);
+      --win: #95e1d3;
+      --lose: #f38181;
+    }
+
+    html {
+      font-size: 16px;
+    }
+
+    @font-face {
+      font-family: 'ComicMono';
+      src: url('/fonts/ComicMono-Regular.woff') format('woff');
+      font-display: swap;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'ComicMono', monospace;
+      line-height: 1.4;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 3rem;
+      width: 100%;
+      max-width: 70rem;
+      padding: 4rem 1rem;
+    }
+
+    nav {
+      text-align: center;
+    }
+
+    nav a {
+      color: var(--seal);
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+
+    .ascii-title {
+      white-space: pre;
+      line-height: 1;
+      color: var(--seal);
+      font-size: 0.3rem;
+      text-align: center;
+    }
+
+    .dice-container {
+      display: flex;
+      justify-content: center;
+      gap: 3rem;
+      justify-items: center;
+    }
+
+    .die-slot {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 1rem;
+      align-items: center;
+      justify-items: center;
+    }
+
+    .die-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.3rem;
+      opacity: 0.6;
+      color: var(--text);
+    }
+
+    .die-window {
+      width: 160px;
+      height: 160px;
+      background: rgba(255, 255, 255, 0.02);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .die-window.target {
+      border-color: var(--stamp);
+    }
+
+    .die-window.player {
+      border-color: var(--seal);
+    }
+
+    .die-reel {
+      display: grid;
+      grid-template-rows: repeat(20, 160px);
+      position: absolute;
+      width: 100%;
+    }
+
+    .die-number {
+      height: 160px;
+      display: grid;
+      place-items: center;
+      font-size: 4rem;
+      font-weight: bold;
+    }
+
+    .die-reel.spinning {
+      animation: spin 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    @keyframes spin {
+      0% {
+        transform: translateY(0);
+      }
+
+      100% {
+        transform: translateY(-3200px);
+      }
+    }
+
+    .status {
+      text-align: center;
+      font-size: 1rem;
+      letter-spacing: 0.05em;
+      color: var(--text);
+      min-height: 2rem;
+    }
+
+    .status.win {
+      color: var(--win);
+    }
+
+    .status.lose {
+      color: var(--lose);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+      justify-items: center;
+    }
+
+    button {
+      background: var(--accent-dark);
+      color: var(--seal);
+      border: 2px solid var(--accent-mid);
+      border-radius: 0.75em;
+      padding: 1.25em 2em;
+      font-family: inherit;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      font-size: 1rem;
+      text-transform: uppercase;
+    }
+
+    button:hover {
+      background: var(--accent-mid);
+    }
+
+    button:active {
+      opacity: 0.8;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .rolls-left {
+      font-size: 0.85rem;
+      color: var(--stamp);
+      letter-spacing: 0.1em;
+    }
+
+    .rolls-left span {
+      color: var(--seal);
+      font-weight: bold;
+    }
+
+    .score-board {
+      display: flex;
+      justify-content: center;
+      gap: 3rem;
+    }
+
+    .score-item {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.5rem;
+      justify-items: center;
+    }
+
+    .score-item h2 {
+      margin: 0;
+      text-transform: uppercase;
+      font-size: 0.7rem;
+      letter-spacing: 0.3rem;
+      font-weight: normal;
+      color: var(--stamp);
+    }
+
+    .score-value {
+      font-size: 2rem;
+      font-weight: bold;
+      color: var(--text);
+    }
+
+    .score-item.wins .score-value {
+      color: var(--win);
+    }
+
+    .score-item.losses .score-value {
+      color: var(--lose);
+    }
+
+    @media (max-width: 900px) {
+      .dice-container {
+        gap: 2rem;
+      }
+
+      .die-window {
+        width: 120px;
+        height: 120px;
+      }
+
+      .die-reel {
+        grid-template-rows: repeat(20, 120px);
+      }
+
+      .die-number {
+        height: 120px;
+        font-size: 3rem;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: translateY(0);
+        }
+
+        100% {
+          transform: translateY(-2400px);
+        }
+      }
+
+      .ascii-title {
+        font-size: 0.2rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <nav>
+      <a href="/">Back</a>
+    </nav>
+
+    <pre class="ascii-title" style="font-size: .7rem;">
+      d8b   d8,              
+      88P  `8P               
+     d88                     
+ d888888    88b d8888b d8888b
+d8P' ?88    88Pd8P' `Pd8b_,dP
+88b  ,88b  d88 88b    88b    
+`?88P'`88bd88' `?888P'`?888P'
+                                                                 
+</pre>
+    <div class="status" id="status">
+      Roll the dice to match the target
+    </div>
+
+    <div class="dice-container">
+      <div class="die-slot">
+        <div class="die-label">Target</div>
+        <div class="die-window target">
+          <div class="die-reel" id="target-reel"></div>
+        </div>
+      </div>
+
+      <div class="die-slot">
+        <div class="die-label">Your Roll</div>
+        <div class="die-window player">
+          <div class="die-reel" id="player-reel"></div>
+        </div>
+      </div>
+    </div>
+
+
+
+    <div class="controls">
+      <button id="roll-btn">Roll D20</button>
+      <div class="rolls-left">
+        Rolls left: <span id="rolls-count">3</span>
+      </div>
+    </div>
+
+    <div class="score-board">
+      <div class="score-item wins">
+        <h2>Wins</h2>
+        <div class="score-value" id="wins">0</div>
+      </div>
+      <div class="score-item losses">
+        <h2>Losses</h2>
+        <div class="score-value" id="losses">0</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const targetReel = document.getElementById('target-reel');
+    const playerReel = document.getElementById('player-reel');
+    const rollBtn = document.getElementById('roll-btn');
+    const status = document.getElementById('status');
+    const rollsCount = document.getElementById('rolls-count');
+    const winsEl = document.getElementById('wins');
+    const lossesEl = document.getElementById('losses');
+
+    let target = 0;
+    let rollsLeft = 3;
+    let wins = 0;
+    let losses = 0;
+    let gameActive = false;
+
+    // Create reel with numbers 1-20
+    function createReel(container) {
+      container.innerHTML = '';
+      for (let i = 1; i <= 20; i++) {
+        const num = document.createElement('div');
+        num.className = 'die-number';
+        num.textContent = i;
+        container.appendChild(num);
+      }
+    }
+
+    function rollDie(max = 20) {
+      return Math.floor(Math.random() * max) + 1;
+    }
+
+    function spinReel(reel, targetNumber) {
+      // Reset position
+      reel.style.transform = 'translateY(0)';
+      reel.classList.remove('spinning');
+
+      // Force reflow
+      void reel.offsetWidth;
+
+      // Calculate final position (show target number)
+      const offset = (targetNumber - 1) * -160;
+      reel.style.transform = `translateY(${offset}px)`;
+      reel.classList.add('spinning');
+    }
+
+    function startNewRound() {
+      target = rollDie(20);
+      rollsLeft = 3;
+      gameActive = true;
+
+      rollsCount.textContent = rollsLeft;
+      status.textContent = `Match the ${target}! You have ${rollsLeft} rolls.`;
+      status.className = 'status';
+      rollBtn.disabled = false;
+
+      // Spin target reel
+      spinReel(targetReel, target);
+    }
+
+    function playerRoll() {
+      if (!gameActive || rollsLeft <= 0) return;
+
+      rollBtn.disabled = true;
+
+      const roll = rollDie(20);
+
+      // Spin player reel
+      spinReel(playerReel, roll);
+
+      // Wait for animation to complete
+      setTimeout(() => {
+        rollsLeft--;
+        rollsCount.textContent = rollsLeft;
+
+        if (roll === target) {
+          wins++;
+          winsEl.textContent = wins;
+          status.textContent = `Perfect match! You rolled ${roll}!`;
+          status.className = 'status win';
+          gameActive = false;
+          rollBtn.textContent = 'New Round';
+          rollBtn.disabled = false;
+        }
+        else if (rollsLeft === 0) {
+          losses++;
+          lossesEl.textContent = losses;
+          status.textContent = `Out of rolls! Target was ${target}.`;
+          status.className = 'status lose';
+          gameActive = false;
+          rollBtn.textContent = 'New Round';
+          rollBtn.disabled = false;
+        }
+        else {
+          const diff = Math.abs(roll - target);
+          let hint = '';
+          if (diff === 1) hint = 'So close!';
+          else if (diff <= 3) hint = 'Getting warm...';
+          else if (diff <= 7) hint = 'Not quite...';
+          else hint = 'Way off!';
+
+          status.textContent = `${hint} ${rollsLeft} roll${rollsLeft > 1 ? 's' : ''} left.`;
+          status.className = 'status';
+          rollBtn.disabled = false;
+        }
+      }, 800);
+    }
+
+    rollBtn.addEventListener('click', () => {
+      if (!gameActive) {
+        rollBtn.textContent = 'Roll D20';
+        startNewRound();
+      } else {
+        playerRoll();
+      }
+    });
+
+    // Initialize reels
+    createReel(targetReel);
+    createReel(playerReel);
+
+    startNewRound();
+  </script>
+</body>
+
+</html>
