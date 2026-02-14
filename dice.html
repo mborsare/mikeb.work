@@ -66,15 +66,15 @@
       white-space: pre;
       line-height: 1;
       color: var(--seal);
-      font-size: 0.3rem;
+      font-size: 0.7rem;
       text-align: center;
     }
 
     .dice-container {
       display: flex;
+      flex-wrap: wrap;
       justify-content: center;
       gap: 3rem;
-      justify-items: center;
     }
 
     .die-slot {
@@ -227,12 +227,12 @@
       }
 
       .container {
-        gap: 2rem;
+        gap: 1.5rem;
         padding: 2rem 0.5rem;
       }
 
       .dice-container {
-        gap: 1rem;
+        gap: 1.5rem;
       }
 
       .die-number {
@@ -245,11 +245,16 @@
       }
 
       .ascii-title {
-        font-size: 0.2rem;
+        font-size: 0.5rem;
       }
 
       .score-board {
         gap: 2rem;
+      }
+
+      button {
+        padding: 1em 1.5em;
+        font-size: 0.9rem;
       }
     }
   </style>
@@ -263,7 +268,7 @@
     </nav>
 
 ```
-<pre class="ascii-title" style="font-size: .7rem;">
+<pre class="ascii-title">
   d8b   d8,              
   88P  `8P               
  d88                     
