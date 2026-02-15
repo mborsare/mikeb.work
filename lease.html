@@ -392,6 +392,94 @@
         font-size: 0.9rem;
       }
     }
+
+
+    /* ===============================================
+       PRINT STYLES
+       =============================================== */
+    @page {
+      size: letter;
+      margin: 0.75in;
+    }
+
+    @media print {
+      * {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .ascii {
+        color: black;
+        font-size: .5rem !important;
+      }
+
+      body {
+        background: white;
+        color: #000;
+      }
+
+      .container {
+        max-width: none;
+        padding: 0;
+      }
+
+      /* Hide screen-only elements */
+      nav,
+      button,
+      .ascii-prime,
+      time,
+      h1,
+      .terms,
+      .outcomes,
+      details[open] summary::before {
+        display: none !important;
+      }
+
+      details {
+        border: 0;
+      }
+
+      /* Show only header and lease text */
+      h1 {
+        color: #000;
+        font-size: 1.5rem;
+        margin: 0 0 0.5rem 0;
+      }
+
+      .address {
+        color: #666;
+        font-size: 0.85rem;
+        margin-bottom: 1.5rem;
+      }
+
+      html {
+        font-size: 14px;
+        line-height: 1.3;
+      }
+
+      #lease {
+        color: #000;
+        font-size: 11pt;
+        line-height: 1.6;
+        max-width: none;
+      }
+
+      #lease p {
+        margin: 1rem 0;
+        page-break-inside: avoid;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .ascii-prime {
+        font-size: 0.2rem;
+      }
+
+      #lease {
+        font-size: 0.85rem;
+      }
+    }
+  </style>
   </style>
 </head>
 
@@ -403,7 +491,7 @@
 
 
     <div style="padding:1rem;">
-      <pre class="ascii" style="color: yellow;">
+      <pre class="ascii">
 
         ▄▄▄▄                 ▄▄▄▄   ▄▄▄▄                                              ▄▄▄▄               
         ██▀▀▀█              ██▀▀▀▀█  ▀▀██                                              ▀▀██               
@@ -428,12 +516,12 @@
 
     <main style="text-align:left; max-width: 52rem; margin: 0 auto; padding: 0;">
       <details open>
-        <summary style="font-size:1rem; font-weight:bold;">Live in 6 Glenvale #2 (2026–2027)</summary>
+        <summary style="font-size:1rem; font-weight:bold;">2026–2027 Lease agreement</summary>
         <div id="leaseCard" style="margin-bottom:1.25rem;">
           <div id="leaseText" style="white-space:pre-wrap;"></div>
         </div>
       </details>
-      <details>
+      <details class="outcomes">
         <summary>Costs & What Happens If You Leave Early</summary>
         <div class="costs-grid">
           <div class="cost-row">
@@ -471,7 +559,7 @@
         </div>
       </details>
 
-      <details>
+      <details class="terms">
         <summary style="font-size:1rem; font-weight:bold;">Change lease terms</summary>
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; align-items:end;">
           <label>
@@ -582,7 +670,7 @@
 
       const status = el('status');
       const leaseText = el('leaseText');
-      const TEMPLATE = '\n6 Glenvale – Residential Lease Agreement (2026–2027)\n\nThis Lease is made on April 27, 2026, between:\n\nLandlord:\nMike Borsare & Ashley Dunn\n6 Glenvale Terrace, Unit 3\nJamaica Plain, MA 02130\n\nTenant:\n{TENANT1} & {TENANT2}\n6 Glenvale Terrace, Unit 2\nJamaica Plain, MA 02130\n\nPremises:\n6 Glenvale Terrace, Unit 2, Jamaica Plain, MA 02130\n\n1. Term\nLease term: May 1, 2026 through August 31, 2027 at 11:59 PM.\n\n2. Rent\nMonthly Rent: $3,000/month\nDue: 1st of each month.\nRent is late after 30 days.\n\nFirst and last month’s rent are due at lease signing.\n\n3. Security Deposit\nSecurity Deposit: $1,000\nSecurity deposit handling, notices, receipts, interest (if any), deductions, and return shall comply with Massachusetts law (M.G.L. c. 186, §15B).\nDeposit may not be used as rent.\n\n4. Use and Occupancy\nPremises is for residential use only by the named Tenants.\nNo additional occupants without Landlord’s prior written consent.\nNo business use without written consent.\nOvernight guests may not exceed 14 consecutive nights or 28 nights per year without written consent.\n\n5. Utilities\nTenant is responsible for all utilities unless otherwise agreed in writing.\n\n6. Pets\nNo pets without written consent.\nTenant is responsible for all pet-related damage and liability.\n\n7. Condition and Maintenance\nTenant accepts the Premises in good condition at move-in, subject to any statement of condition required by Massachusetts law.\nTenant will keep the Premises clean and sanitary and promptly notify Landlord of problems or needed repairs.\nTenant is responsible for damage caused by Tenant, guests, or negligence, excluding ordinary wear and tear.\n\n8. Alterations\nNo painting, lock changes, installations, or alterations without written consent.\nUnauthorized alterations may be removed and restored at Tenant’s expense.\nLandlord will re-paint unit before May 1 move-in.\n\n9. Keys and Locks\nTwo keys provided at move-in.\nReplacement/lockout service: $20 per occurrence.\nNo lock changes without written consent; Tenant must provide copies of any keys.\n\n10. Assignment and Subletting\nNo assignment or subletting without prior written consent.\n\n11. Entry\nLandlord may enter with 24-hour notice for inspections, repairs, or showing.\n48-hour notice for a pre-move-out inspection.\nNo notice required for emergencies or if Tenant consents.\n\n12. Damage or Casualty\nIf the Premises becomes uninhabitable due to casualty not caused by Tenant, rent will be adjusted as required by law and either party may terminate consistent with applicable law.\n\n13. Early Termination by Tenant\nTenant may terminate early by:\n(a) providing 60 days’ written notice, and\n(b) paying an early termination fee.\n\nIf notice is given before January 1, 2027, the fee is 3 months’ rent.\nIf notice is given on or after January 1, 2027, the fee is 2 months’ rent.\n\nTenant remains responsible for rent during the 60-day notice period.\nThe early termination fee is agreed liquidated damages and not a penalty.\n\n14. Default and Eviction\nFailure to pay rent or materially comply with this Lease may result in termination after proper legal notice.\nLandlord may recover possession only through court process as required by Massachusetts law.\n\n15. Notices\nNotices must be in writing and delivered to the addresses above unless updated in writing.\n\n16. Governing Law\nMassachusetts law governs this Lease.\n\n17. Entire Agreement\nThis Lease is the entire agreement and may be changed only in a written amendment signed by all parties.\n\n18. Payment Breakdown\nLease term: May 1, 2026 – Aug 31, 2027\nMonthly rent: $3,000 due on the 1st\n\nSecurity deposit: $1,000 due at lease signing\nLast month ($3,000) due on April 1, 2026, one month prior to move in\nFirst month ($3,000) due May 1, 2026, the lease term start date\n\nTenant also agrees to provide written checks at signing for the April 1, 2026 and May 1, 2026 deposits.\n\nIf you leave early:\nBefore Jan 1, 2027 $9,000 (3 months) + 60 days notice\nOn or after Jan 1, 2027 $6,000 (2 months) + 60 days notice\n\nSecurity deposit: Returned per MA law, less deductions\n\nSignatures\n\nLandlord:\n_________________________  Mike Borsare\n_________________________  Ashley Dunn\n\nTenant:\n_________________________  {TENANT1}\n_________________________  {TENANT2}\n';
+      const TEMPLATE = '\nThis Lease is made on April 27, 2026, between:\n\nLandlord:\nMike Borsare & Ashley Dunn\n6 Glenvale Terrace, Unit 3\nJamaica Plain, MA 02130\n\nTenant:\n{TENANT1} & {TENANT2}\n6 Glenvale Terrace, Unit 2\nJamaica Plain, MA 02130\n\nPremises:\n6 Glenvale Terrace, Unit 2, Jamaica Plain, MA 02130\n\n1. Term\nLease term: May 1, 2026 through August 31, 2027 at 11:59 PM.\n\n2. Rent\nMonthly Rent: $3,000/month\nDue: 1st of each month.\nRent is late after 30 days.\n\nFirst and last month’s rent are due at lease signing.\n\n3. Security Deposit\nSecurity Deposit: $1,000\nSecurity deposit handling, notices, receipts, interest (if any), deductions, and return shall comply with Massachusetts law (M.G.L. c. 186, §15B).\nDeposit may not be used as rent.\n\n4. Use and Occupancy\nPremises is for residential use only by the named Tenants.\nNo additional occupants without Landlord’s prior written consent.\nNo business use without written consent.\nOvernight guests may not exceed 14 consecutive nights or 28 nights per year without written consent.\n\n5. Utilities\nTenant is responsible for all utilities unless otherwise agreed in writing.\n\n6. Pets\nNo pets without written consent.\nTenant is responsible for all pet-related damage and liability.\n\n7. Condition and Maintenance\nTenant accepts the Premises in good condition at move-in, subject to any statement of condition required by Massachusetts law.\nTenant will keep the Premises clean and sanitary and promptly notify Landlord of problems or needed repairs.\nTenant is responsible for damage caused by Tenant, guests, or negligence, excluding ordinary wear and tear.\n\n8. Alterations\nNo painting, lock changes, installations, or alterations without written consent.\nUnauthorized alterations may be removed and restored at Tenant’s expense.\nLandlord will re-paint unit before May 1 move-in.\n\n9. Keys and Locks\nTwo keys provided at move-in.\nReplacement/lockout service: $20 per occurrence.\nNo lock changes without written consent; Tenant must provide copies of any keys.\n\n10. Assignment and Subletting\nNo assignment or subletting without prior written consent.\n\n11. Entry\nLandlord may enter with 24-hour notice for inspections, repairs, or showing.\n48-hour notice for a pre-move-out inspection.\nNo notice required for emergencies or if Tenant consents.\n\n12. Damage or Casualty\nIf the Premises becomes uninhabitable due to casualty not caused by Tenant, rent will be adjusted as required by law and either party may terminate consistent with applicable law.\n\n13. Early Termination by Tenant\nTenant may terminate early by:\n(a) providing 60 days’ written notice, and\n(b) paying an early termination fee.\n\nIf notice is given before January 1, 2027, the fee is 3 months’ rent.\nIf notice is given on or after January 1, 2027, the fee is 2 months’ rent.\n\nTenant remains responsible for rent during the 60-day notice period.\nThe early termination fee is agreed liquidated damages and not a penalty.\n\n14. Default and Eviction\nFailure to pay rent or materially comply with this Lease may result in termination after proper legal notice.\nLandlord may recover possession only through court process as required by Massachusetts law.\n\n15. Notices\nNotices must be in writing and delivered to the addresses above unless updated in writing.\n\n16. Governing Law\nMassachusetts law governs this Lease.\n\n17. Entire Agreement\nThis Lease is the entire agreement and may be changed only in a written amendment signed by all parties.\n\n18. Payment Breakdown\nLease term: May 1, 2026 – Aug 31, 2027\nMonthly rent: $3,000 due on the 1st\n\nSecurity deposit: $1,000 due at lease signing\nLast month ($3,000) due on April 1, 2026, one month prior to move in\nFirst month ($3,000) due May 1, 2026, the lease term start date\n\nTenant also agrees to provide written checks at signing for the April 1, 2026 and May 1, 2026 deposits.\n\nIf you leave early:\nBefore Jan 1, 2027 $9,000 (3 months) + 60 days notice\nOn or after Jan 1, 2027 $6,000 (2 months) + 60 days notice\n\nSecurity deposit: Returned per MA law, less deductions\n\nSignatures\n\nLandlord:\n_________________________  Mike Borsare\n_________________________  Ashley Dunn\n\nTenant:\n_________________________  {TENANT1}\n_________________________  {TENANT2}\n';
 
       function moneyish(v) {
         const n = String(v).replace(/[^0-9.]/g, '');
