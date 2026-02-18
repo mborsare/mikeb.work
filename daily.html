@@ -339,9 +339,53 @@
       line-height: 1.6;
     }
 
+    #w-grade-row {
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    #w-grade {
+      font-size: 3rem;
+      font-weight: bold;
+      line-height: 1;
+    }
+
+    #w-score {
+      font-size: 1.1rem;
+      color: var(--seal);
+    }
+
+    #w-grade-label {
+      font-size: 0.7rem;
+      color: var(--stamp);
+      letter-spacing: 0.05em;
+    }
+
+    #w-score-bar-wrap {
+      width: 100%;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.08);
+      margin-bottom: 1rem;
+    }
+
+    #w-score-bar {
+      height: 100%;
+      width: 0%;
+      transition: width 0.4s ease;
+    }
+
     #w-regime {
       font-weight: bold;
       color: var(--seal);
+    }
+
+    #w-grade-key {
+      font-size: 0.65rem;
+      color: var(--stamp);
+      opacity: 0.5;
+      margin-top: 0.5rem;
     }
 
     /* ===============================================
@@ -741,13 +785,30 @@
     <section id="market-weather" style="margin: 1.5rem 0 2rem;">
       <h2>Market weather</h2>
 
-      <div id="prime-weather" style="display:grid; gap: .5rem;">
-        <div id="w-regime"></div>
-        <div id="w-range"></div>
-        <div id="w-liquidity"></div>
-        <div id="w-rp"></div>
-        <div id="w-shape"></div>
-        <div id="w-time"></div>
+      <div id="prime-weather">
+        <!-- Grade + score -->
+        <div id="w-grade-row">
+          <span id="w-grade">—</span>
+          <div>
+            <div id="w-score"></div>
+            <div id="w-grade-label"></div>
+          </div>
+        </div>
+        <div id="w-score-bar-wrap">
+          <div id="w-score-bar"></div>
+        </div>
+
+        <!-- Conditions -->
+        <div style="display:grid; gap:.4rem;">
+          <div id="w-regime"></div>
+          <div id="w-range"></div>
+          <div id="w-liquidity"></div>
+          <div id="w-rp"></div>
+          <div id="w-shape"></div>
+          <div id="w-time"></div>
+        </div>
+
+        <div id="w-grade-key">A ≥ 90 · B ≥ 80 · C ≥ 70 · D ≥ 50 · F &lt; 50</div>
       </div>
     </section>
 
@@ -905,13 +966,20 @@
     })();
 
 
-    // Prime Weather — matches deployed worker payload
-    // Prime Weather — matches deployed worker payload
-    // Prime Weather — matches deployed worker payload
+    // Prime Weather — reads score + grade directly from worker (single source of truth)
     (async () => {
+      const gradeColors = { A: '#6eff8a', B: '#a8f0b0', C: '#f0e060', D: '#f0a030', F: '#ff5555' };
+      const gradeLabels = {
+        A: 'Prime conditions',
+        B: 'Good conditions',
+        C: 'Marginal — size down',
+        D: 'Poor — stand by',
+        F: 'Stand down'
+      };
+
       try {
         const res = await fetch(
-          'https://weather.mborsare.workers.dev/prime/weather/ES',  // ✅ No mikeb.work
+          'https://weather.mborsare.workers.dev/prime/weather/ES',
           { cache: 'no-store' }
         );
 
@@ -920,7 +988,27 @@
         const data = await res.json();
         if (!data?.regime) throw new Error('Invalid payload');
 
-        // Worker returns: regime, liquidity, rPlus, rangePts, suggestedOrder
+        const grade = data.grade ?? '?';
+        const score = data.score ?? 0;
+        const color = gradeColors[grade] ?? '#c0c0c0';
+
+        // Grade + score
+        const gradeEl = document.getElementById('w-grade');
+        gradeEl.textContent = grade;
+        gradeEl.style.color = color;
+
+        document.getElementById('w-score').textContent = `${score} / 100`;
+        document.getElementById('w-grade-label').textContent = gradeLabels[grade] ?? '';
+
+        // Score bar
+        const bar = document.getElementById('w-score-bar');
+        bar.style.background = color;
+        // Defer so the CSS transition fires
+        requestAnimationFrame(() => {
+          bar.style.width = `${score}%`;
+        });
+
+        // Conditions
         document.getElementById('w-regime').textContent =
           'Regime: ' + data.regime.toUpperCase();
 
@@ -942,12 +1030,10 @@
 
       } catch (e) {
         console.warn('Prime weather unavailable', e);
-        document.getElementById('w-regime').textContent = 'Weather unavailable';
-        document.getElementById('w-range').textContent = '';
-        document.getElementById('w-liquidity').textContent = '';
-        document.getElementById('w-rp').textContent = '';
-        document.getElementById('w-shape').textContent = '';
-        document.getElementById('w-time').textContent = '';
+        document.getElementById('w-grade').textContent = '?';
+        document.getElementById('w-grade-label').textContent = 'Weather unavailable';
+        ['w-score', 'w-regime', 'w-range', 'w-liquidity', 'w-rp', 'w-shape', 'w-time']
+          .forEach(id => { document.getElementById(id).textContent = ''; });
       }
     })();
 
