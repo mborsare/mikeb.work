@@ -346,30 +346,6 @@
       margin-bottom: 0.5rem;
     }
 
-    #w-grade {
-      font-size: 3rem;
-      font-weight: bold;
-      line-height: 1;
-    }
-
-    #w-score {
-      font-size: 1.1rem;
-      color: var(--seal);
-    }
-
-    #w-grade-label {
-      font-size: 0.7rem;
-      color: var(--stamp);
-      letter-spacing: 0.05em;
-    }
-
-    #w-score-bar-wrap {
-      width: 100%;
-      height: 3px;
-      background: rgba(255, 255, 255, 0.08);
-      margin-bottom: 1rem;
-    }
-
     #w-score-bar {
       height: 100%;
       width: 0%;
@@ -789,7 +765,7 @@
         <!-- Grade + score -->
         <div id="w-grade-row">
           <span id="w-grade">—</span>
-          <div>
+          <div style="display: flex; gap: 1rem;">
             <div id="w-score"></div>
             <div id="w-grade-label"></div>
           </div>
@@ -997,7 +973,7 @@
         gradeEl.textContent = grade;
         gradeEl.style.color = color;
 
-        document.getElementById('w-score').textContent = `${score} / 100`;
+        document.getElementById('w-score').textContent = `${score} out of 100, `;
         document.getElementById('w-grade-label').textContent = gradeLabels[grade] ?? '';
 
         // Score bar
@@ -1010,7 +986,7 @@
 
         // Conditions
         document.getElementById('w-regime').textContent =
-          'Regime: ' + data.regime.toUpperCase();
+          '☂️ ' + data.regime.toUpperCase();
 
         document.getElementById('w-range').textContent =
           '↕️ Range: ' + data.rangePts + ' pts';
