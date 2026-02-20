@@ -122,6 +122,21 @@
       margin-top: 3rem;
       opacity: .5;
     }
+
+    .jostle-btn {
+      background: #000;
+      color: currentColor;
+      border: 1px solid currentColor;
+      padding: 0.5em 1em;
+      font-family: inherit;
+      cursor: pointer;
+      margin-bottom: 2rem;
+      text-shadow: 0 0 2px currentColor;
+    }
+
+    .jostle-btn:active {
+      transform: scale(0.95);
+    }
   </style>
 </head>
 
@@ -133,6 +148,7 @@
     <nav style="padding: 2em 0;">
       <a href="/">Back</a>
     </nav>
+    <button id="jostleBtn" class="jostle-btn">JOSTLE</button>
 
     <h1 class="go-signal" id="decision">…</h1>
 
@@ -230,7 +246,27 @@
     fetchWeather();
     setInterval(fetchWeather, 60000);
 
-    // Floating motion
+    // =========================
+    // Floating + Elastic System
+    // =========================
+
+    let impulse = 0;
+    let velocity = 0;
+    const stiffness = 1;   // spring strength
+    const damping = 0.85;     // friction
+
+    function springStep() {
+      // spring back toward 0
+      const force = -stiffness * impulse;
+      velocity += force;
+      velocity *= damping;
+      impulse += velocity;
+
+      requestAnimationFrame(springStep);
+    }
+
+    springStep();
+
     function floatElement(el, {
       ampX = 3,
       ampY = 5,
@@ -242,12 +278,18 @@
       function animate(time) {
         const t = time * speed + phase;
 
-        const x = Math.sin(t) * ampX;
-        const y = Math.cos(t * 0.9) * ampY;
-        const r = Math.sin(t * 0.7) * rotAmp;
+        const baseX = Math.sin(t) * ampX;
+        const baseY = Math.cos(t * 9) * ampY;
+        const baseR = Math.sin(t * 7) * rotAmp;
+
+        // impulse energy influences all axes
+        const shockX = Math.sin(t * 10) * impulse;
+        const shockY = Math.cos(t * 50) * impulse;
+        const shockR = Math.sin(t * 17) * impulse * 0.6;
 
         el.style.transform =
-          `translate3d(${x}px, ${y}px, 0) rotate(${r}deg)`;
+          `translate3d(${baseX + shockX}px, ${baseY + shockY}px, 0)
+       rotate(${baseR + shockR}deg)`;
 
         requestAnimationFrame(animate);
       }
@@ -255,6 +297,12 @@
       requestAnimationFrame(animate);
     }
 
+    // BIG impulse that stacks
+    document.getElementById('jostleBtn').addEventListener('click', () => {
+      velocity += 18; // add energy instead of resetting
+    });
+
+    // Apply float
     floatElement(document.getElementById('decision'));
     floatElement(document.getElementById('grade-line'), { ampX: 2, ampY: 4, rotAmp: 0.4, speed: 0.0007 });
     floatElement(document.querySelector('.meta'), { ampX: 4, ampY: 6, rotAmp: 0.5, speed: 0.0006 });
