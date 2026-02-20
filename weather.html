@@ -206,25 +206,25 @@
         `Grade ${data.grade} · Score ${data.score}`;
 
       document.getElementById('regime').textContent =
-        `REGIME: ${data.regime.toUpperCase()}`;
+        `☂️ ${data.regime.toUpperCase()}`;
 
       document.getElementById('rplus').textContent =
-        `R+: ${Math.round(data.rPlus * 100)}%`;
+        `🎲 ${Math.round(data.rPlus * 100)}%`;
 
       document.getElementById('range').textContent =
-        `RANGE: ${data.rangePts} pts`;
+        `↕️ ${data.rangePts} pts`;
 
       document.getElementById('liquidity').textContent =
-        `LIQUIDITY: ${data.liquidity}`;
+        `🌊 ${data.liquidity}`;
 
       document.getElementById('shape-line').textContent =
-        `SHAPE ${data.suggestedOrder.tp}/${data.suggestedOrder.sl}`;
+        `🧾 ${data.suggestedOrder.tp}/${data.suggestedOrder.sl}`;
 
       document.getElementById('profile-line').textContent =
-        `PROFILE ${data.profile}`;
+        `🧾 ${data.profile}`;
 
       document.getElementById('last-update').textContent =
-        `UPDATED ${new Date(data.asOf).toLocaleTimeString()}`;
+        `👁️‍🗨️ ${new Date(data.asOf).toLocaleTimeString()}`;
     }
 
     fetchWeather();
