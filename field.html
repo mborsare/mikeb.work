@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Prime Weather · Battlefield</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #000000;
+      --text: #c0c0c0;
+      --stamp: #888888;
+      --seal: #eaffea;
+      --sell: #ffaaaa;
+    }
+
+    @font-face {
+      font-family: 'ComicMono';
+      src: url('/fonts/ComicMono-Regular.woff') format('woff');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    html {
+      font-size: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'ComicMono', monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1.5rem 1rem 4rem;
+    }
+
+    h2 {
+      color: var(--text);
+      margin-bottom: 0.8rem;
+      font-size: 1.2rem;
+      letter-spacing: 0.03em;
+    }
+
+    a {
+      color: var(--seal);
+      text-decoration: none;
+    }
+
+    a:hover {
+      color: var(--text);
+    }
+
+    pre {
+      color: var(--text);
+    }
+
+    /* ── top bar ── */
+    .top-bar {
+      width: 100%;
+      max-width: 860px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-direction: column;
+      color: var(--stamp);
+      margin-bottom: 1.5rem;
+      gap: 1rem;
+    }
+
+    .top-bar a {
+      color: var(--stamp);
+      text-decoration: none;
+    }
+
+    .top-bar a:hover {
+      color: var(--text);
+    }
+
+    /* ── sections ── */
+    .section {
+      width: 100%;
+      max-width: 860px;
+      margin: 4rem auto;
+      gap: .5rem;
+      display: grid;
+    }
+
+    /* ── battlefield ── */
+    .battlefield {
+      width: 100%;
+      max-width: 860px;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (min-width: 600px) {
+      .battlefield {
+        flex-direction: row;
+      }
+    }
+
+    .army {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    .army-label {
+      font-size: .65rem;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      margin-bottom: .3rem;
+    }
+
+    .army.buy .army-label {
+      color: var(--seal);
+    }
+
+    .army.sell .army-label {
+      color: var(--sell);
+    }
+
+    .ascii {
+      font-family: monospace;
+      white-space: pre-wrap;
+      word-break: break-all;
+      line-height: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .ascii .soldier {
+      display: inline-block;
+      width: 1ch;
+    }
+
+    .ascii .soldier.front {
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.4;
+      }
+    }
+
+    /* ── data grid ── */
+    .data-grid {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      align-items: start;
+    }
+
+    .data-block {
+      border: 1px solid var(--stamp);
+      padding: .5rem;
+      font-size: .7rem;
+    }
+
+    .data-row {
+      display: flex;
+      justify-content: flex-start;
+      white-space: nowrap;
+      gap: .5rem;
+    }
+
+    .data-row span:first-child {
+      color: var(--stamp);
+      min-width: 55px;
+    }
+
+    /* ── meta ── */
+    .meta-grid {
+      display: flex;
+      gap: 2rem;
+      max-width: 860px;
+      font-size: .72rem;
+      line-height: 1.6;
+      padding-top: 1.2rem;
+      margin-bottom: 2rem;
+    }
+
+    .meta-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .meta-key {
+      font-size: .55rem;
+      color: var(--stamp);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      margin-bottom: .1rem;
+    }
+
+    .meta-val {
+      color: var(--seal);
+    }
+
+    .outlier,
+    .outlier-soft {
+      color: var(--bg);
+      background-color: var(--seal);
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="top-bar">
+    <a href="/">← back</a>
+    <span id="clock"></span>
+
+
+    <pre style="text-align: center; font-size: .5rem; padding: 4rem 0;">
+▄████  ▄█ ▄███▄   █     ██▄                                      
+█▀   ▀ ██ █▀   ▀  █     █  █                                     
+█▀▀    ██ ██▄▄    █     █   █                                    
+█      ▐█ █▄   ▄▀ ███▄  █  █                                     
+ █      ▐ ▀███▀       ▀ ███▀                                     
+  ▀                                                              
+                                                                 
+▄█▄    ████▄    ▄   ██▄   ▄█    ▄▄▄▄▀ ▄█ ████▄    ▄      ▄▄▄▄▄   
+█▀ ▀▄  █   █     █  █  █  ██ ▀▀▀ █    ██ █   █     █    █     ▀▄ 
+█   ▀  █   █ ██   █ █   █ ██     █    ██ █   █ ██   █ ▄  ▀▀▀▀▄   
+█▄  ▄▀ ▀████ █ █  █ █  █  ▐█    █     ▐█ ▀████ █ █  █  ▀▄▄▄▄▀    
+▀███▀        █  █ █ ███▀   ▐   ▀       ▐       █  █ █            
+             █   ██                            █   ██            
+    </pre>
+  </div>
+
+
+
+  <div id="marketStatus"
+    style="display:none; max-width:860px; margin:1rem 0 2rem; padding:1rem; border:1px solid var(--stamp); font-size:.8rem; letter-spacing:.1em; text-transform:uppercase; color:var(--seal);">
+    MARKET CLOSED
+  </div>
+
+  <div class="battlefield" id="battlefield">
+    <div class="army buy">
+      <div class="army-label">Buy side</div>
+      <div class="ascii" id="buyAscii"></div>
+    </div>
+    <div class="army sell">
+      <div class="army-label">Sell side</div>
+      <div class="ascii" id="sellAscii"></div>
+    </div>
+  </div>
+
+
+
+  <div class="meta-grid">
+    <div class="meta-item">
+      <span class="meta-key">Regime</span>
+      <span class="meta-val" id="mRegime">—</span>
+    </div>
+
+    <div class="meta-item">
+      <span class="meta-key">Grade · Score</span>
+      <span class="meta-val" id="mGrade">—</span>
+    </div>
+
+    <div class="meta-item">
+      <span class="meta-key">R+ Probability</span>
+      <span class="meta-val" id="mRplus">—</span>
+    </div>
+
+    <div class="meta-item">
+      <span class="meta-key">Range</span>
+      <span class="meta-val" id="mRange">—</span>
+    </div>
+
+    <div class="meta-item">
+      <span class="meta-key">TP / SL</span>
+      <span class="meta-val" id="mShape">—</span>
+    </div>
+
+    <div class="meta-item" style="grid-column: 1 / -1">
+      <span class="meta-key">Profile</span>
+      <span class="meta-val" id="mProfile">—</span>
+    </div>
+  </div>
+
+
+  <div style="display:flex; gap:1rem; align-items:baseline;">
+    <span id="lastStamp" style="font-size:.6rem; display:block;">—</span>
+    <span id="countdown" style="font-size:.6rem; display:block; color:var(--stamp);">—</span>
+  </div>
+
+  <div class="section">
+    <h2>The past</h2>
+    <div class="data-grid" id="dataGrid"></div>
+  </div>
+
+
+
+  <pre id="prime-logo" class="ascii" style="font-size:0.4rem; margin-top:9rem;">
+  ██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████ 
+  ▓██░  ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█   ▀ 
+  ▓██░ ██▓▒▓██ ░▄█ ▒▒██▒▓██    ▓██░▒███   
+  ▒██▄█▓▒ ▒▒██▀▀█▄  ░██░▒██    ▒██ ▒▓█  ▄ 
+  ▒██▒ ░  ░░██▓ ▒██▒░██░▒██▒   ░██▒░▒████▒
+  ▒▓▒░ ░  ░░ ▒▓ ░▒▓░░▓  ░ ▒░   ░  ░░░ ▒░ ░
+  ░▒ ░       ░▒ ░ ▒░ ▒ ░░  ░      ░ ░ ░  ░
+  ░░         ░░   ░  ▒ ░░      ░      ░   
+              ░      ░         ░      ░  ░
+</pre>
+
+  <script>
+    const STORAGE_KEY = 'primeWeatherHistory';
+    const MAX_POINTS = 300;
+    const ET_TZ = "America/New_York";
+    const TOTAL_SOLDIERS = 480;
+
+    // ── storage ─────────────────────────────────
+    function loadHistory() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+      catch { return []; }
+    }
+    function saveHistory(history) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+    }
+    function appendToHistory(data) {
+      const history = loadHistory();
+      const base = new Date(data.asOf).getTime();
+      const n = data.priceSeries.length;
+
+      for (let i = 0; i < n; i++) {
+        const ts = base - (n - 1 - i) * 60000;
+        history.push({
+          ts,
+          price: (data.priceSeries[i].hi + data.priceSeries[i].lo) / 2,
+          range: data.rangeSeries[i]
+        });
+      }
+
+      const deduped = Object.values(history.reduce((acc, row) => (acc[row.ts] = row, acc), {}));
+      deduped.sort((a, b) => a.ts - b.ts);
+      const trimmed = deduped.slice(-MAX_POINTS);
+      saveHistory(trimmed);
+      return trimmed;
+    }
+
+    // ── clock + countdown ───────────────────────
+    let nextFetch = Date.now() + 60000;
+
+    (function () {
+      const clockEl = document.getElementById('clock');
+      const countdownEl = document.getElementById('countdown');
+      const tick = () => {
+        clockEl.textContent = new Date().toLocaleString();
+        const remaining = Math.max(0, Math.round((nextFetch - Date.now()) / 1000));
+        countdownEl.textContent = remaining > 0 ? `Updating in ${remaining}s` : '';
+      };
+      tick();
+      setInterval(tick, 1000);
+    })();
+
+    // ── market hours (ET) ───────────────────────
+    function etParts(date) {
+      const parts = new Intl.DateTimeFormat("en-US", {
+        timeZone: ET_TZ,
+        weekday: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false
+      }).formatToParts(date);
+
+      const get = t => parts.find(p => p.type === t)?.value;
+      return { weekday: get("weekday"), hour: Number(get("hour")) };
+    }
+
+    function isClosedET(date) {
+      const p = etParts(date);
+
+      // Mon–Thu 5pm–6pm ET
+      if (["Mon", "Tue", "Wed", "Thu"].includes(p.weekday) && p.hour === 17) return true;
+
+      // Weekend closure (Fri 6pm → Sun 6pm)
+      // If CME closes at 5pm Friday instead, change 18 → 17
+      if (p.weekday === "Fri" && p.hour >= 18) return true;
+      if (p.weekday === "Sat") return true;
+      if (p.weekday === "Sun" && p.hour < 18) return true;
+
+      return false;
+    }
+
+    function prevOpenMinute(date) {
+      let t = new Date(date.getTime());
+      do { t = new Date(t.getTime() - 60000); } while (isClosedET(t));
+      return t;
+    }
+
+    function nextOpenMinute(date) {
+      let t = new Date(date.getTime());
+      do { t = new Date(t.getTime() + 60000); } while (isClosedET(t));
+      return t;
+    }
+
+    function buildSeriesTimes(asOf, n) {
+      const times = new Array(n);
+      let t = new Date(asOf);
+      if (isClosedET(t)) while (isClosedET(t)) t = new Date(t.getTime() - 60000);
+      for (let i = n - 1; i >= 0; i--) {
+        times[i] = new Date(t.getTime());
+        t = prevOpenMinute(t);
+      }
+      return times;
+    }
+
+    function computeNextFetch(asOf) {
+      return nextOpenMinute(new Date(asOf)).getTime();
+    }
+
+    // ── outliers ─────────────────────────────────
+    function getStats(values) {
+      const mean = values.reduce((a, b) => a + b, 0) / values.length;
+      const variance = values.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / values.length;
+      return { mean, std: Math.sqrt(variance) };
+    }
+
+    // ── render grid ──────────────────────────────
+    function renderGrid(prices = [], ranges = [], asOf) {
+      const grid = document.getElementById('dataGrid');
+      if (!grid || prices.length === 0) return;
+
+      grid.innerHTML = '';
+
+      const times = buildSeriesTimes(asOf, prices.length);
+      const { mean, std } = getStats(ranges);
+
+      for (let i = prices.length - 1; i >= 0; i--) {
+        const p = prices[i];
+        const ts = times[i];
+
+        const block = document.createElement('div');
+        block.className = 'data-block';
+
+        const row = document.createElement('div');
+        row.className = 'data-row';
+
+        const time = document.createElement('span');
+        time.textContent =
+          ts.toLocaleTimeString('en-US', { timeZone: ET_TZ });
+
+        const val = document.createElement('span');
+        const range = ranges[i];
+
+        val.textContent = range !== undefined
+          ? `${p.toFixed(2)} / ${range.toFixed(2)}`
+          : p.toFixed(2);
+
+        if (range !== undefined) {
+          if (range > mean + 2 * std) val.classList.add('outlier');
+          else if (range > mean + std) val.classList.add('outlier-soft');
+        }
+
+        row.appendChild(time);
+        row.appendChild(val);
+        block.appendChild(row);
+        grid.appendChild(block);
+      }
+    }
+
+    // ── armies ───────────────────────────────────
+    function renderArmyAscii(id, count) {
+      const el = document.getElementById(id);
+      if (!el) return;
+
+      const glyph = '█';
+      const frontlineSize = Math.max(5, Math.ceil(count * 0.1));
+
+      let html = '';
+      for (let i = 0; i < count; i++) {
+        const isFrontline = i >= count - frontlineSize;
+        html += `<span class="soldier${isFrontline ? ' front' : ''}">${glyph}</span>`;
+      }
+      el.innerHTML = html;
+    }
+
+    // ── ui update ────────────────────────────────
+    function updateUI(data) {
+      document.getElementById('mRegime').textContent = data.regime || '—';
+      document.getElementById('mGrade').textContent = `${data.grade || '—'} · ${data.score || 0}`;
+      document.getElementById('mRplus').textContent = data.rPlus ?? '—';
+      document.getElementById('mRange').textContent = data.rangePts ?? '—';
+      document.getElementById('mShape').textContent =
+        data.suggestedOrder ? `${data.suggestedOrder.tp} / ${data.suggestedOrder.sl}` : '—';
+      document.getElementById('mProfile').textContent = data.profile || '—';
+
+      document.getElementById('lastStamp').textContent =
+        `Last fetch at ${new Date(data.asOf).toLocaleTimeString('en-US', { timeZone: ET_TZ })}`;
+
+      nextFetch = computeNextFetch(data.asOf);
+
+      const rPlus = Math.max(0, Math.min(1, Number(data.rPlus ?? 0.5)));
+      const MIN_UNIT = 5;
+      let buyTotal = Math.round(rPlus * TOTAL_SOLDIERS);
+      buyTotal = Math.max(MIN_UNIT, Math.min(TOTAL_SOLDIERS - MIN_UNIT, buyTotal));
+      const sellTotal = TOTAL_SOLDIERS - buyTotal;
+
+      renderArmyAscii('buyAscii', buyTotal);
+      renderArmyAscii('sellAscii', sellTotal);
+
+      const history = appendToHistory(data);
+      const prices = history.map(h => h.price);
+      const ranges = history.map(h => h.range);
+      const asOf = history[history.length - 1].ts;
+
+      renderGrid(prices, ranges, asOf);
+    }
+
+    // ── market status ────────────────────────────
+    function updateMarketStatus() {
+      const statusEl = document.getElementById('marketStatus');
+      const now = new Date();
+      const closed = isClosedET(now);
+
+      statusEl.style.display = closed ? 'block' : 'none';
+      if (closed) document.getElementById('countdown').textContent = 'Market closed';
+
+      return !closed;
+    }
+
+    // ── fetch ────────────────────────────────────
+    async function fetchWeather() {
+      if (!updateMarketStatus()) return;
+
+      try {
+        const res = await fetch('https://weather.mborsare.workers.dev/prime/weather/ES', { cache: 'no-store' });
+        if (!res.ok) throw new Error();
+        updateUI(await res.json());
+      } catch (err) {
+        console.error('Failed to fetch weather data');
+      }
+    }
+
+    // ── hydrate ──────────────────────────────────
+    (function hydrateFromStorage() {
+      const history = loadHistory();
+      if (history.length === 0) return;
+
+      const prices = history.map(h => h.price);
+      const ranges = history.map(h => h.range);
+      const asOf = history[history.length - 1].ts;
+
+      renderGrid(prices, ranges, asOf);
+    })();
+
+    // ── loop ─────────────────────────────────────
+    function tickSystem() {
+      if (updateMarketStatus()) fetchWeather();
+    }
+
+    tickSystem();
+    setInterval(tickSystem, 60000);
+  </script>
+</body>
+
+</html>
