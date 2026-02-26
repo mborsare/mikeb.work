@@ -24,22 +24,13 @@
 
     body {
       margin: 0;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       background: #000;
       color: var(--phosphor);
       font-family: 'ComicMono', monospace;
       text-align: center;
-      overflow: hidden;
-
-      /* subtle CRT glow */
-      text-shadow: 0 0 2px currentColor;
-      -webkit-font-smoothing: none;
     }
 
-    /* Engage state (brightness only) */
+    /* Engage state */
     body.go {
       color: var(--phosphor);
     }
@@ -48,7 +39,7 @@
       color: var(--dim);
     }
 
-    /* Regime tinting (text only) */
+    /* Regime tinting */
     body.trend {
       color: var(--phosphor);
     }
@@ -72,6 +63,11 @@
     .container {
       max-width: 40rem;
       padding: 2rem;
+      margin: 0 auto;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
 
     #clock {
@@ -100,13 +96,10 @@
     .meta {
       margin-top: 2rem;
       line-height: 175%;
-      opacity: .85;
       will-change: transform;
     }
 
     .execution {
-      margin-top: 2rem;
-      font-size: .8rem;
       opacity: .75;
       will-change: transform;
     }
@@ -114,7 +107,6 @@
     .footer {
       margin-top: 2rem;
       font-size: .7rem;
-      opacity: .6;
     }
 
     .ascii-prime {
@@ -126,12 +118,14 @@
     .jostle-btn {
       background: #000;
       color: currentColor;
-      border: 1px solid currentColor;
-      padding: 0.5em 1em;
+      border: .2rem solid currentColor;
+      border-radius: .6rem;
+      padding: 1rem;
       font-family: inherit;
       cursor: pointer;
-      margin-bottom: 2rem;
-      text-shadow: 0 0 2px currentColor;
+      margin: 0 auto 2rem;
+      width: min(100%, 10rem);
+      box-shadow: 2px 10px 0 rgba(137, 244, 98, 0.088);
     }
 
     .jostle-btn:active {
@@ -143,28 +137,34 @@
 <body>
   <div class="container">
 
-    <div id="clock"></div>
-
-    <nav style="padding: 2em 0;">
+    <nav style="padding: 2em 0; opacity: .8;">
       <a href="/">Back</a>
     </nav>
-    <button id="jostleBtn" class="jostle-btn">JOSTLE</button>
+    <div id="clock"></div>
 
+    <p>Right now you should:</p>
     <h1 class="go-signal" id="decision">…</h1>
+    <button id="jostleBtn" class="jostle-btn">Fidget</button>
+
+
+    <p>Current conditions:</p>
 
     <div class="score" id="grade-line"></div>
-
     <div class="meta">
       <div id="regime"></div>
       <div id="rplus"></div>
       <div id="range"></div>
       <div id="liquidity"></div>
+      <div class="execution" id="shape-line"></div>
+      <div class="execution" id="profile-line"></div>
     </div>
 
-    <div class="execution" id="shape-line"></div>
-    <div class="execution" id="profile-line"></div>
 
-    <div class="footer" id="last-update"></div>
+
+
+    <div class="footer" id="last-update">
+
+    </div>
 
     <pre class="ascii-prime">
 ██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████ 
@@ -216,13 +216,13 @@
       body.classList.add(data.regime);
 
       document.getElementById('decision').textContent =
-        engage ? 'Go' : 'Cadence';
+        engage ? 'Field trip' : 'Work on prime';
 
       document.getElementById('grade-line').textContent =
         `Grade ${data.grade} · Score ${data.score}`;
 
       document.getElementById('regime').textContent =
-        `☂️ ${data.regime.toUpperCase()}`;
+        `☂️ ${data.regime.toLowerCase()}`;
 
       document.getElementById('rplus').textContent =
         `🎲 ${Math.round(data.rPlus * 100)}%`;
@@ -240,7 +240,7 @@
         `🧾 ${data.profile}`;
 
       document.getElementById('last-update').textContent =
-        `👁️‍🗨️ ${new Date(data.asOf).toLocaleTimeString()}`;
+        `Data from ${new Date(data.asOf).toLocaleTimeString()}`;
     }
 
     fetchWeather();
@@ -306,6 +306,7 @@
     floatElement(document.getElementById('decision'));
     floatElement(document.getElementById('grade-line'), { ampX: 2, ampY: 4, rotAmp: 0.4, speed: 0.0007 });
     floatElement(document.querySelector('.meta'), { ampX: 4, ampY: 6, rotAmp: 0.5, speed: 0.0006 });
+    floatElement(document.querySelector('.jostle-btn'), { ampX: 4, ampY: 6, rotAmp: 0.5, speed: 0.0006 });
     floatElement(document.getElementById('shape-line'), { ampX: 2, ampY: 3, rotAmp: 0.3, speed: 0.00075 });
     floatElement(document.getElementById('profile-line'), { ampX: 2, ampY: 3, rotAmp: 0.3, speed: 0.00072 });
 
