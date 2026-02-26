@@ -119,9 +119,7 @@
     }
 
     .army-label {
-      font-size: .65rem;
-      letter-spacing: .2em;
-      text-transform: uppercase;
+      font-size: .8rem;
       margin-bottom: .3rem;
     }
 
@@ -134,36 +132,33 @@
     }
 
     .ascii {
-      font-family: monospace;
       white-space: pre-wrap;
       word-break: break-all;
       line-height: 1;
-      position: relative;
       overflow: hidden;
     }
 
     .ascii .soldier {
-      display: inline-block;
+      animation: pulse 2.4s ease-in-out infinite;
       width: 1ch;
-    }
+      color: var(--se);
 
-    .ascii .soldier.front {
-      animation: pulse 1.5s ease-in-out infinite;
     }
 
     @keyframes pulse {
 
       0%,
       100% {
-        opacity: 1;
+        transform: scale(1);
+        filter: brightness(1) saturate(1);
       }
 
       50% {
-        opacity: 0.4;
+        transform: scale(1.03);
+        filter: brightness(1.4) saturate(1.2);
       }
     }
 
-    /* ── data grid ── */
     .data-grid {
       width: 100%;
       display: grid;
@@ -224,6 +219,10 @@
       background-color: var(--seal);
       font-weight: bold;
     }
+
+    #countdown {
+      color: var(--stamp);
+    }
   </style>
 </head>
 
@@ -264,11 +263,6 @@
 
   <div class="meta-grid">
     <div class="meta-item">
-      <span id="lastStamp">—</span>
-      <span id="countdown">—</span>
-    </div>
-
-    <div class="meta-item">
       <span class="meta-key">Regime</span>
       <span class="meta-val" id="mRegime">—</span>
     </div>
@@ -297,10 +291,15 @@
       <span class="meta-key">Profile</span>
       <span class="meta-val" id="mProfile">—</span>
     </div>
+
   </div>
 
 
 
+  <div style="font-size: .6rem;">
+    <span id="lastStamp">—</span>
+    <span id="countdown">—</span>
+  </div>
 
   <div class="section">
     <h2>The past</h2>
@@ -325,7 +324,7 @@
     const STORAGE_KEY = 'primeWeatherHistory';
     const MAX_POINTS = 300;
     const ET_TZ = "America/New_York";
-    const TOTAL_SOLDIERS = 480;
+    const TOTAL_SOLDIERS = 250;
 
     // ── storage ─────────────────────────────────
     function loadHistory() {
