@@ -223,8 +223,9 @@
     <div style="padding:1rem;">
       <h2>Workshop</h2>
       <nav>
+        <a href="adventure.html" class="ascii">Adventure</a>
         <a href="field.html" class="ascii">Field conditions</a>
-        <a href="es-sitrep.html" class="ascii">ES sitrep</a>
+        <a href="es-sitrep.html" class="ascii">Weather</a>
         <a href="blog.html" class="ascii">Blog</a>
         <a href="dice.html" class="ascii">Dice</a>
         <a href="trinitron.html" class="ascii">Trinitron</a>
@@ -332,7 +333,7 @@
 
     </div>
     <h2>Prime doctrine</h2>
-    <div id="doctrine-list"></div>
+    <div id="doctrine"></div>
     <h2 style="text-transform: uppercase; letter-spacing: .2rem; font-size: 1rem;">Parts and pieces</h2>
     <a href="/backoffice/doctrine.json" style="color: var(--stamp); display: block;">Raw doctrine:
       /backoffice/doctrine.json</a>
@@ -406,9 +407,9 @@
 
     // ---- Load doctrine items from JSON ----
     function renderDoctrineItems(data) {
-      const container = document.getElementById('doctrine-list');
+      const container = document.getElementById('doctrine');
       if (!container) {
-        console.error('Container element #doctrine-list not found');
+        console.error('Container element #doctrine not found');
         return;
       }
 

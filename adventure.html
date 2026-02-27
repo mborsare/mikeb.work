@@ -1,0 +1,763 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>S.P.Y.</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --glow: #7affea;
+      --dim: #2e7a6f;
+      --bg: #020d0b;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    @font-face {
+      font-family: 'ComicMono';
+      src: url('/fonts/ComicMono-Regular.woff') format('woff');
+      font-display: swap;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--glow);
+      font-family: 'ComicMono', monospace;
+      font-size: 17px;
+      line-height: 1.9;
+      padding: 2.8rem 3.2rem;
+      position: relative;
+      overflow-x: hidden;
+      text-shadow: 0 0 7px var(--glow), 0 0 18px rgba(122, 255, 234, .2);
+    }
+
+    /* scanlines */
+    body::before {
+      content: '';
+      pointer-events: none;
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(to bottom,
+          transparent 0px,
+          transparent 3px,
+          rgba(0, 0, 0, .12) 3px,
+          rgba(0, 0, 0, .12) 4px);
+      z-index: 999;
+    }
+
+    /* vignette */
+    body::after {
+      content: '';
+      pointer-events: none;
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, .6) 100%);
+      z-index: 998;
+    }
+
+    .loading-screen,
+    .game-screen {
+      max-width: 62rem;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .game-screen {
+      display: none;
+    }
+
+    .logo {
+      white-space: pre;
+      font-size: 12px;
+      margin-bottom: 2rem;
+      opacity: .85;
+      letter-spacing: .03em;
+    }
+
+    #clock {
+      display: inline-block;
+      opacity: .7;
+      will-change: opacity;
+    }
+
+    #terminal-output div {
+      opacity: 0;
+      animation: linein .04s forwards;
+    }
+
+    @keyframes linein {
+      to {
+        opacity: 1;
+      }
+    }
+
+    .story {
+      white-space: pre-line;
+      margin-bottom: 2rem;
+      min-height: 2em;
+      letter-spacing: .01em;
+    }
+
+    .type-cursor {
+      display: inline-block;
+      width: 9px;
+      height: 1.05em;
+      background: var(--glow);
+      margin-left: 2px;
+      animation: blink .65s step-end infinite;
+      box-shadow: 0 0 10px var(--glow), 0 0 20px var(--glow);
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0;
+      }
+    }
+
+    .choices {
+      border-top: 1px solid var(--dim);
+      padding-top: 1.3rem;
+    }
+
+    .choice {
+      margin: .5rem 0;
+      cursor: pointer;
+      letter-spacing: .04em;
+    }
+
+    .choice::before {
+      content: '> ';
+      color: var(--dim);
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="loading-screen" id="loading-screen">
+
+    <nav style="padding-bottom:2rem;">
+      <a href="index.html" style="color:unset;font-size:.8rem;">back</a>
+    </nav>
+
+    <div class="logo">
+      S.P.Y. Department of Technology ................
+      .............................. .................
+      ..####...........#####...........##..##.........
+      .##..............##..##...........####..........
+      ..####...........#####.............##...........
+      .....##....##....##........##......##......##...
+      ..####.....##....##........##......##......##...
+      ................................................
+      ................................ <span id="clock"></span>
+    </div>
+
+    <div id="terminal-output"></div>
+  </div>
+
+  <div class="game-screen" id="game-screen">
+    <div class="story" id="story"></div>
+    <div class="choices" id="choices"></div>
+  </div>
+
+  <script>
+    /* ─── LIVE ASCII CLOCK ───────────────────────── */
+
+    (() => {
+      const clock = document.getElementById('clock');
+      if (!clock) return;
+
+      let t = 0;
+
+      function updateClock() {
+        const now = new Date();
+        const days = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+        const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
+          'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+
+        clock.textContent =
+          `${String(now.getHours()).padStart(2, '0')}:` +
+          `${String(now.getMinutes()).padStart(2, '0')} ` +
+          `${days[now.getDay()]} ` +
+          `${String(now.getDate()).padStart(2, '0')} ` +
+          `${months[now.getMonth()]}`;
+      }
+
+      function pulse() {
+        t += 0.03;
+        clock.style.opacity = 0.55 + (Math.sin(t) + 1) * 0.15;
+        requestAnimationFrame(pulse);
+      }
+
+      updateClock();
+      setInterval(updateClock, 1000);
+      pulse();
+    })();
+
+    /* ─── LOGIN BOOT ───────────────────────── */
+
+    const terminal = document.getElementById('terminal-output');
+    let loginInput = "";
+
+    function print(text) {
+      const line = document.createElement("div");
+      line.textContent = text;
+      terminal.appendChild(line);
+    }
+
+    function printInput() {
+      const line = document.createElement("div");
+      line.id = "login-line";
+      line.innerHTML = "> <span id='typed'></span><span class='type-cursor'></span>";
+      terminal.appendChild(line);
+    }
+
+    function updateLogin() {
+      const t = document.getElementById("typed");
+      if (t) t.textContent = loginInput;
+    }
+
+    function boot() {
+      print("$ boot spy_terminal");
+      print("Encrypting connection");
+      print("Scrambling signal");
+      print("Success");
+      print("");
+      print("Select Agent Profile:");
+      print("");
+      print("1) Agent NOVA (Too Dramatic)");
+      print("2) Agent CORA (Correct Choice)");
+      print("3) Agent PIXEL (On Snack Break)");
+      print("");
+      print("Type number and press ENTER:");
+      print("");
+      printInput();
+    }
+
+    boot();
+
+    function startGame() {
+      document.getElementById('loading-screen').style.display = "none";
+      document.getElementById('game-screen').style.display = "block";
+      render();
+    }
+
+    /* ─── TYPEWRITER ENGINE ───────────────────────── */
+
+    let printJob = null;
+    let isPrinting = false;
+    let fullText = "";
+    let charIndex = 0;
+    let onDone = null;
+
+    const storyEl = document.getElementById("story");
+
+    const CHAR_SPEED = 22;
+    const PUNCT_PAUSE = 160;
+    const COMMA_PAUSE = 80;
+    const NEWLINE_PAUSE = 110;
+
+    function typeChar() {
+      if (charIndex >= fullText.length) {
+        isPrinting = false;
+        storyEl.innerHTML = escapeHtml(fullText);
+        if (onDone) onDone();
+        return;
+      }
+
+      const ch = fullText[charIndex];
+      charIndex++;
+
+      storyEl.innerHTML =
+        escapeHtml(fullText.slice(0, charIndex)) +
+        '<span class="type-cursor"></span>';
+
+      let delay = CHAR_SPEED;
+      if (ch === '\n') delay = NEWLINE_PAUSE;
+      else if ('.!?…'.includes(ch)) delay = PUNCT_PAUSE;
+      else if (',;:'.includes(ch)) delay = COMMA_PAUSE;
+
+      delay += Math.random() * 10 - 5;
+      printJob = setTimeout(typeChar, delay);
+    }
+
+    function skipPrint() {
+      if (!isPrinting) return;
+      clearTimeout(printJob);
+      isPrinting = false;
+      storyEl.innerHTML = escapeHtml(fullText);
+      if (onDone) onDone();
+    }
+
+    function typeText(text, callback) {
+      fullText = text;
+      charIndex = 0;
+      onDone = callback;
+      isPrinting = true;
+      storyEl.innerHTML = '<span class="type-cursor"></span>';
+      typeChar();
+    }
+
+    function escapeHtml(str) {
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    /* ─── GAME STATE ───────────────────────── */
+
+    const game = { brave: 0, clever: 0, node: "start" };
+    let gameActive = false;
+
+    /* ─── INPUT HANDLER (LOGIN + GAME) ───────────────────────── */
+
+    document.addEventListener("keydown", e => {
+
+      // LOGIN
+      if (document.getElementById("login-line")) {
+
+        if (["1", "2", "3"].includes(e.key)) {
+          loginInput = e.key;
+          updateLogin();
+        }
+
+        if (e.key === "Enter") {
+          document.getElementById("login-line").remove();
+
+          if (loginInput === "2") {
+            print("");
+            print("Logging in as Agent CORA...");
+            setTimeout(() => {
+              print("Access Granted.");
+              setTimeout(startGame, 900);
+            }, 600);
+          } else {
+            print("");
+            print("Incorrect Agent. Try again.");
+            setTimeout(() => {
+              loginInput = "";
+              boot();
+            }, 1000);
+          }
+        }
+
+        return;
+      }
+
+      // SKIP TYPEWRITER
+      if (isPrinting) {
+        if (e.key === " " || e.key === "Enter") {
+          e.preventDefault();
+          skipPrint();
+        }
+        return;
+      }
+
+      // GAME INPUT (after nodes exist)
+      if (!gameActive) return;
+      if (e.key === "1") selectChoice(0);
+      if (e.key === "2") selectChoice(1);
+    });
+
+    /* ─── COLORS ─────────────────────────────────────────── */
+
+    const colors = {
+      start: "#020d0b",
+      case: "#071a2e",
+      guide: "#1a0714",
+      cams: "#0a0428",
+      prints: "#071a18",
+      identify: "#1a0e03",
+      staircase: "#0d0d1f",
+      roof: "#041a18",
+      talk: "#071228",
+      mentor: "#031a0e",
+      return: "#031a0e"
+    };
+
+    /* ─── RENDER ENGINE ───────────────────────────────────── */
+
+    function render() {
+      gameActive = false;
+
+      const node = nodes[game.node];
+      document.body.style.backgroundColor =
+        colors[game.node] || "#020d0b";
+
+      const choicesEl = document.getElementById("choices");
+      choicesEl.innerHTML = "";
+
+      typeText(node.text, () => {
+
+        if (node.end) {
+          const again = document.createElement("div");
+          again.className = "choice";
+          again.textContent = "1. Play again";
+          again.onclick = resetGame;
+          choicesEl.appendChild(again);
+          return;
+        }
+
+        node.choices.forEach((c, i) => {
+          const div = document.createElement("div");
+          div.className = "choice";
+          div.textContent = c.text;
+          div.onclick = () => selectChoice(i);
+          choicesEl.appendChild(div);
+        });
+
+        gameActive = true;
+      });
+    }
+
+    /* ─── GAME FLOW ───────────────────────────────────────── */
+
+    function selectChoice(index) {
+      if (!gameActive) return;
+
+      const choice = nodes[game.node].choices[index];
+      if (!choice) return;
+
+      if (choice.brave) game.brave += choice.brave;
+      if (choice.clever) game.clever += choice.clever;
+
+      game.node = choice.next;
+      render();
+    }
+
+    function resetGame() {
+      game.brave = 0;
+      game.clever = 0;
+      game.node = "start";
+      render();
+    }
+
+    /* ─── NODES ──────────────────────────────────────────── */
+
+    const nodes = {
+
+      start: {
+        text: `Agent CORA! 🕵️
+
+We have a MAJOR situation.
+
+The Prized Royal Curlockey Stick
+has been STOLEN from the Louvre museum!
+
+It is ancient.
+It is sparkly.
+It has never once been used to play curlockey.
+
+(No one is sure what curlockey even is.)
+
+The whole museum is in a panic.
+A very quiet, French panic.
+
+You have been sent to solve the case.
+
+Where do you start?`,
+        choices: [
+          { text: "1. Look closely at the empty display case.", next: "case", clever: +1 },
+          { text: "2. Talk to the very nervous tour guide nearby.", next: "guide", brave: +1 }
+        ]
+      },
+
+      case: {
+        text: `You walk up to the display case.
+
+The glass isn't broken.
+Nothing is scratched.
+It's almost TOO tidy.
+
+But there, inside the empty case,
+is a small handwritten card:
+
+"Temporarily Moved. Do Not Worry. 😊"
+
+You frown.
+
+The museum definitely did not write that.
+No official card has a little smiley face.
+
+Someone left it there on purpose —
+someone who wanted people to walk right past
+without asking questions.
+
+Very sneaky.`,
+        choices: [
+          { text: "1. Review the security camera footage.", next: "cams", clever: +1 },
+          { text: "2. Search the floor for footprints or clues.", next: "prints", clever: +1 }
+        ]
+      },
+
+      guide: {
+        text: `The tour guide is smiling.
+
+A LOT.
+
+"Oh, the stick? Art gets moved sometimes!" they say cheerfully.
+
+Hmm. That is not how museums work.
+
+You notice three things:
+Their badge is on crooked.
+Their trainers are scuffed and dusty.
+And they haven't moved their feet once
+since you started talking to them.
+
+That's exactly what someone does
+when they don't want you to look at their shoes.`,
+        choices: [
+          { text: "1. Point at their shoes and ask where they've been.", next: "prints", brave: +1 },
+          { text: "2. Say goodbye politely and go check the cameras.", next: "cams", clever: +1 }
+        ]
+      },
+
+      cams: {
+        text: `The security room has lots of screens
+and one very stressed guard eating a biscuit.
+
+You rewind the footage to this morning.
+
+There — 11:14am.
+
+A small figure in a junior-agent windbreaker
+moves through the gallery.
+
+They're good.
+They know exactly where all the cameras are
+and they dodge every single one.
+
+Almost every single one.
+
+In one corner, for just half a second —
+you can see their face.`,
+        choices: [
+          { text: "1. Zoom in on that half-second of footage!", next: "identify", clever: +1 },
+          { text: "2. Figure out which way they went after.", next: "staircase", brave: +1 }
+        ]
+      },
+
+      prints: {
+        text: `You crouch down and look at the floor.
+
+The marble is shiny and clean —
+but not completely.
+
+There are small scuff marks
+heading toward the staircase.
+
+Small feet. Moving fast.
+Someone who knew exactly where they were going.
+
+You follow the trail with your eyes
+all the way to the door marked:
+
+ROOF ACCESS — STAFF ONLY
+
+Interesting.`,
+        choices: [
+          { text: "1. Follow the footprints up to the roof!", next: "staircase", brave: +1 },
+          { text: "2. Scan the print pattern and check the database.", next: "identify", clever: +1 }
+        ]
+      },
+
+      identify: {
+        text: `BINGO.
+
+Agency Trainee #17.
+
+Codename: Hanna.
+
+You pull up her file.
+
+She's a kid — not much older than you.
+She's brilliant at sneaking, navigation, and finding things.
+She has asked for a real mission THREE times.
+All three times, she was told: "Not yet."
+
+Last week she wrote in her logbook:
+"I am ready. Nobody believes me. I will PROVE it."
+
+Oh no.
+
+You know exactly what she did.
+And you know exactly where she is.`,
+        choices: [
+          { text: "1. Race up to the roof to find her!", next: "roof", brave: +1 },
+          { text: "2. Send her a message: \u201cI know. I\u2019m coming up.\u201d", next: "roof", clever: +1 }
+        ]
+      },
+
+      staircase: {
+        text: `You push through the door marked STAFF ONLY.
+
+The staircase is narrow and echoey.
+
+Someone moved a mop bucket out of the way —
+just enough to squeeze past quickly.
+
+You climb up, up, up.
+
+At the very top, there's a heavy door.
+
+It's not fully closed.
+
+A cold breeze sneaks through the gap
+and ruffles your hair.
+
+Someone is on the other side.`,
+        choices: [
+          { text: "1. Push the door open and step onto the roof.", next: "roof", brave: +1 }
+        ]
+      },
+
+      roof: {
+        text: `Wow.
+
+You can see ALL of Paris from up here.
+
+But you're not here for the view.
+
+Hanna is sitting on a big metal box,
+the Prized Royal Curlockey Stick across her lap.
+She's hugging it a little bit.
+
+She looks up. She doesn't run.
+
+"I was going to bring it back," she says quickly.
+"I just wanted to prove I could do a real mission.
+Nobody ever lets me do anything.
+I had a whole plan."
+
+She looks at you.
+
+"You found me really fast."`,
+        choices: [
+          { text: "1. Sit next to her and ask about the plan.", next: "talk", clever: +2 },
+          { text: "2. Tell her taking things without permission isn't okay.", next: "return", brave: +1 }
+        ]
+      },
+
+      talk: {
+        text: `Hanna's plan is actually... really impressive.
+
+She made a fake card. She studied all the cameras.
+She had a timed route, a backup escape, and a cover story.
+She was going to "discover" the stick herself
+and hand it back to the museum — like a hero.
+
+"I wasn't going to keep it!" she says.
+"I just wanted one chance to show everyone what I can do."
+
+You look at the sparkly curlockey stick.
+You look at Hanna.
+
+Part of you totally understands.
+
+But taking something without asking —
+even if you're going to give it back —
+is still not okay.
+
+You have to say something.
+The question is how.`,
+        choices: [
+          { text: "1. Tell her she's talented — and offer to train her properly.", next: "mentor", clever: +1 },
+          { text: "2. Be honest: great skills, wrong choice. Return it together.", next: "return", brave: +1 }
+        ]
+      },
+
+      mentor: {
+        end: true,
+        text: `"Your plan was actually really clever," you tell her.
+"Seriously. The camera thing was genius."
+
+Hanna blinks. She wasn't expecting that.
+
+"But next time," you say, "you ask ME first."
+
+You carry the curlockey stick back downstairs together.
+
+The museum curator gasps with relief.
+A photographer takes your picture.
+Hanna stands very straight.
+
+Back at the agency, you file one report —
+and one request: to make Hanna your official trainee.
+
+It gets approved before lunch.
+
+In the hallway, Hanna asks:
+"How did you find me so fast?"
+
+You smile and walk away.
+
+Some secrets are worth keeping. 🕵️✨
+
+⭐ MISSION SUCCESS! ⭐
+(Best Friends in Spy Business Ending)
+
+$ _`
+      },
+
+      return: {
+        end: true,
+        text: `"I get it," you tell Hanna gently.
+"I really do. But this isn't how it works."
+
+Hanna is quiet for a second.
+Then she nods.
+
+You walk back downstairs side by side.
+
+Hanna hands the Prized Royal Curlockey Stick
+to the curator herself.
+
+"I'm sorry," she says. "I should have asked."
+
+The curator looks like she might faint with happiness.
+
+Hanna gets a very serious talking-to
+from three different people.
+
+But at the very end,
+the agency director adds quietly:
+
+"Your file has been updated.
+Field assignment — pending review."
+
+Hanna tries very hard not to smile.
+
+She doesn't quite manage it.
+
+Your communicator crackles:
+"Excellent work, Agent CORA." 🌟
+
+⭐ MISSION COMPLETE! ⭐
+
+$ _`
+      }
+    };
+  </script>
+</body>
+
+</html>
