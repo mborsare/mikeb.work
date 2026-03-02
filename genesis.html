@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Genesis</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    :root {
+      --bg: #000;
+      --seal: #eaffea;
+      --dim: #6affc8;
+    }
+
+    @font-face {
+      font-family: 'ComicMono';
+      src: url('/fonts/ComicMono-Regular.woff') format('woff');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--seal);
+      font-family: "ComicMono";
+    }
+
+    #clock {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    main {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+      padding: 1rem;
+      max-width: 56.25rem;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      padding: 3rem;
+    }
+
+    .ascii {
+      white-space: pre;
+      line-height: 1.1;
+    }
+
+    /* ---- Emulator container ---- */
+
+    .emulator-shell {
+      width: 100%;
+      min-width: 18.75rem;
+      max-width: 50rem;
+    }
+
+    .emulator-stage {
+      aspect-ratio: 4 / 3;
+      background: #000;
+      border: 0.0625rem solid #222;
+    }
+
+    #game {
+      width: 100%;
+      height: 100%;
+    }
+
+    section.controls {
+      text-align: center;
+      opacity: 0.85;
+      gap: 3rem;
+    }
+
+    .kbd {
+      display: inline-block;
+      padding: 0.5rem .8rem;
+      border: 0.0625rem solid #333;
+      border-bottom-width: 0.125rem;
+      border-radius: 0.25rem;
+      margin: 0.5rem .1rem;
+      color: var(--dim);
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0.75rem 0;
+    }
+
+    footer {
+      font-size: 0.4rem;
+      margin-top: 4rem;
+    }
+
+    @media (min-width: 48rem) {
+      main {
+        padding: 2rem;
+      }
+    }
+
+    .genesis {
+      width: 35rem;
+    }
+
+    a {
+      text-decoration: unset;
+      color: unset;
+      display: block;
+      padding: 0.25rem 0 2rem;
+    }
+  </style>
+
+  <script>
+    window.EJS_player = "#game";
+    window.EJS_core = "segaMD";
+    window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
+    window.EJS_gameUrl = "/backoffice/the-stacks/hockey.bin";
+    window.EJS_startOnLoaded = true;
+  </script>
+
+  <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
+</head>
+
+<body>
+
+  <main>
+
+    <header>
+      <nav>
+        <a href="/">Back</a>
+      </nav>
+      <pre class="ascii" aria-hidden="true">
+ #     # #     # #           #####  #       
+ ##    # #     # #          #     # #    #  
+ # #   # #     # #          #     # #    #  
+ #  #  # ####### #           ###### #    #  
+ #   # # #     # #                # ####### 
+ #    ## #     # #          #     #      #  
+ #     # #     # #######     #####       #  
+</pre>
+    </header>
+
+    <section class="genesis" aria-label="Emulator">
+      <div id="clock" aria-live="polite"></div>
+      <div class="emulator-shell">
+        <div class="emulator-stage">
+          <div id="game"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="controls" aria-label="Controls">
+      <h2>Controls</h2>
+      <ul>
+        <li>
+          D-Pad:
+          <span class="kbd">↑</span>
+          <span class="kbd">↓</span>
+          <span class="kbd">←</span>
+          <span class="kbd">→</span>
+        </li>
+        <li>
+          Buttons:
+          <span class="kbd">z</span>
+          <span class="kbd">x</span>
+          <span class="kbd">c</span>
+        </li>
+        <li>
+          Start:
+          <span class="kbd">Enter</span>
+        </li>
+      </ul>
+    </section>
+
+    <footer>
+      <pre class="ascii" aria-hidden="true">
+██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████ 
+▓██░  ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█   ▀ 
+▓██░ ██▓▒▓██ ░▄█ ▒▒██▒▓██    ▓██░▒███   
+▒██▄█▓▒ ▒▒██▀▀█▄  ░██░▒██    ▒██ ▒▓█  ▄ 
+▒██▒ ░  ░░██▓ ▒██▒░██░▒██▒   ░██▒░▒████▒
+▒▓▒░ ░  ░░ ▒▓ ░▒▓░░▓  ░ ▒░   ░  ░░░ ▒░ ░
+░▒ ░       ░▒ ░ ▒░ ▒ ░░  ░      ░ ░ ░  ░
+░░         ░░   ░  ▒ ░░      ░      ░   
+            ░      ░         ░      ░  ░
+</pre>
+    </footer>
+
+  </main>
+
+  <script>
+    (() => {
+      const clock = document.getElementById("clock");
+      const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      let pulseTime = 0;
+
+      function updateClock() {
+        const now = new Date();
+        clock.textContent = `${days[now.getDay()]} ${months[now.getMonth()]} ${now.getDate()} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(now.getSeconds()).padStart(2, "0")}:${String(now.getMilliseconds()).padStart(3, "0")}`;
+      }
+
+      function pulse() {
+        pulseTime += 0.02;
+        clock.style.opacity = 0.35 + (Math.sin(pulseTime) + 1) * 0.15;
+        requestAnimationFrame(pulse);
+      }
+
+      updateClock();
+      setInterval(updateClock, 1000);
+      pulse();
+    })();
+  </script>
+
+</body>
+
+</html>
