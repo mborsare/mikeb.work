@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Lots, of emotion</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+
+  <style>
+    @font-face {
+      font-family: 'ComicMono';
+      src: url('/fonts/ComicMono-Regular.woff') format('woff');
+      font-display: swap;
+    }
+
+    :root {
+      --seal: #eaffea;
+      /* Adjusted base color for better contrast blending */
+      --stamp: rgba(136, 136, 136, 0.85);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 3rem auto;
+      background: #000;
+      color: #eaffea;
+      font-family: 'ComicMono', monospace;
+      transition: background-color 0.3s ease;
+      text-align: center;
+      overflow-x: hidden;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    nav {
+      padding: 1rem;
+      width: 100%;
+      text-align: left;
+    }
+
+    .ascii-link {
+      color: var(--seal);
+      text-decoration: none;
+      opacity: 0.7;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1000px;
+      padding: 1.5rem 1rem;
+      flex-grow: 1;
+    }
+
+    /* ---- Clock ---- */
+    #clock {
+      color: var(--seal);
+      opacity: 0.45;
+      filter: blur(0.25px);
+      will-change: opacity;
+      display: inline-block;
+      margin-bottom: 2rem;
+      font-size: 0.9rem;
+    }
+
+    .live-controls {
+      margin-bottom: clamp(2rem, 10vh, 4rem);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 1rem;
+    }
+
+    #modeSwitch {
+      transform: scale(1.2);
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    #primary {
+      font-size: clamp(3rem, 20vw, 14rem);
+      margin: 0;
+      line-height: 1;
+      transition: color 0.3s ease, background-color 0.3s ease, padding 0.3s ease;
+    }
+
+    body.live-mode #primary {
+      color: #000;
+      background-color: #ffff00;
+      padding: 0.05em 0.2em;
+      display: inline-block;
+      font-weight: bold;
+    }
+
+    #secondary {
+      font-size: clamp(1rem, 6vw, 3rem);
+      opacity: .7;
+      margin-top: 0.5rem;
+    }
+
+    body.live-mode #secondary {
+      color: #ffff00;
+      opacity: 1;
+    }
+
+    #pauseTimer,
+    #stopTag {
+      margin-top: 1rem;
+      min-height: 1.25rem;
+      font-size: clamp(0.8rem, 3.5vw, 1rem);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .visible {
+      opacity: 1 !important;
+    }
+
+    .controls {
+      margin-top: 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 1rem;
+      width: 100%;
+      justify-content: center;
+    }
+
+    button {
+      background: transparent;
+      border-radius: 1rem;
+      border: 1px solid currentColor;
+      color: inherit;
+      font-family: 'ComicMono', monospace;
+      font-size: clamp(1.2rem, 8vw, 2rem);
+      padding: clamp(1rem, 5vw, 2rem);
+      cursor: pointer;
+      flex: 1;
+      max-width: 200px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body.live-mode button:not(#undoBtn) {
+      border-color: #ffff00;
+      color: #ffff00;
+    }
+
+    button.hidden {
+      display: none;
+    }
+
+    button:active {
+      transform: scale(.95);
+    }
+
+    #undoBtn {
+      background: none;
+      border: none;
+      font-size: 1rem;
+      text-decoration: underline;
+      cursor: pointer;
+      padding: 1rem;
+    }
+
+    /* ---- Ledger with AA MJB Watermark ---- */
+    #ledger {
+      margin: 2rem auto;
+      max-width: 500px;
+      text-align: left;
+      font-size: clamp(0.75rem, 3vw, 0.9rem);
+    }
+
+    .trade-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      position: relative;
+    }
+
+    .mjb-stamp::after {
+      color: var(--stamp);
+      content: "MJB";
+      font-size: 0.8rem;
+      font-weight: bold;
+      margin-left: 1rem;
+      letter-spacing: 0.2rem;
+      display: inline-block;
+      transform: translate(var(--mjb-x, -2px), var(--mjb-y, -2px)) rotate(var(--mjb-tilt, -7deg));
+      /* Inverts color on dark mode to stay visible */
+      mix-blend-mode: difference;
+      filter: brightness(1.1);
+    }
+
+    /* Override for Live Mode contrast (Black on Yellow/Red) */
+    body.live-mode .mjb-stamp::after {
+      --stamp: rgba(0, 0, 0, 0.65);
+      mix-blend-mode: normal;
+    }
+
+    body.live-mode .trade-row {
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+      color: #000;
+    }
+
+    #stopOverlay {
+      display: none;
+      background: #4545ff;
+      color: #ffff00;
+      padding: 1.5rem 1rem;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 1000;
+      font-size: clamp(1rem, 4vw, 1.5rem);
+    }
+
+    #stopOverlay.active {
+      display: block;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="stopOverlay">...</div>
+
+  <nav style="text-align: center;">
+    <a href="index.html" class="ascii-link">Back</a>
+  </nav>
+
+  <div class="container">
+    <time id="clock"></time>
+
+    <div id="secondary">Lots traded</div>
+    <div id="primary">0</div>
+
+    <div id="pauseTimer"></div>
+    <div id="stopTag"></div>
+
+    <div class="controls">
+      <div class="btn-group">
+        <button id="buyBtn">Buy</button>
+        <button id="sellBtn">Sell</button>
+      </div>
+      <button id="undoBtn">Undo</button>
+      <div class="live-controls">
+        <label><input type="checkbox" id="modeSwitch">Go live</label>
+      </div>
+    </div>
+
+    <div id="ledger"></div>
+    <pre class="ascii" style="font-size:0.4rem; margin-top: 9rem;">
+      ██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████ 
+      ▓██░  ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█   ▀ 
+      ▓██░ ██▓▒▓██ ░▄█ ▒▒██▒▓██    ▓██░▒███   
+      ▒██▄█▓▒ ▒▒██▀▀█▄  ░██░▒██    ▒██ ▒▓█  ▄ 
+      ▒██▒ ░  ░░██▓ ▒██▒░██░▒██▒    ░██▒░▒████▒
+      ▒▓▒░ ░  ░░ ▒▓ ░▒▓░░▓  ░ ▒░    ░  ░░░ ▒░ ░
+      ░▒ ░        ░▒ ░ ▒░ ▒ ░░  ░      ░ ░ ░  ░
+      ░░          ░░   ░  ▒ ░░      ░      ░    
+                  ░      ░          ░      ░  ░
+    </pre>
+  </div>
+
+  <script>
+    const COST_PER_LOT = 2.40;
+    const CAP = 20;
+    const PAUSE_DURATION = 4 * 60 * 1000;
+    const STORAGE_KEY = 'trading_discipline_state';
+
+    let state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
+      mode: "paper",
+      stopReached: null,
+      nextCashOpen: null,
+      pauseTimer: null,
+      paper: { commission: 0, lots: 0, trades: [] },
+      live: { commission: 0, lots: 0, trades: [], locked: false }
+    };
+
+    const els = {
+      body: document.body,
+      primary: document.getElementById('primary'),
+      secondary: document.getElementById('secondary'),
+      ledger: document.getElementById('ledger'),
+      stopOverlay: document.getElementById('stopOverlay'),
+      modeSwitch: document.getElementById('modeSwitch'),
+      stopTag: document.getElementById('stopTag'),
+      pauseTimer: document.getElementById('pauseTimer'),
+      buyBtn: document.getElementById('buyBtn'),
+      sellBtn: document.getElementById('sellBtn'),
+      undoBtn: document.getElementById('undoBtn'),
+      clock: document.getElementById('clock')
+    };
+
+    let clockT = 0;
+    function updateClock() {
+      const now = new Date();
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      els.clock.textContent = `${days[now.getDay()]} ${months[now.getMonth()]} ${now.getDate()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}:${String(now.getMilliseconds()).padStart(3, '0')}`;
+    }
+    function pulseClock() {
+      clockT += 0.02;
+      els.clock.style.opacity = 0.35 + (Math.sin(clockT) + 1) * 0.15;
+      requestAnimationFrame(pulseClock);
+    }
+    setInterval(updateClock, 50);
+    pulseClock();
+
+    function getStampStyle() {
+      const e = Math.pow(Math.random(), 3);
+      const x = -3 - e * 8;
+      const y = -3 - e * 6;
+      const tilt = -4 - e * 6;
+      return `--mjb-x: ${x}px; --mjb-y: ${y}px; --mjb-tilt: ${tilt}deg;`;
+    }
+
+    function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+    function getNextCashOpen() {
+      const nextOpen = new Date();
+      nextOpen.setHours(9, 30, 0, 0);
+      if (new Date().getHours() >= 9 && (new Date().getHours() > 9 || new Date().getMinutes() >= 30)) {
+        nextOpen.setDate(nextOpen.getDate() + 1);
+      }
+      return nextOpen.getTime();
+    }
+
+    function formatTimeUntil(target) {
+      const diff = target - Date.now();
+      if (diff <= 0) return "Market Open";
+      const h = Math.floor(diff / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      return `${h}h ${m}m ${s}s`;
+    }
+
+    els.modeSwitch.onchange = () => {
+      state.mode = els.modeSwitch.checked ? "live" : "paper";
+      save(); render();
+    };
+
+    function render() {
+      const acc = state[state.mode];
+      const isLive = state.mode === "live";
+      els.body.classList.toggle('live-mode', isLive);
+      els.modeSwitch.checked = isLive;
+
+      if (isLive) {
+        els.primary.textContent = `$${acc.commission.toFixed(2)}`;
+        els.secondary.textContent = `${acc.lots} lots`;
+        const prog = Math.min(acc.commission / CAP, 1);
+        const r = Math.floor(69 + 186 * prog);
+        const g = Math.floor(69 * (1 - prog));
+        const b = Math.floor(255 * (1 - prog * 0.6));
+        els.body.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+      } else {
+        els.primary.textContent = acc.lots;
+        els.secondary.textContent = "Lots traded";
+        els.body.style.backgroundColor = '#000';
+      }
+
+      const isLocked = state.live.locked && isLive;
+      [els.buyBtn, els.sellBtn, els.undoBtn].forEach(btn => btn.classList.toggle('hidden', isLocked));
+
+      els.ledger.innerHTML = `<div class="trade-row"><strong>Total</strong><strong>${acc.lots}</strong></div>` +
+        acc.trades.slice().reverse().map(t => `
+          <div class="trade-row mjb-stamp" style="${getStampStyle()}">
+            <span>${t.time}</span>
+            <span>${t.dir} $${t.cost.toFixed(2)}</span>
+          </div>`).join('');
+
+      updateTimers();
+    }
+
+    function updateTimers() {
+      if (state.pauseTimer) {
+        const rem = PAUSE_DURATION - (Date.now() - state.pauseTimer);
+        if (rem > 0) {
+          els.pauseTimer.textContent = `Cool down: ${Math.floor(rem / 60000)}:${Math.floor((rem % 60000) / 1000).toString().padStart(2, '0')}`;
+          els.pauseTimer.classList.add('visible');
+        } else {
+          els.pauseTimer.classList.remove('visible');
+          state.pauseTimer = null;
+        }
+      }
+
+      if (state.stopReached) {
+        const now = Date.now();
+        if (now >= state.nextCashOpen) {
+          state.live = { commission: 0, lots: 0, trades: [], locked: false };
+          state.stopReached = null;
+          state.nextCashOpen = null;
+          save(); render();
+        } else {
+          const elapsed = now - state.stopReached;
+          const h = Math.floor(elapsed / 3600000);
+          const m = Math.floor((elapsed % 3600000) / 60000);
+          const s = Math.floor((elapsed % 60000) / 1000);
+          els.stopTag.textContent = `Rested ${h}h ${m}m ${s}s - Cash open in ${formatTimeUntil(state.nextCashOpen)}`;
+          els.stopTag.classList.add('visible');
+        }
+      } else {
+        els.stopTag.classList.remove('visible');
+      }
+    }
+
+    function execute(dir) {
+      const acc = state[state.mode];
+      acc.lots++;
+      acc.commission += COST_PER_LOT;
+      acc.trades.push({ time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), dir, cost: COST_PER_LOT });
+
+      if (state.mode === "live" && acc.commission >= CAP) {
+        state.live.locked = true;
+        state.stopReached = Date.now();
+        state.nextCashOpen = getNextCashOpen();
+        els.stopOverlay.classList.add('active');
+        const ovInterval = setInterval(() => {
+          els.stopOverlay.textContent = `Daily Cap Reached. Cash open in ${formatTimeUntil(state.nextCashOpen)}`;
+        }, 1000);
+        setTimeout(() => {
+          clearInterval(ovInterval);
+          els.stopOverlay.classList.remove('active');
+          state.mode = "paper";
+          save(); render();
+        }, 7000);
+      } else {
+        state.pauseTimer = Date.now();
+      }
+      save(); render();
+    }
+
+    els.undoBtn.onclick = () => {
+      const acc = state[state.mode];
+      if (acc.trades.length > 0) {
+        acc.trades.pop();
+        acc.lots--;
+        acc.commission -= COST_PER_LOT;
+        save(); render();
+      }
+    };
+
+    els.buyBtn.onclick = () => execute('BUY');
+    els.sellBtn.onclick = () => execute('SELL');
+
+    setInterval(updateTimers, 1000);
+    render();
+  </script>
+</body>
+
+</html>
