@@ -78,6 +78,42 @@
       gap: 3rem;
     }
 
+    .fullscreen-btn {
+      background: #111;
+      border: 0.0625rem solid #333;
+      border-radius: 0.25rem;
+      color: var(--dim);
+      padding: 0.75rem 1.5rem;
+      font-family: "ComicMono";
+      font-size: 1rem;
+      cursor: pointer;
+      margin-bottom: 1rem;
+      transition: all 0.2s;
+    }
+
+    .fullscreen-btn:hover {
+      background: #222;
+      border-color: #555;
+    }
+
+    .fullscreen-btn:active {
+      transform: translateY(0.0625rem);
+    }
+
+    .emulator-stage:fullscreen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #000;
+    }
+
+    .emulator-stage:fullscreen #game {
+      max-width: 133.33vh;
+      max-height: 100vh;
+      width: 100%;
+      height: auto;
+    }
+
     .kbd {
       display: inline-block;
       padding: 0.5rem .8rem;
@@ -150,9 +186,10 @@
     <section class="genesis" aria-label="Emulator">
       <div id="clock" aria-live="polite"></div>
       <div class="emulator-shell">
-        <div class="emulator-stage">
+        <div class="emulator-stage" id="emulator-stage">
           <div id="game"></div>
         </div>
+        <button class="fullscreen-btn" id="fullscreen-btn">⛶ Fullscreen</button>
       </div>
     </section>
 
@@ -216,6 +253,34 @@
       updateClock();
       setInterval(updateClock, 1000);
       pulse();
+    })();
+
+    // Fullscreen toggle
+    (() => {
+      const btn = document.getElementById("fullscreen-btn");
+      const stage = document.getElementById("emulator-stage");
+
+      function updateButton() {
+        if (document.fullscreenElement) {
+          btn.textContent = "✕ Exit Fullscreen";
+        } else {
+          btn.textContent = "⛶ Fullscreen";
+        }
+      }
+
+      btn.addEventListener("click", async () => {
+        try {
+          if (!document.fullscreenElement) {
+            await stage.requestFullscreen();
+          } else {
+            await document.exitFullscreen();
+          }
+        } catch (err) {
+          console.error("Fullscreen error:", err);
+        }
+      });
+
+      document.addEventListener("fullscreenchange", updateButton);
     })();
   </script>
 

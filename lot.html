@@ -1,0 +1,1224 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Lot</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+
+  <style>
+    @font-face {
+      font-family: 'ComicMono';
+      src: url('/fonts/ComicMono-Regular.woff') format('woff');
+      font-display: swap;
+    }
+
+    :root {
+      --bg: #000000;
+      --text: #c0c0c0;
+      --stamp: #888888;
+      --seal: #eaffea;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      font-size: 24px;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'ComicMono', monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1rem;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    nav {
+      width: 100%;
+      max-width: 50rem;
+      padding: 0.5rem 0;
+    }
+
+    .ascii-link {
+      color: var(--seal);
+      text-decoration: none;
+      opacity: 0.7;
+      font-size: 0.75rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 50rem;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #clock {
+      color: var(--seal);
+      opacity: 0.35;
+      filter: blur(0.25px);
+      font-size: 0.5rem;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .bullet-art {
+      display: none;
+    }
+
+    .tool-image {
+      width: 150px;
+      height: auto;
+      margin: 1rem auto;
+      display: block;
+      transition: all 0.1s ease;
+    }
+
+    .tool-image.spent {
+      opacity: 0.3;
+      filter: grayscale(0.8);
+    }
+
+    @keyframes montyPythonTwist {
+      0% {
+        transform: rotate(0deg) scale(1);
+      }
+
+      10% {
+        transform: rotate(-8deg) scale(1.05) translateY(-3px);
+      }
+
+      20% {
+        transform: rotate(12deg) scale(0.95) translateY(2px);
+      }
+
+      30% {
+        transform: rotate(-15deg) scale(1.08) translateX(-5px);
+      }
+
+      40% {
+        transform: rotate(10deg) scale(0.92) translateX(5px);
+      }
+
+      50% {
+        transform: rotate(-12deg) scale(1.06) translateY(-4px) translateX(-3px);
+      }
+
+      60% {
+        transform: rotate(15deg) scale(0.94) translateY(3px) translateX(4px);
+      }
+
+      70% {
+        transform: rotate(-10deg) scale(1.04) translateX(-4px);
+      }
+
+      80% {
+        transform: rotate(8deg) scale(0.96) translateY(2px);
+      }
+
+      90% {
+        transform: rotate(-5deg) scale(1.02);
+      }
+
+      100% {
+        transform: rotate(0deg) scale(1);
+      }
+    }
+
+    .tool-image.wiggle {
+      animation: montyPythonTwist 0.6s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+    }
+
+    .prompt-section {
+      width: 100%;
+      text-align: center;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .prompt-section.hidden {
+      display: none;
+    }
+
+    .question {
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      opacity: 0.8;
+    }
+
+    #reasonInput {
+      width: 100%;
+      background: transparent;
+      border: 1px solid var(--text);
+      border-radius: 0.25rem;
+      color: var(--seal);
+      font-family: 'ComicMono', monospace;
+      font-size: 1.5rem;
+      padding: 1rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      outline: none;
+    }
+
+    #reasonInput::placeholder {
+      color: var(--text);
+      opacity: 0.4;
+    }
+
+    #reasonInput:focus {
+      border-color: var(--seal);
+    }
+
+    #spendBtn {
+      background: transparent;
+      border: 2px solid var(--seal);
+      border-radius: 0.5rem;
+      color: var(--seal);
+      font-family: 'ComicMono', monospace;
+      font-size: 1rem;
+      padding: 1rem 2rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      align-self: center;
+    }
+
+    #spendBtn:hover {
+      background: var(--seal);
+      color: var(--bg);
+    }
+
+    #spendBtn:active {
+      transform: scale(0.95);
+    }
+
+    .trade-log {
+      margin-top: 2rem;
+      width: 100%;
+      max-width: 600px;
+      align-self: center;
+    }
+
+    .log-header {
+      font-size: 0.75rem;
+      opacity: 0.5;
+      margin-bottom: 0.5rem;
+    }
+
+    .log-entries {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .log-entry {
+      background: rgba(192, 192, 192, 0.03);
+      border: 1px solid rgba(192, 192, 192, 0.1);
+      border-radius: 0.25rem;
+      padding: 0.5rem 0.75rem;
+      margin-bottom: 0.5rem;
+      font-size: 0.6rem;
+      text-align: left;
+      opacity: 0.7;
+      transition: all 0.2s;
+    }
+
+    .log-entry:hover {
+      opacity: 1;
+      border-color: var(--seal);
+      background: rgba(192, 192, 192, 0.06);
+    }
+
+    .log-entry-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.25rem;
+      opacity: 0.8;
+    }
+
+    .log-entry-conviction {
+      margin-top: 0.25rem;
+      font-style: italic;
+      opacity: 0.9;
+    }
+
+    .log-entry-stats {
+      font-size: 0.5rem;
+      opacity: 0.6;
+      margin-top: 0.25rem;
+    }
+
+    .rest-section {
+      width: 100%;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .rest-section.hidden {
+      display: none;
+    }
+
+    .rest-header {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    .rest-headline {
+      font-size: 1rem;
+      color: var(--seal);
+      margin-bottom: 0.5rem;
+    }
+
+    #timer {
+      font-size: 2rem;
+      font-weight: bold;
+      margin-bottom: 0.25rem;
+    }
+
+    .rest-count {
+      font-size: 0.75rem;
+      opacity: 0.6;
+    }
+
+    .trade-details {
+      background: rgba(192, 192, 192, 0.03);
+      border: 1px solid rgba(192, 192, 192, 0.1);
+      border-radius: 0.25rem;
+      padding: 0.75rem;
+      margin-bottom: 1rem;
+      font-size: 0.6rem;
+      opacity: 0.7;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.25rem 0;
+      position: relative;
+    }
+
+    .mjb-stamp::after {
+      color: var(--stamp);
+      content: "MJB";
+      font-size: 0.5rem;
+      font-weight: bold;
+      margin-left: 0.5rem;
+      letter-spacing: 0.2rem;
+      display: inline-block;
+      transform: translate(var(--mjb-x, -2px), var(--mjb-y, -2px)) rotate(var(--mjb-tilt, -7deg));
+      mix-blend-mode: difference;
+      filter: brightness(1.1);
+    }
+
+    .notes-section {
+      width: 100%;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 1rem;
+      align-items: center;
+    }
+
+    .notes-label {
+      font-size: 0.75rem;
+      margin-bottom: 0.5rem;
+      opacity: 0.6;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      max-width: 32rem;
+    }
+
+    .save-status {
+      font-size: 0.6rem;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      color: var(--seal);
+    }
+
+    .save-status.visible {
+      opacity: 1;
+    }
+
+    #notesArea {
+      width: 100%;
+      max-width: 32rem;
+      flex-grow: 1;
+      min-height: 400px;
+      background: transparent;
+      border: 1px solid var(--text);
+      border-radius: 0.5rem;
+      color: var(--text);
+      font-family: 'ComicMono', monospace;
+      font-size: 1rem;
+      padding: 1.5rem 2rem;
+      resize: vertical;
+      outline: none;
+      line-height: 1.6;
+      box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    #notesArea::placeholder {
+      color: var(--text);
+      opacity: 0.3;
+    }
+
+    #notesArea:focus {
+      border-color: var(--seal);
+    }
+
+    .actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-small {
+      background: transparent;
+      border: 1px solid var(--text);
+      border-radius: 0.25rem;
+      color: var(--text);
+      font-family: 'ComicMono', monospace;
+      font-size: 0.6rem;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      opacity: 0.6;
+      transition: all 0.2s;
+    }
+
+    .btn-small:hover {
+      opacity: 1;
+      border-color: var(--seal);
+      color: var(--seal);
+    }
+
+    .btn-small.exit {
+      border-color: #ff6b6b;
+      color: #ff6b6b;
+    }
+
+    .btn-small.exit:hover {
+      background: #ff6b6b;
+      color: var(--bg);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    footer {
+      margin-top: 2rem;
+      font-size: 0.3rem;
+      opacity: 0.3;
+      text-align: center;
+    }
+
+    .undo-notification {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--seal);
+      color: var(--bg);
+      padding: 1rem 2rem;
+      border-radius: 0.5rem;
+      font-size: 0.75rem;
+      display: none;
+      align-items: center;
+      gap: 1rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+    }
+
+    .undo-notification.visible {
+      display: flex;
+    }
+
+    .undo-btn {
+      background: var(--bg);
+      color: var(--seal);
+      border: 1px solid var(--bg);
+      border-radius: 0.25rem;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      font-family: 'ComicMono', monospace;
+      font-size: 0.75rem;
+      transition: all 0.2s;
+    }
+
+    .undo-btn:hover {
+      background: transparent;
+      color: var(--bg);
+      border-color: var(--bg);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="undo-notification" id="undoNotification">
+    <span id="undoMessage">Trade exited</span>
+    <button class="undo-btn" id="undoExitBtn">Undo</button>
+    <button class="undo-btn" id="dismissUndoBtn"
+      style="background: transparent; border: 1px solid var(--bg); color: var(--bg);">✕</button>
+  </div>
+
+  <nav>
+    <a href="/" class="ascii-link">Back</a>
+  </nav>
+
+  <div class="container">
+    <time id="clock"></time>
+
+    <div style="text-align: center; margin-bottom: 1rem;">
+      <button class="btn-small hidden" id="backToTradesBtn" style="opacity: 1;">← All trades</button>
+    </div>
+
+    <img src="/backoffice/the-stacks/tool.png" alt="Tool" class="tool-image" id="toolImage" />
+
+    <div class="prompt-section" id="promptSection">
+      <div class="question">Why are you spending this bullet?</div>
+      <input type="text" id="reasonInput" placeholder="Your conviction..." maxlength="100" />
+      <button id="spendBtn">Spend Bullet</button>
+
+      <div class="trade-log" id="tradeLog">
+        <div class="log-header">Trade Log</div>
+        <div class="log-entries" id="logEntries"></div>
+      </div>
+    </div>
+
+    <div class="rest-section hidden" id="restSection">
+      <div class="rest-header">
+        <div class="rest-headline">Rest Period</div>
+        <div id="timer">15:00</div>
+        <div class="rest-count" id="restCount">Rest #1</div>
+      </div>
+
+      <div class="trade-details">
+        <div class="detail-row mjb-stamp" id="timestampRow">
+          <span>Bullet spent</span>
+          <span id="timestamp"></span>
+        </div>
+        <div class="detail-row">
+          <span>Conviction</span>
+          <span id="displayReason"></span>
+        </div>
+      </div>
+
+      <div class="notes-section">
+        <label class="notes-label" for="notesArea">
+          <span>Trade notes & reflection</span>
+          <span style="display: flex; gap: 0.5rem; align-items: center;">
+            <button class="btn-small" id="addTimestampBtn" style="padding: 0.25rem 0.5rem; margin: 0; opacity: 0.8;">+
+              Entry</button>
+            <span class="save-status" id="saveStatus"></span>
+          </span>
+        </label>
+        <textarea id="notesArea" placeholder="Click '+ Entry' or Ctrl+Enter to add timestamped entry..."></textarea>
+      </div>
+
+      <div class="actions">
+        <button class="btn-small exit" id="exitBtn">Exit Trade</button>
+        <button class="btn-small" id="exportBtn">Export JSON</button>
+      </div>
+    </div>
+
+    <footer>
+      <pre class="ascii">
+██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████ 
+▓██░  ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█   ▀ 
+▓██░ ██▓▒▓██ ░▄█ ▒▒██▒▓██    ▓██░▒███   
+▒██▄█▓▒ ▒▒██▀▀█▄  ░██░▒██    ▒██ ▒▓█  ▄ 
+▒██▒ ░  ░░██▓ ▒██▒░██░▒██▒   ░██▒░▒████▒
+▒▓▒░ ░  ░░ ▒▓ ░▒▓░░▓  ░ ▒░   ░  ░░░ ▒░ ░
+░▒ ░       ░▒ ░ ▒░ ▒ ░░  ░      ░ ░ ░  ░
+░░         ░░   ░  ▒ ░░      ░      ░   
+            ░      ░         ░      ░  ░
+      </pre>
+    </footer>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'lot_tracker_state';
+    const REST_DURATION = 15 * 60 * 1000; // 15 minutes
+
+    let state = {
+      bulletSpent: false,
+      spentAt: null,
+      reason: '',
+      notes: '',
+      resetAt: null,
+      restTimers: 0,
+      lastPaletteChange: null,
+      history: [],
+      editingHistoryIndex: null,
+      recentlyExited: null // { historyIndex, exitedAt }
+    };
+
+    const els = {
+      clock: document.getElementById('clock'),
+      toolImage: document.getElementById('toolImage'),
+      promptSection: document.getElementById('promptSection'),
+      restSection: document.getElementById('restSection'),
+      reasonInput: document.getElementById('reasonInput'),
+      spendBtn: document.getElementById('spendBtn'),
+      timer: document.getElementById('timer'),
+      timestamp: document.getElementById('timestamp'),
+      timestampRow: document.getElementById('timestampRow'),
+      displayReason: document.getElementById('displayReason'),
+      notesArea: document.getElementById('notesArea'),
+      saveStatus: document.getElementById('saveStatus'),
+      exportBtn: document.getElementById('exportBtn'),
+      exitBtn: document.getElementById('exitBtn'),
+      restCount: document.getElementById('restCount'),
+      logEntries: document.getElementById('logEntries'),
+      undoNotification: document.getElementById('undoNotification'),
+      undoMessage: document.getElementById('undoMessage'),
+      undoExitBtn: document.getElementById('undoExitBtn'),
+      dismissUndoBtn: document.getElementById('dismissUndoBtn'),
+      addTimestampBtn: document.getElementById('addTimestampBtn'),
+      backToTradesBtn: document.getElementById('backToTradesBtn')
+    };
+
+    let clockT = 0;
+    let hasAddedInitialTimestamp = false;
+
+    // Clock
+    function updateClock() {
+      const now = new Date();
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      els.clock.textContent = `${days[now.getDay()]} ${months[now.getMonth()]} ${now.getDate()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}:${String(now.getMilliseconds()).padStart(3, '0')}`;
+    }
+
+    function pulseClock() {
+      clockT += 0.02;
+      els.clock.style.opacity = 0.35 + (Math.sin(clockT) + 1) * 0.15;
+      requestAnimationFrame(pulseClock);
+    }
+
+    setInterval(updateClock, 50);
+    pulseClock();
+
+    // Gunshot sound using Web Audio API
+    function playGunshotSound() {
+      try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        // Create a sharp attack sound (gunshot)
+        const duration = 0.3;
+        const sampleRate = audioContext.sampleRate;
+        const buffer = audioContext.createBuffer(1, duration * sampleRate, sampleRate);
+        const data = buffer.getChannelData(0);
+
+        for (let i = 0; i < buffer.length; i++) {
+          const t = i / sampleRate;
+          // Sharp attack with quick decay
+          const envelope = Math.exp(-t * 15);
+          // Mix of noise and low frequency for gunshot-like sound
+          const noise = (Math.random() * 2 - 1) * envelope;
+          const bass = Math.sin(2 * Math.PI * 60 * t) * envelope * 0.5;
+          data[i] = (noise * 0.7 + bass * 0.3) * 0.3;
+        }
+
+        const source = audioContext.createBufferSource();
+        source.buffer = buffer;
+        source.connect(audioContext.destination);
+        source.start();
+      } catch (error) {
+        console.log('Audio not available');
+      }
+    }
+
+    // Palette rotation (from index.html)
+    function applyRandomPalette() {
+      const root = document.documentElement;
+      const r = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+      const hsl = (h, s, l) => `hsl(${h}, ${s}%, ${l}%)`;
+
+      const wild = Math.random() < 0.25;
+
+      const hue = r(0, 360);
+      const dark = Math.random() < 0.6;
+      const bgLight = dark ? r(3, 14) : r(82, 94);
+
+      const bgSat = wild ? r(30, 70) : r(5, 25);
+      const textSat = wild ? r(30, 60) : r(5, 20);
+
+      root.style.setProperty('--bg', hsl(hue, bgSat, bgLight));
+      root.style.setProperty('--text', hsl(hue, textSat, dark ? r(88, 96) : r(4, 12)));
+
+      root.style.setProperty(
+        '--stamp',
+        bgLight < 50
+          ? hsl((hue + 180) % 360, 30, 70)
+          : hsl((hue + 180) % 360, 30, 30)
+      );
+
+      const sealHue = wild ? r(0, 360) : r(90, 140);
+      root.style.setProperty('--seal',
+        dark
+          ? hsl(sealHue, wild ? r(50, 90) : r(30, 50), r(85, 92))
+          : hsl(sealHue, wild ? r(40, 80) : r(25, 45), r(20, 30))
+      );
+    }
+
+    applyRandomPalette();
+
+    // Storage
+    async function loadState() {
+      try {
+        if (window.storage && window.storage.get) {
+          const result = await window.storage.get(STORAGE_KEY);
+          if (result && result.value) {
+            state = JSON.parse(result.value);
+          }
+        } else {
+          const stored = localStorage.getItem(STORAGE_KEY);
+          if (stored) {
+            state = JSON.parse(stored);
+          }
+        }
+      } catch (error) {
+        console.log('No saved state found, starting fresh');
+      }
+      render();
+    }
+
+    async function save() {
+      try {
+        els.saveStatus.textContent = 'Saving...';
+        els.saveStatus.className = 'save-status visible';
+
+        if (window.storage && window.storage.set) {
+          await window.storage.set(STORAGE_KEY, JSON.stringify(state));
+        } else {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        }
+
+        els.saveStatus.textContent = 'Saved ✓';
+
+        setTimeout(() => {
+          els.saveStatus.classList.remove('visible');
+        }, 2000);
+      } catch (error) {
+        console.error('Error saving state:', error);
+        els.saveStatus.textContent = 'Save failed';
+      }
+    }
+
+    function getStampStyle() {
+      const e = Math.pow(Math.random(), 3);
+      const x = -3 - e * 8;
+      const y = -3 - e * 6;
+      const tilt = -4 - e * 6;
+      return `--mjb-x: ${x}px; --mjb-y: ${y}px; --mjb-tilt: ${tilt}deg;`;
+    }
+
+    function getNextReset() {
+      const nextReset = new Date();
+      nextReset.setHours(9, 30, 0, 0);
+      if (new Date().getHours() >= 9 && (new Date().getHours() > 9 || new Date().getMinutes() >= 30)) {
+        nextReset.setDate(nextReset.getDate() + 1);
+      }
+      return nextReset.getTime();
+    }
+
+    function checkReset() {
+      if (!state.resetAt) {
+        state.resetAt = getNextReset();
+      }
+
+      if (Date.now() >= state.resetAt) {
+        // If there's an active trade, save it to history before reset
+        if (state.bulletSpent) {
+          const tradeRecord = {
+            reason: state.reason,
+            notes: state.notes,
+            spentAt: state.spentAt,
+            completedAt: Date.now(),
+            duration: Date.now() - state.spentAt,
+            restPeriods: state.restTimers + 1
+          };
+
+          if (!state.history) {
+            state.history = [];
+          }
+          state.history.push(tradeRecord);
+        }
+
+        // Reset for new day, but keep history
+        const currentHistory = state.history || [];
+        const currentRecentlyExited = state.recentlyExited;
+        state = {
+          bulletSpent: false,
+          spentAt: null,
+          reason: '',
+          notes: '',
+          resetAt: getNextReset(),
+          restTimers: 0,
+          lastPaletteChange: null,
+          history: currentHistory,
+          editingHistoryIndex: null,
+          recentlyExited: currentRecentlyExited
+        };
+        save();
+        render();
+      }
+    }
+
+    function updateTimer() {
+      if (!state.spentAt) return;
+
+      const elapsed = Date.now() - state.spentAt;
+      const currentRestPeriod = Math.floor(elapsed / REST_DURATION);
+
+      // Check if we've entered a new rest period
+      if (currentRestPeriod > state.restTimers) {
+        state.restTimers = currentRestPeriod;
+        applyRandomPalette();
+        state.lastPaletteChange = Date.now();
+        save();
+      }
+
+      // Update rest count display
+      els.restCount.textContent = `Rest #${state.restTimers + 1}`;
+
+      // Calculate remaining time in current rest period
+      const timeInCurrentPeriod = elapsed % REST_DURATION;
+      const remaining = REST_DURATION - timeInCurrentPeriod;
+
+      const minutes = Math.floor(remaining / 60000);
+      const seconds = Math.floor((remaining % 60000) / 1000);
+
+      els.timer.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+
+    function render() {
+      checkReset();
+
+      // Reset initial timestamp flag
+      hasAddedInitialTimestamp = false;
+
+      // Editing a historical trade
+      if (state.editingHistoryIndex !== null) {
+        const trade = state.history[state.editingHistoryIndex];
+        if (!trade) {
+          state.editingHistoryIndex = null;
+          render();
+          return;
+        }
+
+        els.backToTradesBtn.classList.remove('hidden');
+        els.toolImage.classList.add('spent');
+        els.promptSection.classList.add('hidden');
+        els.restSection.classList.remove('hidden');
+
+        const spentDate = new Date(trade.spentAt);
+        const completedDate = new Date(trade.completedAt);
+        els.timestamp.textContent = completedDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        els.timestampRow.style = getStampStyle();
+        els.displayReason.textContent = trade.reason || '(no reason given)';
+        els.notesArea.value = trade.notes || '';
+
+        els.timer.textContent = 'Completed';
+        els.restCount.textContent = `${trade.restPeriods} rest periods`;
+        els.exitBtn.textContent = 'Back';
+
+        setTimeout(() => {
+          els.notesArea.focus();
+        }, 100);
+      }
+      // Viewing current active trade
+      else if (state.bulletSpent) {
+        els.backToTradesBtn.classList.remove('hidden');
+        els.toolImage.classList.add('spent');
+        els.promptSection.classList.add('hidden');
+        els.restSection.classList.remove('hidden');
+
+        const spentDate = new Date(state.spentAt);
+        els.timestamp.textContent = spentDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        els.timestampRow.style = getStampStyle();
+        els.displayReason.textContent = state.reason || '(no reason given)';
+        els.notesArea.value = state.notes;
+
+        updateTimer();
+        els.exitBtn.textContent = 'Exit Trade';
+
+        setTimeout(() => {
+          els.notesArea.focus();
+        }, 100);
+      }
+      // Main view - no active trade
+      else {
+        els.backToTradesBtn.classList.add('hidden');
+        els.toolImage.classList.remove('spent');
+        els.promptSection.classList.remove('hidden');
+        els.restSection.classList.add('hidden');
+        els.reasonInput.value = '';
+        renderHistory();
+      }
+    }
+
+    function renderHistory() {
+      if (!state.history || state.history.length === 0) {
+        els.logEntries.innerHTML = '<div style="text-align: center; opacity: 0.5; padding: 1rem; font-size: 0.6rem;">No trades yet</div>';
+        return;
+      }
+
+      els.logEntries.innerHTML = state.history.slice().reverse().map((trade, reverseIndex) => {
+        const actualIndex = state.history.length - 1 - reverseIndex;
+        const date = new Date(trade.completedAt);
+        const duration = trade.duration ? Math.floor(trade.duration / 60000) : 0;
+
+        return `
+          <div class="log-entry" data-index="${actualIndex}" style="cursor: pointer;">
+            <div class="log-entry-header">
+              <span>${date.toLocaleDateString()}</span>
+              <span>${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+            </div>
+            <div class="log-entry-conviction">"${trade.reason}"</div>
+            <div class="log-entry-stats">${trade.restPeriods} rest periods · ${duration}min total</div>
+          </div>
+        `;
+      }).join('');
+
+      // Add click handlers to log entries
+      document.querySelectorAll('.log-entry').forEach(entry => {
+        entry.addEventListener('click', () => {
+          const index = parseInt(entry.dataset.index);
+          loadHistoricalTrade(index);
+        });
+      });
+    }
+
+    function loadHistoricalTrade(index) {
+      state.editingHistoryIndex = index;
+      render();
+    }
+
+    // Events
+    els.spendBtn.onclick = () => {
+      const reason = els.reasonInput.value.trim();
+      if (!reason) {
+        els.reasonInput.focus();
+        return;
+      }
+
+      // Play gunshot sound
+      playGunshotSound();
+
+      state.bulletSpent = true;
+      state.spentAt = Date.now();
+      state.reason = reason;
+      state.notes = '';
+      state.restTimers = 0;
+      state.lastPaletteChange = Date.now();
+
+      applyRandomPalette();
+      save();
+      render();
+    };
+
+    els.reasonInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        els.spendBtn.click();
+      }
+    });
+
+    // Monty Python-style wiggle on input
+    els.reasonInput.addEventListener('input', () => {
+      els.toolImage.classList.remove('wiggle');
+      void els.toolImage.offsetWidth; // Trigger reflow
+      els.toolImage.classList.add('wiggle');
+    });
+
+    els.notesArea.addEventListener('input', (e) => {
+      // Save to historical trade if editing one
+      if (state.editingHistoryIndex !== null) {
+        state.history[state.editingHistoryIndex].notes = els.notesArea.value;
+      } else {
+        state.notes = els.notesArea.value;
+      }
+
+      els.saveStatus.textContent = 'Typing...';
+      els.saveStatus.className = 'save-status visible';
+
+      clearTimeout(els.notesArea.saveTimer);
+      els.notesArea.saveTimer = setTimeout(() => {
+        save();
+      }, 1000);
+    });
+
+    // Add timestamped entry on Ctrl/Cmd + Enter
+    els.notesArea.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        addTimestampedEntry();
+      }
+    });
+
+    // Add timestamp button handler
+    els.addTimestampBtn.addEventListener('click', () => {
+      addTimestampedEntry();
+      els.notesArea.focus();
+    });
+
+    // Auto-add timestamp on first focus if empty
+    els.notesArea.addEventListener('focus', () => {
+      if (!hasAddedInitialTimestamp && !els.notesArea.value.trim()) {
+        addTimestampedEntry();
+        hasAddedInitialTimestamp = true;
+      }
+    });
+
+    function addTimestampedEntry() {
+      const now = new Date();
+      const days = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+      const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const day = days[now.getDay()];
+      const date = String(now.getDate()).padStart(2, '0');
+      const month = months[now.getMonth()];
+
+      const timestamp = `${hours}:${minutes} ${day} ${date} ${month}`;
+
+      const currentNotes = els.notesArea.value.trim();
+      let newEntry;
+
+      if (currentNotes) {
+        // Drill down: new timestamp at top, blank line, then old content
+        newEntry = `${timestamp}\n\n\n${currentNotes}`;
+      } else {
+        // First entry: just timestamp and blank line
+        newEntry = `${timestamp}\n`;
+      }
+
+      els.notesArea.value = newEntry;
+
+      // Trigger save
+      if (state.editingHistoryIndex !== null) {
+        state.history[state.editingHistoryIndex].notes = newEntry;
+      } else {
+        state.notes = newEntry;
+      }
+
+      // Position cursor on the blank line after timestamp for typing
+      const cursorPos = timestamp.length + 1;
+      els.notesArea.setSelectionRange(cursorPos, cursorPos);
+
+      els.saveStatus.textContent = 'Typing...';
+      els.saveStatus.className = 'save-status visible';
+
+      clearTimeout(els.notesArea.saveTimer);
+      els.notesArea.saveTimer = setTimeout(() => {
+        save();
+      }, 1000);
+    }
+
+    els.exitBtn.onclick = () => {
+      // If editing a historical trade, just go back to main view
+      if (state.editingHistoryIndex !== null) {
+        save(); // Save any changes first
+        state.editingHistoryIndex = null;
+        render();
+        return;
+      }
+
+      // Exit current trade immediately (no confirmation)
+      const tradeRecord = {
+        reason: state.reason,
+        notes: state.notes,
+        spentAt: state.spentAt,
+        completedAt: Date.now(),
+        duration: Date.now() - state.spentAt,
+        restPeriods: state.restTimers + 1
+      };
+
+      if (!state.history) {
+        state.history = [];
+      }
+      state.history.push(tradeRecord);
+
+      // Set up undo state
+      state.recentlyExited = {
+        historyIndex: state.history.length - 1,
+        exitedAt: Date.now()
+      };
+
+      save(); // Save history first
+
+      // Reset current trade
+      state.bulletSpent = false;
+      state.spentAt = null;
+      state.reason = '';
+      state.notes = '';
+      state.restTimers = 0;
+      state.lastPaletteChange = null;
+
+      save();
+      render();
+      showUndoNotification();
+    };
+
+    // Back to trades button handler
+    els.backToTradesBtn.onclick = () => {
+      if (state.editingHistoryIndex !== null) {
+        // Save any changes to historical trade
+        save();
+        state.editingHistoryIndex = null;
+        render();
+      } else if (state.bulletSpent) {
+        // Exit active trade
+        els.exitBtn.click();
+      }
+    };
+
+    els.exportBtn.onclick = () => {
+      const exportData = {
+        exportDate: new Date().toISOString(),
+        currentState: state,
+        meta: {
+          version: '1.0',
+          description: 'One bullet per day trade journal'
+        }
+      };
+
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `lot-journal-${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+
+    // Undo notification
+    const UNDO_WINDOW = 30 * 60 * 1000; // 30 minutes
+    let undoTimeout;
+
+    function showUndoNotification() {
+      els.undoNotification.classList.add('visible');
+
+      // Auto-hide after 30 minutes
+      clearTimeout(undoTimeout);
+      undoTimeout = setTimeout(() => {
+        hideUndoNotification();
+        state.recentlyExited = null;
+        save();
+      }, UNDO_WINDOW);
+
+      updateUndoMessage();
+      // Update message every minute
+      const updateInterval = setInterval(() => {
+        if (!state.recentlyExited) {
+          clearInterval(updateInterval);
+          return;
+        }
+        updateUndoMessage();
+      }, 60000);
+    }
+
+    function hideUndoNotification() {
+      els.undoNotification.classList.remove('visible');
+    }
+
+    function updateUndoMessage() {
+      if (!state.recentlyExited) return;
+
+      const elapsed = Date.now() - state.recentlyExited.exitedAt;
+      const remaining = UNDO_WINDOW - elapsed;
+
+      if (remaining > 0) {
+        const minutes = Math.floor(remaining / 60000);
+        els.undoMessage.textContent = `Trade exited (${minutes}m to undo)`;
+      }
+    }
+
+    els.undoExitBtn.onclick = () => {
+      if (!state.recentlyExited) return;
+
+      const elapsed = Date.now() - state.recentlyExited.exitedAt;
+      if (elapsed > UNDO_WINDOW) {
+        hideUndoNotification();
+        state.recentlyExited = null;
+        save();
+        return;
+      }
+
+      // Restore the trade from history
+      const trade = state.history[state.recentlyExited.historyIndex];
+      if (trade) {
+        state.bulletSpent = true;
+        state.spentAt = trade.spentAt;
+        state.reason = trade.reason;
+        state.notes = trade.notes;
+        state.restTimers = trade.restPeriods - 1;
+
+        // Remove from history
+        state.history.splice(state.recentlyExited.historyIndex, 1);
+        state.recentlyExited = null;
+
+        hideUndoNotification();
+        clearTimeout(undoTimeout);
+        save();
+        render();
+      }
+    };
+
+    // Dismiss undo notification (but keep undo state active)
+    els.dismissUndoBtn.onclick = () => {
+      hideUndoNotification();
+    };
+
+    // Check undo window on load
+    function checkUndoWindow() {
+      if (state.recentlyExited) {
+        const elapsed = Date.now() - state.recentlyExited.exitedAt;
+        if (elapsed < UNDO_WINDOW) {
+          showUndoNotification();
+        } else {
+          state.recentlyExited = null;
+          save();
+        }
+      }
+    }
+
+    // Update timer every second when bullet is spent
+    setInterval(() => {
+      if (state.bulletSpent) {
+        updateTimer();
+        checkReset();
+      }
+    }, 1000);
+
+    // Initialize
+    loadState();
+    checkUndoWindow();
+
+    // Save on page unload
+    window.addEventListener('beforeunload', () => {
+      if (state.notes || state.bulletSpent) {
+        try {
+          localStorage.setItem('lot_backup', JSON.stringify(state));
+        } catch (e) { }
+      }
+    });
+  </script>
+</body>
+
+</html>
