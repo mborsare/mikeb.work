@@ -158,7 +158,10 @@
     }
 
     #palette-score {
-      color: var(--stamp);
+      background: var(--text);
+      color: var(--bg);
+      padding: .5rem 3rem;
+      border-radius: .5rem;
     }
 
     /* ---- Boomshakalaka slam ---- */
@@ -207,6 +210,33 @@
     body.slam .container {
       animation: slam 0.75s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
     }
+
+    .missives {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 0 1.25rem;
+    }
+
+    @media (min-width:900px) {
+      .missives {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .missive {
+      text-align: left;
+      display: flex;
+      justify-content: center;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-width: 100%;
+      font-size: 12px;
+      line-height: 1.4;
+      margin: 0;
+    }
   </style>
 </head>
 
@@ -216,27 +246,28 @@
   <div class="container">
     <h1 style="font-size:0.275rem;">Mike Borsare</h1>
     <div
-      style="position: sticky; top: 0.5rem; background: var(--bg); display: flex; gap: 1rem; align-items: center; justify-content: center; z-index:999;">
-      <span>Player 1:</span>
+      style="position: sticky; top: 0.5rem; background: var(--bg); display: flex; gap: 5rem; align-items: center; justify-content: center; z-index:999;">
+      <span>Your score is:</span>
       <span id="palette-score">0</span>
+      <a href="mailto:mb@mikeb.work" style="color: var(--seal);">💌 Email Mike</a>
+
     </div>
     <div style="padding:1rem;">
       <h2>Workshop</h2>
       <nav>
-        <a href="lots.html" class="ascii">Lots. of emotion</a>
-        <a href="genesis.html" class="ascii">NHL Hockey 94</a>
+        <a href="lots.html" class="ascii">Lots</a>
+        <a href="genesis.html" class="ascii">NHL 94</a>
         <a href="adventure.html" class="ascii">Adventure</a>
-        <a href="field.html" class="ascii">Field conditions</a>
+        <a href="field.html" class="ascii">Field</a>
         <a href="es-sitrep.html" class="ascii">Weather</a>
         <a href="blog.html" class="ascii">Blog</a>
         <a href="dice.html" class="ascii">Dice</a>
         <a href="trinitron.html" class="ascii">Trinitron</a>
-        <a href="daily.html" class="ascii">The daily</a>
-        <a href="the-news.html" class="ascii">The news</a>
+        <a href="daily.html" class="ascii">Daily</a>
+        <a href="the-news.html" class="ascii">News</a>
         <a href="posters.html" class="ascii">Posters</a>
         <a href="netflix.html" class="ascii">Netfix</a>
         <a href="jumble.html" class="ascii">Jumble</a>
-        <a href="mailto:mb@mikeb.work" style="color: var(--seal);">mb@mikeb.work</a>
       </nav>
       <h2>Arcade</h2>
       <time id="clock"></time>
@@ -254,82 +285,66 @@
         font-family:'ComicMono', monospace;
         cursor: pointer;
       ">
-          <pre class="ascii" style="line-height: .7;">
-------------    ------    -----------  ----    ----      -----------    --------   --------  ----    ---- ------------ 
-************   ********   ***********  *****   ****      ************  **********  ********  *****   **** ************ 
-----          ----------  ----    ---  ------  ----      ---      --- ----    ----   ----    ------  ---- ------------ 
-************ ****    **** *********    ************      ************ ***      ***   ****    ************     ****     
------------- ------------ ---------    ------------      -----------  ---      ---   ----    ------------     ----     
-****         ************ ****  ****   ****  ******      ****         ****    ****   ****    ****  ******     ****     
------------- ----    ---- ----   ----  ----   -----      ----          ----------  --------  ----   -----     ----     
-************ ****    **** ****    **** ****    ****      ****           ********   ********  ****    ****     ****     
-                                                                                                                                                    
-          </pre>
+          <pre class="ascii" style="line-height: .7; padding: 0 8vw; font-size: .35rem;">
+
+▗▄▄▖ ▗▄▖            
+▐▛▀▜▖▝▜▌            
+▐▌ ▐▌ ▐▌   ▟██▖▝█ █▌
+▐██▛  ▐▌   ▘▄▟▌ █▖█ 
+▐▌    ▐▌  ▗█▀▜▌ ▐█▛ 
+▐▌    ▐▙▄ ▐▙▄█▌  █▌ 
+▝▘     ▀▀  ▀▀▝▘  █  
+                █▌  
+                    </pre>
       </div>
       <label style="display:inline-block; margin-left:1rem; margin-bottom: 6rem; cursor:pointer;">
         <input type="checkbox" id="sound-mute" /> Mute sounds
       </label>
       <h2>Announcements</h2>
-      <div class="ascii-bulletin">
-        <pre style="text-align: center; display: flex; justify-content: center;">
-          =======================================
-          14:05 Tu 17 FEB
+      <div class="missives">
+        <pre class="missive">
+14:05 Tu 17 FEB
+>> Discipline with prime
 
-          >> Discipline with prime
-
-          Discipline is putting yourself first. Your body, your environment, your attention.
-         
+Discipline is putting yourself first. 
+Your body, 
+your environment, 
+your attention.
+---------------------------------------
+</pre>
         </pre>
-        <pre style="text-align: center; display: flex; justify-content: center;">
-          =======================================
-          14:05 Tu 17 FEB
 
-          >> Daily schedule 
+        <pre class="missive">
+14:05 Tu 17 FEB
+>> Daily schedule 
 
-          9–11 media, chores
-          12 thc, lunch
-          13 media, chores
-          14 make, movement and strength
+9–11 media, chores
+12 thc, lunch
+13 media, chores
+14 make, movement and strength
 
-          * Create chore list daily
+* Create chore list daily
+---------------------------------------
+</pre>
         </pre>
-        <pre style="text-align: left; display: flex; justify-content: center;">
-          =======================================
-          23:43 Fr 13 FEB
 
-          - scout the edge to find intent
-          - commit with 500 exp
-          - if yes press with 72 exp
-          - if no reset loop
+        <pre class="missive">
+23:43 Fr 13 FEB
+>> Enter at exhaustion then ride energy
+---------------------------------------
+</pre>
 
-          >> Enter at exhaustion then ride energy
-          ---------------------------------------
-        </pre>
-        <pre style="text-align: left; display: flex; justify-content: center;">
-          21:12 Fr 13 FEB
+        <pre class="missive">
+21:12 Fr 13 FEB
+>> Good work this week
+---------------------------------------
+</pre>
 
-          - Zoom out with a large time scale.
-          - Use it for position.
-          - Use the volume profile and tape for entries.
-
-          >> Good work this week
-          ---------------------------------------
-        </pre>
-        <pre style="text-align: left; display: flex; justify-content: center;">
-          16:39 Fr 13 FEB
-
-          - The weather decides start.
-          - Success is prime, daily.
-          - Trade a calm mind and place.
-          - Trade story instead of sweating ticks.
-          - Accept the story in structure.
-          - The trade works (or not).
-          - Goals are ceilings and floors.
-          - End with the daily and repeat
-
-          >> Always iterate
-          ---------------------------------------
-        </pre>
+        <pre class="missive">
+16:39 Fr 13 FEB
+>> Always iterate
+---------------------------------------
+</pre>
       </div>
 
 
