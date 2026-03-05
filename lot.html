@@ -215,11 +215,6 @@
       margin-bottom: 0.5rem;
     }
 
-    .log-entries {
-      max-height: 300px;
-      overflow-y: auto;
-    }
-
     .log-entry {
       background: rgba(192, 192, 192, 0.03);
       border: 1px solid rgba(192, 192, 192, 0.1);
@@ -245,10 +240,67 @@
       opacity: 0.8;
     }
 
+    .live-badge {
+      display: inline-block;
+      font-size: 0.45rem;
+      font-style: normal;
+      letter-spacing: 0.1em;
+      padding: 0.1em 0.4em;
+      border: 1px solid currentColor;
+      border-radius: 0.2em;
+      vertical-align: middle;
+      margin-left: 0.4em;
+      animation: livePulse 1.8s ease-in-out infinite;
+    }
+
+    @keyframes livePulse {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.4;
+      }
+    }
+
+    .log-entry.live {
+      border-color: var(--seal);
+      color: var(--seal);
+    }
+
     .log-entry-conviction {
       margin-top: 0.25rem;
       font-style: italic;
       opacity: 0.9;
+    }
+
+    .reason-edit {
+      background: transparent;
+      border: none;
+      border-bottom: 1px dashed transparent;
+      color: var(--text);
+      font-family: 'ComicMono', monospace;
+      font-size: 0.6rem;
+      text-align: right;
+      outline: none;
+      padding: 0 0 1px 0;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      resize: none;
+      width: 100%;
+      overflow: hidden;
+      line-height: 1.5;
+    }
+
+    .reason-edit:hover {
+      border-bottom-color: var(--stamp);
+    }
+
+    .reason-edit:focus {
+      border-bottom-color: var(--seal);
+      cursor: text;
     }
 
     .log-entry-stats {
@@ -257,11 +309,68 @@
       margin-top: 0.25rem;
     }
 
-    .rest-section {
+    /* ---- Live trade hero (shown on log when trade is active) ---- */
+    #liveTrade {
+      display: none;
       width: 100%;
-      flex-grow: 1;
+      max-width: 600px;
+      align-self: center;
+      margin-bottom: 1.5rem;
+      cursor: pointer;
+      border: 1px solid var(--seal);
+      border-radius: 0.5rem;
+      padding: 1.25rem 1.5rem;
+      background: rgba(192, 192, 192, 0.03);
+      transition: background 0.2s;
+    }
+
+    #liveTrade.visible {
+      display: block;
+    }
+
+    #liveTrade:hover {
+      background: rgba(192, 192, 192, 0.07);
+    }
+
+    #liveTrade:active {
+      transform: scale(0.99);
+    }
+
+    .live-hero-top {
       display: flex;
-      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.55rem;
+      opacity: 0.6;
+      margin-bottom: 0.75rem;
+    }
+
+    .live-hero-badge {
+      font-size: 0.55rem;
+      letter-spacing: 0.12em;
+      padding: 0.15em 0.5em;
+      border: 1px solid var(--seal);
+      border-radius: 0.2em;
+      color: var(--seal);
+      animation: livePulse 1.8s ease-in-out infinite;
+    }
+
+    .live-hero-conviction {
+      font-size: clamp(0.9rem, 4vw, 1.3rem);
+      color: var(--seal);
+      margin-bottom: 0.75rem;
+      line-height: 1.4;
+    }
+
+    .live-hero-stats {
+      font-size: 0.55rem;
+      opacity: 0.55;
+    }
+
+    width: 100%;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
     }
 
     .rest-section.hidden {
@@ -280,14 +389,92 @@
     }
 
     #timer {
-      font-size: 2rem;
+      font-size: clamp(3.5rem, 22vw, 14rem);
+      line-height: 1;
+      margin: 0 0 0.15em 0;
+      letter-spacing: -0.02em;
+      transition: color 0.4s ease, background 0.4s ease, padding 0.4s ease;
+      display: inline-block;
+    }
+
+    body.observing #timer {
+      color: var(--bg);
+      background: var(--seal);
+      padding: 0.04em 0.18em;
+    }
+
+    /* ---- Tally marks ---- */
+    .tally-wrap {
+      margin: 0.5rem 0 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.2rem;
+      min-height: 2.2rem;
+    }
+
+    .tally-marks {
+      font-size: clamp(0.9rem, 4vw, 1.4rem);
+      letter-spacing: 0.18em;
+      opacity: 0.7;
+      line-height: 1;
       font-weight: bold;
-      margin-bottom: 0.25rem;
+    }
+
+    .tally-label {
+      font-size: 0.55rem;
+      opacity: 0.45;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
     }
 
     .rest-count {
       font-size: 0.75rem;
       opacity: 0.6;
+    }
+
+    /* ---- Done button ---- */
+    #doneBtn {
+      background: var(--seal);
+      border: 2px solid var(--seal);
+      border-radius: 0.5rem;
+      color: var(--bg);
+      font-family: 'ComicMono', monospace;
+      font-size: clamp(1rem, 5vw, 1.6rem);
+      padding: 0.9rem 2.5rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: none;
+      animation: donePulse 1.6s ease-in-out infinite;
+    }
+
+    #doneBtn.visible {
+      display: inline-block;
+    }
+
+    #doneBtn:hover {
+      opacity: 0.85;
+      transform: scale(1.03);
+    }
+
+    #doneBtn:active {
+      transform: scale(0.95);
+    }
+
+    @keyframes donePulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 0 rgba(var(--seal-rgb, 234, 255, 234), 0.4);
+      }
+
+      50% {
+        box-shadow: 0 0 0 8px rgba(var(--seal-rgb, 234, 255, 234), 0);
+      }
+    }
+
+    body.observing .rest-headline {
+      opacity: 0;
     }
 
     .trade-details {
@@ -302,7 +489,9 @@
 
     .detail-row {
       display: flex;
+      flex-wrap: wrap;
       justify-content: space-between;
+      gap: 0.25rem;
       padding: 0.25rem 0;
       position: relative;
     }
@@ -415,6 +604,41 @@
       color: var(--bg);
     }
 
+    .float-stamp-btn {
+      position: fixed;
+      z-index: 900;
+      pointer-events: none;
+      display: none;
+      background: transparent;
+      border: 2px solid var(--seal);
+      border-radius: 0.4rem;
+      color: var(--seal);
+      font-family: 'ComicMono', monospace;
+      font-size: 0.8rem;
+      padding: 0.6rem 1.2rem;
+      cursor: pointer;
+      opacity: 0.85;
+      transition: opacity 0.15s, background 0.15s, transform 0.05s;
+      transform: translate(-50%, -50%);
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    .float-stamp-btn.visible {
+      pointer-events: auto;
+      display: block;
+    }
+
+    .float-stamp-btn:hover {
+      opacity: 1;
+      background: var(--seal);
+      color: var(--bg);
+    }
+
+    .float-stamp-btn:active {
+      transform: translate(-50%, -50%) scale(0.93);
+    }
+
     .hidden {
       display: none !important;
     }
@@ -468,6 +692,8 @@
 </head>
 
 <body>
+  <button id="addTimestampBtn" class="float-stamp-btn" aria-label="Add timestamped entry">+ entry</button>
+
   <div class="undo-notification" id="undoNotification">
     <span id="undoMessage">Trade exited</span>
     <button class="undo-btn" id="undoExitBtn">Undo</button>
@@ -482,13 +708,18 @@
   <div class="container">
     <time id="clock"></time>
 
-    <div style="text-align: center; margin-bottom: 1rem;">
-      <button class="btn-small hidden" id="backToTradesBtn" style="opacity: 1;">← All trades</button>
-    </div>
-
     <img src="/backoffice/the-stacks/tool.png" alt="Tool" class="tool-image" id="toolImage" />
 
     <div class="prompt-section" id="promptSection">
+      <div id="liveTrade">
+        <div class="live-hero-top">
+          <span id="liveHeroTime"></span>
+          <span class="live-hero-badge">LIVE</span>
+        </div>
+        <div class="live-hero-conviction" id="liveHeroConviction"></div>
+        <div class="live-hero-stats" id="liveHeroStats"></div>
+      </div>
+
       <div class="question">Why are you spending this bullet?</div>
       <input type="text" id="reasonInput" placeholder="Your conviction..." maxlength="100" />
       <button id="spendBtn">Spend Bullet</button>
@@ -500,9 +731,13 @@
     </div>
 
     <div class="rest-section hidden" id="restSection">
-      <div class="rest-header">
+      <div class="rest-header" style="text-align:center; margin-bottom:1rem;">
         <div class="rest-headline">Rest Period</div>
         <div id="timer">15:00</div>
+        <div class="tally-wrap">
+          <div class="tally-marks" id="tallyMarks"></div>
+          <div class="tally-label">Rests</div>
+        </div>
         <div class="rest-count" id="restCount">Rest #1</div>
       </div>
 
@@ -513,23 +748,21 @@
         </div>
         <div class="detail-row">
           <span>Conviction</span>
-          <span id="displayReason"></span>
+          <textarea id="displayReason" class="reason-edit" title="Click to edit" rows="2"></textarea>
         </div>
       </div>
 
       <div class="notes-section">
         <label class="notes-label" for="notesArea">
           <span>Trade notes & reflection</span>
-          <span style="display: flex; gap: 0.5rem; align-items: center;">
-            <button class="btn-small" id="addTimestampBtn" style="padding: 0.25rem 0.5rem; margin: 0; opacity: 0.8;">+
-              Entry</button>
-            <span class="save-status" id="saveStatus"></span>
-          </span>
+          <span class="save-status" id="saveStatus"></span>
         </label>
-        <textarea id="notesArea" placeholder="Click '+ Entry' or Ctrl+Enter to add timestamped entry..."></textarea>
+        <textarea id="notesArea" placeholder="Ctrl+Enter to add timestamped entry..."></textarea>
       </div>
 
       <div class="actions">
+        <button id="doneBtn">Done ↵</button>
+        <button class="btn-small" id="allTradesBtn">All trades</button>
         <button class="btn-small exit" id="exitBtn">Exit Trade</button>
         <button class="btn-small" id="exportBtn">Export JSON</button>
       </div>
@@ -552,19 +785,15 @@
 
   <script>
     const STORAGE_KEY = 'lot_tracker_state';
-    const REST_DURATION = 15 * 60 * 1000; // 15 minutes
+    const REST_DURATION = 15 * 60 * 1000;
+    const UNDO_WINDOW = 30 * 60 * 1000;
 
     let state = {
-      bulletSpent: false,
-      spentAt: null,
-      reason: '',
-      notes: '',
-      resetAt: null,
-      restTimers: 0,
-      lastPaletteChange: null,
-      history: [],
-      editingHistoryIndex: null,
-      recentlyExited: null // { historyIndex, exitedAt }
+      bulletSpent: false, spentAt: null, reason: '', notes: '',
+      resetAt: null, restTimers: 0, lastPaletteChange: null,
+      restStartedAt: null, restPaused: false,
+      history: [], editingHistoryIndex: null, viewingHistory: false,
+      recentlyExited: null
     };
 
     const els = {
@@ -575,13 +804,16 @@
       reasonInput: document.getElementById('reasonInput'),
       spendBtn: document.getElementById('spendBtn'),
       timer: document.getElementById('timer'),
+      tallyMarks: document.getElementById('tallyMarks'),
       timestamp: document.getElementById('timestamp'),
       timestampRow: document.getElementById('timestampRow'),
       displayReason: document.getElementById('displayReason'),
       notesArea: document.getElementById('notesArea'),
       saveStatus: document.getElementById('saveStatus'),
-      exportBtn: document.getElementById('exportBtn'),
       exitBtn: document.getElementById('exitBtn'),
+      allTradesBtn: document.getElementById('allTradesBtn'),
+      exportBtn: document.getElementById('exportBtn'),
+      doneBtn: document.getElementById('doneBtn'),
       restCount: document.getElementById('restCount'),
       logEntries: document.getElementById('logEntries'),
       undoNotification: document.getElementById('undoNotification'),
@@ -589,111 +821,100 @@
       undoExitBtn: document.getElementById('undoExitBtn'),
       dismissUndoBtn: document.getElementById('dismissUndoBtn'),
       addTimestampBtn: document.getElementById('addTimestampBtn'),
-      backToTradesBtn: document.getElementById('backToTradesBtn')
+      liveTrade: document.getElementById('liveTrade'),
+      liveHeroTime: document.getElementById('liveHeroTime'),
+      liveHeroConviction: document.getElementById('liveHeroConviction'),
+      liveHeroStats: document.getElementById('liveHeroStats'),
     };
 
+    // ── Clock ────────────────────────────────────────────────────────────────
     let clockT = 0;
-    let hasAddedInitialTimestamp = false;
+    const DAYS_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-    // Clock
-    function updateClock() {
-      const now = new Date();
-      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      els.clock.textContent = `${days[now.getDay()]} ${months[now.getMonth()]} ${now.getDate()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}:${String(now.getMilliseconds()).padStart(3, '0')}`;
-    }
-
-    function pulseClock() {
+    setInterval(() => {
+      const n = new Date();
+      els.clock.textContent = `${DAYS_SHORT[n.getDay()]} ${MONTHS_SHORT[n.getMonth()]} ${n.getDate()} `
+        + `${pad(n.getHours())}:${pad(n.getMinutes())}:${pad(n.getSeconds())}:${String(n.getMilliseconds()).padStart(3, '0')}`;
+    }, 50);
+    (function pulseClock() {
       clockT += 0.02;
       els.clock.style.opacity = 0.35 + (Math.sin(clockT) + 1) * 0.15;
       requestAnimationFrame(pulseClock);
+    })();
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+    function pad(n) { return String(n).padStart(2, '0'); }
+
+    function formatTimestamp(date) {
+      const DAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+      const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+      return `${pad(date.getHours())}:${pad(date.getMinutes())} ${DAYS[date.getDay()]} ${pad(date.getDate())} ${MONTHS[date.getMonth()]}`;
     }
 
-    setInterval(updateClock, 50);
-    pulseClock();
+    function getStampStyle() {
+      const e = Math.pow(Math.random(), 3);
+      return `--mjb-x: ${-3 - e * 8}px; --mjb-y: ${-3 - e * 6}px; --mjb-tilt: ${-4 - e * 6}deg;`;
+    }
 
-    // Gunshot sound using Web Audio API
-    function playGunshotSound() {
-      try {
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-
-        // Create a sharp attack sound (gunshot)
-        const duration = 0.3;
-        const sampleRate = audioContext.sampleRate;
-        const buffer = audioContext.createBuffer(1, duration * sampleRate, sampleRate);
-        const data = buffer.getChannelData(0);
-
-        for (let i = 0; i < buffer.length; i++) {
-          const t = i / sampleRate;
-          // Sharp attack with quick decay
-          const envelope = Math.exp(-t * 15);
-          // Mix of noise and low frequency for gunshot-like sound
-          const noise = (Math.random() * 2 - 1) * envelope;
-          const bass = Math.sin(2 * Math.PI * 60 * t) * envelope * 0.5;
-          data[i] = (noise * 0.7 + bass * 0.3) * 0.3;
-        }
-
-        const source = audioContext.createBufferSource();
-        source.buffer = buffer;
-        source.connect(audioContext.destination);
-        source.start();
-      } catch (error) {
-        console.log('Audio not available');
+    // ── Tally marks ──────────────────────────────────────────────────────────
+    function renderTallyMarks(n) {
+      if (n === 0) return '';
+      // Groups of 5: four pipes then a slash to cross them
+      // Using ||| and / to feel hand-made, slightly varied
+      const strokes = ['|', '|', '|', '|', '/'];
+      const parts = [];
+      for (let i = 0; i < n; i++) {
+        parts.push(strokes[i % 5]);
+        // space between groups of 5
+        if (i % 5 === 4 && i < n - 1) parts.push('  ');
+        // subtle space within group
+        else if (i % 5 < 4 && i < n - 1 && (i + 1) % 5 !== 0) parts.push(' ');
       }
+      return parts.join('');
     }
 
-    // Palette rotation (from index.html)
+    // ── Palette ──────────────────────────────────────────────────────────────
     function applyRandomPalette() {
       const root = document.documentElement;
-      const r = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
-      const hsl = (h, s, l) => `hsl(${h}, ${s}%, ${l}%)`;
-
-      const wild = Math.random() < 0.25;
-
-      const hue = r(0, 360);
-      const dark = Math.random() < 0.6;
+      const r = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
+      const hsl = (h, s, l) => `hsl(${h},${s}%,${l}%)`;
+      const wild = Math.random() < 0.25, hue = r(0, 360), dark = Math.random() < 0.6;
       const bgLight = dark ? r(3, 14) : r(82, 94);
-
-      const bgSat = wild ? r(30, 70) : r(5, 25);
-      const textSat = wild ? r(30, 60) : r(5, 20);
-
-      root.style.setProperty('--bg', hsl(hue, bgSat, bgLight));
-      root.style.setProperty('--text', hsl(hue, textSat, dark ? r(88, 96) : r(4, 12)));
-
-      root.style.setProperty(
-        '--stamp',
-        bgLight < 50
-          ? hsl((hue + 180) % 360, 30, 70)
-          : hsl((hue + 180) % 360, 30, 30)
-      );
-
-      const sealHue = wild ? r(0, 360) : r(90, 140);
-      root.style.setProperty('--seal',
-        dark
-          ? hsl(sealHue, wild ? r(50, 90) : r(30, 50), r(85, 92))
-          : hsl(sealHue, wild ? r(40, 80) : r(25, 45), r(20, 30))
-      );
+      root.style.setProperty('--bg', hsl(hue, wild ? r(30, 70) : r(5, 25), bgLight));
+      root.style.setProperty('--text', hsl(hue, wild ? r(30, 60) : r(5, 20), dark ? r(88, 96) : r(4, 12)));
+      root.style.setProperty('--stamp', bgLight < 50
+        ? hsl((hue + 180) % 360, 30, 70) : hsl((hue + 180) % 360, 30, 30));
+      const sh = wild ? r(0, 360) : r(90, 140);
+      root.style.setProperty('--seal', dark
+        ? hsl(sh, wild ? r(50, 90) : r(30, 50), r(85, 92))
+        : hsl(sh, wild ? r(40, 80) : r(25, 45), r(20, 30)));
     }
-
     applyRandomPalette();
 
-    // Storage
+    // ── Audio ────────────────────────────────────────────────────────────────
+    function playGunshotSound() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const buf = ctx.createBuffer(1, ctx.sampleRate * 0.3, ctx.sampleRate);
+        const d = buf.getChannelData(0);
+        for (let i = 0; i < buf.length; i++) {
+          const t = i / ctx.sampleRate, env = Math.exp(-t * 15);
+          d[i] = ((Math.random() * 2 - 1) * env * 0.7 + Math.sin(2 * Math.PI * 60 * t) * env * 0.15) * 0.3;
+        }
+        const src = ctx.createBufferSource();
+        src.buffer = buf; src.connect(ctx.destination); src.start();
+      } catch (e) { }
+    }
+
+    // ── Storage ──────────────────────────────────────────────────────────────
     async function loadState() {
       try {
-        if (window.storage && window.storage.get) {
-          const result = await window.storage.get(STORAGE_KEY);
-          if (result && result.value) {
-            state = JSON.parse(result.value);
-          }
-        } else {
-          const stored = localStorage.getItem(STORAGE_KEY);
-          if (stored) {
-            state = JSON.parse(stored);
-          }
-        }
-      } catch (error) {
-        console.log('No saved state found, starting fresh');
-      }
+        const raw = window.storage?.get
+          ? (await window.storage.get(STORAGE_KEY))?.value
+          : localStorage.getItem(STORAGE_KEY);
+        if (raw) state = JSON.parse(raw);
+      } catch (e) { }
       render();
     }
 
@@ -701,521 +922,453 @@
       try {
         els.saveStatus.textContent = 'Saving...';
         els.saveStatus.className = 'save-status visible';
-
-        if (window.storage && window.storage.set) {
-          await window.storage.set(STORAGE_KEY, JSON.stringify(state));
-        } else {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-        }
-
+        const data = JSON.stringify(state);
+        window.storage?.set ? await window.storage.set(STORAGE_KEY, data)
+          : localStorage.setItem(STORAGE_KEY, data);
         els.saveStatus.textContent = 'Saved ✓';
-
-        setTimeout(() => {
-          els.saveStatus.classList.remove('visible');
-        }, 2000);
-      } catch (error) {
-        console.error('Error saving state:', error);
+        setTimeout(() => els.saveStatus.classList.remove('visible'), 2000);
+      } catch (e) {
         els.saveStatus.textContent = 'Save failed';
       }
     }
 
-    function getStampStyle() {
-      const e = Math.pow(Math.random(), 3);
-      const x = -3 - e * 8;
-      const y = -3 - e * 6;
-      const tilt = -4 - e * 6;
-      return `--mjb-x: ${x}px; --mjb-y: ${y}px; --mjb-tilt: ${tilt}deg;`;
+    // ── Notes helpers ────────────────────────────────────────────────────────
+    function saveNotes(text) {
+      if (state.editingHistoryIndex !== null) state.history[state.editingHistoryIndex].notes = text;
+      else state.notes = text;
     }
 
+    let _saveTimer;
+    function scheduleSave() {
+      els.saveStatus.textContent = 'Typing...';
+      els.saveStatus.className = 'save-status visible';
+      clearTimeout(_saveTimer);
+      _saveTimer = setTimeout(save, 1000);
+    }
+
+    function addTimestampedEntry() {
+      const ts = formatTimestamp(new Date());
+      const current = els.notesArea.value.trim();
+      const text = current ? `${ts}\n\n\n${current}` : `${ts}\n`;
+      els.notesArea.value = text;
+      saveNotes(text);
+      els.notesArea.setSelectionRange(ts.length + 1, ts.length + 1);
+      scheduleSave();
+    }
+
+    // ── Reset logic ──────────────────────────────────────────────────────────
     function getNextReset() {
-      const nextReset = new Date();
-      nextReset.setHours(9, 30, 0, 0);
-      if (new Date().getHours() >= 9 && (new Date().getHours() > 9 || new Date().getMinutes() >= 30)) {
-        nextReset.setDate(nextReset.getDate() + 1);
-      }
-      return nextReset.getTime();
+      const d = new Date();
+      d.setHours(9, 30, 0, 0);
+      const now = new Date();
+      if (now.getHours() > 9 || (now.getHours() === 9 && now.getMinutes() >= 30)) d.setDate(d.getDate() + 1);
+      return d.getTime();
+    }
+
+    function closeTrade() {
+      // Flush active trade to history; returns the record
+      const record = {
+        reason: state.reason, notes: state.notes, spentAt: state.spentAt,
+        completedAt: Date.now(), duration: Date.now() - state.spentAt,
+        restPeriods: state.restTimers + 1
+      };
+      state.history.push(record);
+      return record;
+    }
+
+    function resetTradeState() {
+      state.bulletSpent = false; state.spentAt = null; state.reason = '';
+      state.notes = ''; state.restTimers = 0; state.lastPaletteChange = null;
+      state.restStartedAt = null; state.restPaused = false;
+      state.viewingHistory = false; state.editingHistoryIndex = null;
     }
 
     function checkReset() {
-      if (!state.resetAt) {
-        state.resetAt = getNextReset();
-      }
-
-      if (Date.now() >= state.resetAt) {
-        // If there's an active trade, save it to history before reset
-        if (state.bulletSpent) {
-          const tradeRecord = {
-            reason: state.reason,
-            notes: state.notes,
-            spentAt: state.spentAt,
-            completedAt: Date.now(),
-            duration: Date.now() - state.spentAt,
-            restPeriods: state.restTimers + 1
-          };
-
-          if (!state.history) {
-            state.history = [];
-          }
-          state.history.push(tradeRecord);
-        }
-
-        // Reset for new day, but keep history
-        const currentHistory = state.history || [];
-        const currentRecentlyExited = state.recentlyExited;
-        state = {
-          bulletSpent: false,
-          spentAt: null,
-          reason: '',
-          notes: '',
-          resetAt: getNextReset(),
-          restTimers: 0,
-          lastPaletteChange: null,
-          history: currentHistory,
-          editingHistoryIndex: null,
-          recentlyExited: currentRecentlyExited
-        };
-        save();
-        render();
-      }
+      if (!state.resetAt) state.resetAt = getNextReset();
+      if (Date.now() < state.resetAt) return;
+      if (state.bulletSpent) closeTrade();
+      const { history, recentlyExited } = state;
+      state = { ...state, resetAt: getNextReset(), history, recentlyExited };
+      resetTradeState();
+      save();
+      render();
     }
 
+    // ── Timer ────────────────────────────────────────────────────────────────
     function updateTimer() {
       if (!state.spentAt) return;
 
-      const elapsed = Date.now() - state.spentAt;
-      const currentRestPeriod = Math.floor(elapsed / REST_DURATION);
-
-      // Check if we've entered a new rest period
-      if (currentRestPeriod > state.restTimers) {
-        state.restTimers = currentRestPeriod;
-        applyRandomPalette();
-        state.lastPaletteChange = Date.now();
-        save();
+      // Migration: if restStartedAt not set, derive from spentAt + completed rests
+      if (!state.restStartedAt) {
+        state.restStartedAt = state.spentAt + (state.restTimers * REST_DURATION);
       }
 
-      // Update rest count display
+      // Already paused in observation mode
+      if (state.restPaused) {
+        els.timer.textContent = '00:00';
+        document.body.classList.add('observing');
+        els.doneBtn.classList.add('visible');
+        return;
+      }
+
+      document.body.classList.remove('observing');
+      els.doneBtn.classList.remove('visible');
+
+      const elapsed = Date.now() - state.restStartedAt;
+      const remaining = REST_DURATION - elapsed;
+
+      if (remaining <= 0) {
+        // Rest period just ended — pause and await observation
+        state.restPaused = true;
+        els.timer.textContent = '00:00';
+        document.body.classList.add('observing');
+        els.doneBtn.classList.add('visible');
+        setTimeout(() => els.notesArea.focus(), 80);
+        save();
+        return;
+      }
+
+      els.timer.textContent = `${pad(Math.floor(remaining / 60000))}:${pad(Math.floor((remaining % 60000) / 1000))}`;
       els.restCount.textContent = `Rest #${state.restTimers + 1}`;
+      els.tallyMarks.textContent = renderTallyMarks(state.restTimers);
+    }
 
-      // Calculate remaining time in current rest period
-      const timeInCurrentPeriod = elapsed % REST_DURATION;
-      const remaining = REST_DURATION - timeInCurrentPeriod;
-
-      const minutes = Math.floor(remaining / 60000);
-      const seconds = Math.floor((remaining % 60000) / 1000);
-
-      els.timer.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    // ── Render ───────────────────────────────────────────────────────────────
+    // Three views: 'log' | 'trade' | 'history'
+    function getView() {
+      if (state.editingHistoryIndex !== null) return 'history';
+      if (state.bulletSpent && !state.viewingHistory) return 'trade';
+      return 'log';
     }
 
     function render() {
       checkReset();
+      const view = getView();
+      const inLog = view === 'log';
 
-      // Reset initial timestamp flag
-      hasAddedInitialTimestamp = false;
+      els.toolImage.classList.toggle('spent', state.bulletSpent || view === 'history');
+      els.promptSection.classList.toggle('hidden', !inLog);
+      els.restSection.classList.toggle('hidden', inLog);
 
-      // Editing a historical trade
-      if (state.editingHistoryIndex !== null) {
-        const trade = state.history[state.editingHistoryIndex];
-        if (!trade) {
-          state.editingHistoryIndex = null;
-          render();
-          return;
+      if (inLog) {
+        els.reasonInput.value = '';
+        document.body.classList.remove('observing');
+        els.doneBtn.classList.remove('visible');
+
+        // Show live hero or spend prompt
+        const hasLive = state.bulletSpent;
+        els.liveTrade.classList.toggle('visible', hasLive);
+        // hide question + input + spendBtn when live trade exists
+        els.promptSection.querySelectorAll('.question, #reasonInput, #spendBtn').forEach(el => {
+          el.style.display = hasLive ? 'none' : '';
+        });
+
+        if (hasLive) {
+          els.liveHeroTime.textContent = new Date(state.spentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          els.liveHeroConviction.textContent = `"${state.reason}"`;
+          const mins = Math.floor((Date.now() - state.spentAt) / 60000);
+          els.liveHeroStats.textContent = `${mins}min elapsed · rest #${state.restTimers + 1}`;
         }
 
-        els.backToTradesBtn.classList.remove('hidden');
-        els.toolImage.classList.add('spent');
-        els.promptSection.classList.add('hidden');
-        els.restSection.classList.remove('hidden');
+        renderHistory();
+        return;
+      }
 
-        const spentDate = new Date(trade.spentAt);
-        const completedDate = new Date(trade.completedAt);
-        els.timestamp.textContent = completedDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        els.timestampRow.style = getStampStyle();
-        els.displayReason.textContent = trade.reason || '(no reason given)';
-        els.notesArea.value = trade.notes || '';
+      els.liveTrade.classList.remove('visible');
+      const isHistory = view === 'history';
+      const trade = isHistory ? state.history[state.editingHistoryIndex] : null;
+      if (isHistory && !trade) { state.editingHistoryIndex = null; render(); return; }
 
+      const src = isHistory ? trade : state;
+      const refDate = new Date(isHistory ? trade.completedAt : state.spentAt);
+
+      els.timestamp.textContent = refDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      els.timestampRow.style = getStampStyle();
+      els.displayReason.value = src.reason || '';
+      els.displayReason.style.height = 'auto';
+      els.displayReason.style.height = els.displayReason.scrollHeight + 'px';
+      els.notesArea.value = src.notes || '';
+      els.allTradesBtn.classList.toggle('hidden', isHistory);
+
+      if (isHistory) {
         els.timer.textContent = 'Completed';
         els.restCount.textContent = `${trade.restPeriods} rest periods`;
+        els.tallyMarks.textContent = renderTallyMarks(trade.restPeriods);
         els.exitBtn.textContent = 'Back';
-
-        setTimeout(() => {
-          els.notesArea.focus();
-        }, 100);
-      }
-      // Viewing current active trade
-      else if (state.bulletSpent) {
-        els.backToTradesBtn.classList.remove('hidden');
-        els.toolImage.classList.add('spent');
-        els.promptSection.classList.add('hidden');
-        els.restSection.classList.remove('hidden');
-
-        const spentDate = new Date(state.spentAt);
-        els.timestamp.textContent = spentDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        els.timestampRow.style = getStampStyle();
-        els.displayReason.textContent = state.reason || '(no reason given)';
-        els.notesArea.value = state.notes;
-
+        // Clean up observing state when viewing history
+        document.body.classList.remove('observing');
+        els.doneBtn.classList.remove('visible');
+      } else {
         updateTimer();
         els.exitBtn.textContent = 'Exit Trade';
-
-        setTimeout(() => {
-          els.notesArea.focus();
-        }, 100);
-      }
-      // Main view - no active trade
-      else {
-        els.backToTradesBtn.classList.add('hidden');
-        els.toolImage.classList.remove('spent');
-        els.promptSection.classList.remove('hidden');
-        els.restSection.classList.add('hidden');
-        els.reasonInput.value = '';
-        renderHistory();
+        setTimeout(() => els.notesArea.focus(), 100);
       }
     }
 
     function renderHistory() {
-      if (!state.history || state.history.length === 0) {
-        els.logEntries.innerHTML = '<div style="text-align: center; opacity: 0.5; padding: 1rem; font-size: 0.6rem;">No trades yet</div>';
+      const hist = state.history || [];
+      if (!hist.length && !state.bulletSpent) {
+        els.logEntries.innerHTML = '<div style="text-align:center;opacity:0.5;padding:1rem;font-size:0.6rem;">No trades yet</div>';
         return;
       }
 
-      els.logEntries.innerHTML = state.history.slice().reverse().map((trade, reverseIndex) => {
-        const actualIndex = state.history.length - 1 - reverseIndex;
-        const date = new Date(trade.completedAt);
-        const duration = trade.duration ? Math.floor(trade.duration / 60000) : 0;
-
-        return `
-          <div class="log-entry" data-index="${actualIndex}" style="cursor: pointer;">
-            <div class="log-entry-header">
-              <span>${date.toLocaleDateString()}</span>
-              <span>${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-            </div>
-            <div class="log-entry-conviction">"${trade.reason}"</div>
-            <div class="log-entry-stats">${trade.restPeriods} rest periods · ${duration}min total</div>
+      const liveHtml = state.bulletSpent ? `
+        <div class="log-entry live" data-live style="cursor:pointer;">
+          <div class="log-entry-header">
+            <span>${new Date(state.spentAt).toLocaleDateString()} <span class="live-badge">LIVE</span></span>
+            <span>${new Date(state.spentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
           </div>
-        `;
+          <div class="log-entry-conviction">"${state.reason}"</div>
+          <div class="log-entry-stats">${Math.floor((Date.now() - state.spentAt) / 60000)}min elapsed · rest #${state.restTimers + 1}</div>
+        </div>` : '';
+
+      const histHtml = hist.slice().reverse().map((t, ri) => {
+        const i = hist.length - 1 - ri, d = new Date(t.completedAt);
+        return `
+          <div class="log-entry" data-index="${i}" style="cursor:pointer;">
+            <div class="log-entry-header">
+              <span>${d.toLocaleDateString()}</span>
+              <span>${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+            </div>
+            <div class="log-entry-conviction">"${t.reason}"</div>
+            <div class="log-entry-stats">${t.restPeriods} rest periods · ${Math.floor((t.duration || 0) / 60000)}min total</div>
+          </div>`;
       }).join('');
 
-      // Add click handlers to log entries
-      document.querySelectorAll('.log-entry').forEach(entry => {
-        entry.addEventListener('click', () => {
-          const index = parseInt(entry.dataset.index);
-          loadHistoricalTrade(index);
-        });
+      els.logEntries.innerHTML = liveHtml + histHtml;
+
+      els.logEntries.querySelector('[data-live]')?.addEventListener('click', () => {
+        state.viewingHistory = false;
+        render();
       });
+      els.logEntries.querySelectorAll('[data-index]').forEach(el =>
+        el.addEventListener('click', () => {
+          state.editingHistoryIndex = parseInt(el.dataset.index);
+          render();
+        })
+      );
     }
 
-    function loadHistoricalTrade(index) {
-      state.editingHistoryIndex = index;
-      render();
-    }
+    // ── Floating timestamp button ────────────────────────────────────────────
+    {
+      let mx = window.innerWidth / 2, my = window.innerHeight / 2;
+      let bx = mx, by = my;
+      let prevMx = mx, prevMy = my;
 
-    // Events
+      let vel = 0;
+      let frozen = false;
+
+      const btn = els.addTimestampBtn;
+
+      document.addEventListener('mousemove', e => {
+        const dx = e.clientX - prevMx;
+        const dy = e.clientY - prevMy;
+
+        const rawVel = Math.sqrt(dx * dx + dy * dy);
+
+        // smooth velocity instead of snapping
+        vel += (rawVel - vel) * 0.25;
+
+        prevMx = e.clientX;
+        prevMy = e.clientY;
+
+        mx = e.clientX;
+        my = e.clientY;
+      });
+
+      btn.addEventListener('mouseenter', () => { frozen = true; });
+      btn.addEventListener('mouseleave', () => { frozen = false; vel = 0; });
+
+      (function loop() {
+        requestAnimationFrame(loop);
+
+        const inTrade = getView() === 'trade';
+        if (!inTrade) {
+          btn.classList.remove('visible');
+          frozen = false;
+          return;
+        }
+
+        btn.classList.add('visible');
+
+        if (frozen) return;
+
+        const snap = Math.min(vel / 30, 1);
+        vel *= 0.90;
+
+        // more natural distance range
+        const offset = 18 + (1 - snap) * 60;
+
+        const tx = mx + offset;
+        const ty = my + offset;
+
+        // smoother follow
+        const lf = 0.12 + snap * 0.35;
+
+        bx += (tx - bx) * lf;
+        by += (ty - by) * lf;
+
+        const p = 44;
+
+        btn.style.left =
+          Math.max(p, Math.min(window.innerWidth - p, bx)) + 'px';
+
+        btn.style.top =
+          Math.max(p, Math.min(window.innerHeight - p, by)) + 'px';
+      })();
+    }
+    // ── Events ───────────────────────────────────────────────────────────────
     els.spendBtn.onclick = () => {
       const reason = els.reasonInput.value.trim();
-      if (!reason) {
-        els.reasonInput.focus();
-        return;
-      }
-
-      // Play gunshot sound
+      if (!reason) { els.reasonInput.focus(); return; }
       playGunshotSound();
-
       state.bulletSpent = true;
       state.spentAt = Date.now();
       state.reason = reason;
-      state.notes = '';
+      state.notes = formatTimestamp(new Date(state.spentAt)) + '\n';
       state.restTimers = 0;
+      state.restStartedAt = Date.now();
+      state.restPaused = false;
       state.lastPaletteChange = Date.now();
-
       applyRandomPalette();
       save();
       render();
+      // Cursor on the blank line after the starter timestamp
+      const cursorPos = formatTimestamp(new Date(state.spentAt)).length + 1;
+      setTimeout(() => { els.notesArea.setSelectionRange(cursorPos, cursorPos); els.notesArea.focus(); }, 120);
     };
 
-    els.reasonInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        els.spendBtn.click();
-      }
-    });
-
-    // Monty Python-style wiggle on input
+    els.reasonInput.addEventListener('keypress', e => { if (e.key === 'Enter') els.spendBtn.click(); });
     els.reasonInput.addEventListener('input', () => {
       els.toolImage.classList.remove('wiggle');
-      void els.toolImage.offsetWidth; // Trigger reflow
+      void els.toolImage.offsetWidth;
       els.toolImage.classList.add('wiggle');
     });
 
-    els.notesArea.addEventListener('input', (e) => {
-      // Save to historical trade if editing one
-      if (state.editingHistoryIndex !== null) {
-        state.history[state.editingHistoryIndex].notes = els.notesArea.value;
-      } else {
-        state.notes = els.notesArea.value;
-      }
+    els.notesArea.addEventListener('input', () => { saveNotes(els.notesArea.value); scheduleSave(); });
+    els.notesArea.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); addTimestampedEntry(); } });
+    els.addTimestampBtn.addEventListener('click', () => { addTimestampedEntry(); els.notesArea.focus(); });
 
-      els.saveStatus.textContent = 'Typing...';
-      els.saveStatus.className = 'save-status visible';
-
-      clearTimeout(els.notesArea.saveTimer);
-      els.notesArea.saveTimer = setTimeout(() => {
-        save();
-      }, 1000);
+    els.displayReason.addEventListener('change', () => {
+      const v = els.displayReason.value.trim();
+      if (state.editingHistoryIndex !== null) state.history[state.editingHistoryIndex].reason = v;
+      else state.reason = v;
+      save();
     });
 
-    // Add timestamped entry on Ctrl/Cmd + Enter
-    els.notesArea.addEventListener('keydown', (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-        e.preventDefault();
-        addTimestampedEntry();
-      }
+    els.displayReason.addEventListener('input', () => {
+      els.displayReason.style.height = 'auto';
+      els.displayReason.style.height = els.displayReason.scrollHeight + 'px';
     });
 
-    // Add timestamp button handler
-    els.addTimestampBtn.addEventListener('click', () => {
-      addTimestampedEntry();
-      els.notesArea.focus();
+    els.liveTrade.addEventListener('click', () => {
+      state.viewingHistory = false;
+      render();
     });
-
-    // Auto-add timestamp on first focus if empty
-    els.notesArea.addEventListener('focus', () => {
-      if (!hasAddedInitialTimestamp && !els.notesArea.value.trim()) {
-        addTimestampedEntry();
-        hasAddedInitialTimestamp = true;
-      }
-    });
-
-    function addTimestampedEntry() {
-      const now = new Date();
-      const days = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
-      const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-
-      const hours = String(now.getHours()).padStart(2, '0');
-      const minutes = String(now.getMinutes()).padStart(2, '0');
-      const day = days[now.getDay()];
-      const date = String(now.getDate()).padStart(2, '0');
-      const month = months[now.getMonth()];
-
-      const timestamp = `${hours}:${minutes} ${day} ${date} ${month}`;
-
-      const currentNotes = els.notesArea.value.trim();
-      let newEntry;
-
-      if (currentNotes) {
-        // Drill down: new timestamp at top, blank line, then old content
-        newEntry = `${timestamp}\n\n\n${currentNotes}`;
-      } else {
-        // First entry: just timestamp and blank line
-        newEntry = `${timestamp}\n`;
-      }
-
-      els.notesArea.value = newEntry;
-
-      // Trigger save
-      if (state.editingHistoryIndex !== null) {
-        state.history[state.editingHistoryIndex].notes = newEntry;
-      } else {
-        state.notes = newEntry;
-      }
-
-      // Position cursor on the blank line after timestamp for typing
-      const cursorPos = timestamp.length + 1;
-      els.notesArea.setSelectionRange(cursorPos, cursorPos);
-
-      els.saveStatus.textContent = 'Typing...';
-      els.saveStatus.className = 'save-status visible';
-
-      clearTimeout(els.notesArea.saveTimer);
-      els.notesArea.saveTimer = setTimeout(() => {
-        save();
-      }, 1000);
-    }
 
     els.exitBtn.onclick = () => {
-      // If editing a historical trade, just go back to main view
       if (state.editingHistoryIndex !== null) {
-        save(); // Save any changes first
+        // Back from historical trade → return to log
         state.editingHistoryIndex = null;
+        state.viewingHistory = state.bulletSpent;
+        save();
         render();
         return;
       }
-
-      // Exit current trade immediately (no confirmation)
-      const tradeRecord = {
-        reason: state.reason,
-        notes: state.notes,
-        spentAt: state.spentAt,
-        completedAt: Date.now(),
-        duration: Date.now() - state.spentAt,
-        restPeriods: state.restTimers + 1
-      };
-
-      if (!state.history) {
-        state.history = [];
-      }
-      state.history.push(tradeRecord);
-
-      // Set up undo state
-      state.recentlyExited = {
-        historyIndex: state.history.length - 1,
-        exitedAt: Date.now()
-      };
-
-      save(); // Save history first
-
-      // Reset current trade
-      state.bulletSpent = false;
-      state.spentAt = null;
-      state.reason = '';
-      state.notes = '';
-      state.restTimers = 0;
-      state.lastPaletteChange = null;
-
+      // Exit active trade
+      closeTrade();
+      state.recentlyExited = { historyIndex: state.history.length - 1, exitedAt: Date.now() };
+      resetTradeState();
       save();
       render();
       showUndoNotification();
     };
 
-    // Back to trades button handler
-    els.backToTradesBtn.onclick = () => {
-      if (state.editingHistoryIndex !== null) {
-        // Save any changes to historical trade
-        save();
-        state.editingHistoryIndex = null;
-        render();
-      } else if (state.bulletSpent) {
-        // Exit active trade
-        els.exitBtn.click();
-      }
+    els.allTradesBtn.onclick = () => {
+      state.viewingHistory = true;
+      state.editingHistoryIndex = null;
+      render();
     };
 
     els.exportBtn.onclick = () => {
-      const exportData = {
-        exportDate: new Date().toISOString(),
-        currentState: state,
-        meta: {
-          version: '1.0',
-          description: 'One bullet per day trade journal'
-        }
-      };
-
-      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `lot-journal-${new Date().toISOString().split('T')[0]}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
+      const blob = new Blob([JSON.stringify({ exportDate: new Date().toISOString(), currentState: state, meta: { version: '1.0' } }, null, 2)], { type: 'application/json' });
+      const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `lot-journal-${new Date().toISOString().split('T')[0]}.json` });
+      a.click(); URL.revokeObjectURL(a.href);
     };
 
-    // Undo notification
-    const UNDO_WINDOW = 30 * 60 * 1000; // 30 minutes
-    let undoTimeout;
+    els.doneBtn.onclick = () => {
+      state.restTimers++;
+      state.restPaused = false;
+      state.restStartedAt = Date.now();
+      applyRandomPalette();
+      state.lastPaletteChange = Date.now();
+      document.body.classList.remove('observing');
+      els.doneBtn.classList.remove('visible');
+      save();
+      render();
+    };
+
+    // ── Undo ─────────────────────────────────────────────────────────────────
+    let undoTimeout, undoInterval;
 
     function showUndoNotification() {
       els.undoNotification.classList.add('visible');
-
-      // Auto-hide after 30 minutes
-      clearTimeout(undoTimeout);
-      undoTimeout = setTimeout(() => {
-        hideUndoNotification();
-        state.recentlyExited = null;
-        save();
-      }, UNDO_WINDOW);
-
+      clearTimeout(undoTimeout); clearInterval(undoInterval);
+      undoTimeout = setTimeout(() => { hideUndoNotification(); state.recentlyExited = null; save(); }, UNDO_WINDOW);
       updateUndoMessage();
-      // Update message every minute
-      const updateInterval = setInterval(() => {
-        if (!state.recentlyExited) {
-          clearInterval(updateInterval);
-          return;
-        }
-        updateUndoMessage();
-      }, 60000);
+      undoInterval = setInterval(updateUndoMessage, 60000);
     }
 
     function hideUndoNotification() {
       els.undoNotification.classList.remove('visible');
+      clearInterval(undoInterval);
     }
 
     function updateUndoMessage() {
       if (!state.recentlyExited) return;
-
-      const elapsed = Date.now() - state.recentlyExited.exitedAt;
-      const remaining = UNDO_WINDOW - elapsed;
-
-      if (remaining > 0) {
-        const minutes = Math.floor(remaining / 60000);
-        els.undoMessage.textContent = `Trade exited (${minutes}m to undo)`;
-      }
+      const mins = Math.floor((UNDO_WINDOW - (Date.now() - state.recentlyExited.exitedAt)) / 60000);
+      if (mins >= 0) els.undoMessage.textContent = `Trade exited (${mins}m to undo)`;
     }
 
     els.undoExitBtn.onclick = () => {
       if (!state.recentlyExited) return;
-
-      const elapsed = Date.now() - state.recentlyExited.exitedAt;
-      if (elapsed > UNDO_WINDOW) {
-        hideUndoNotification();
-        state.recentlyExited = null;
-        save();
-        return;
+      if (Date.now() - state.recentlyExited.exitedAt > UNDO_WINDOW) {
+        hideUndoNotification(); state.recentlyExited = null; save(); return;
       }
-
-      // Restore the trade from history
       const trade = state.history[state.recentlyExited.historyIndex];
-      if (trade) {
-        state.bulletSpent = true;
-        state.spentAt = trade.spentAt;
-        state.reason = trade.reason;
-        state.notes = trade.notes;
-        state.restTimers = trade.restPeriods - 1;
-
-        // Remove from history
-        state.history.splice(state.recentlyExited.historyIndex, 1);
-        state.recentlyExited = null;
-
-        hideUndoNotification();
-        clearTimeout(undoTimeout);
-        save();
-        render();
-      }
+      if (!trade) return;
+      state.bulletSpent = true; state.spentAt = trade.spentAt;
+      state.reason = trade.reason; state.notes = trade.notes;
+      state.restTimers = trade.restPeriods - 1; state.viewingHistory = false;
+      state.history.splice(state.recentlyExited.historyIndex, 1);
+      state.recentlyExited = null;
+      hideUndoNotification(); clearTimeout(undoTimeout);
+      save(); render();
     };
 
-    // Dismiss undo notification (but keep undo state active)
-    els.dismissUndoBtn.onclick = () => {
-      hideUndoNotification();
-    };
+    els.dismissUndoBtn.onclick = hideUndoNotification;
 
-    // Check undo window on load
-    function checkUndoWindow() {
-      if (state.recentlyExited) {
-        const elapsed = Date.now() - state.recentlyExited.exitedAt;
-        if (elapsed < UNDO_WINDOW) {
-          showUndoNotification();
-        } else {
-          state.recentlyExited = null;
-          save();
-        }
-      }
-    }
-
-    // Update timer every second when bullet is spent
+    // ── Init ─────────────────────────────────────────────────────────────────
     setInterval(() => {
-      if (state.bulletSpent) {
-        updateTimer();
-        checkReset();
+      if (state.bulletSpent) { updateTimer(); checkReset(); }
+      // Keep hero card stats fresh if visible
+      if (state.bulletSpent && els.liveTrade.classList.contains('visible')) {
+        const mins = Math.floor((Date.now() - state.spentAt) / 60000);
+        els.liveHeroStats.textContent = `${mins}min elapsed · rest #${state.restTimers + 1}`;
       }
     }, 1000);
 
-    // Initialize
-    loadState();
-    checkUndoWindow();
+    loadState().then(() => {
+      if (state.recentlyExited) {
+        Date.now() - state.recentlyExited.exitedAt < UNDO_WINDOW
+          ? showUndoNotification()
+          : (state.recentlyExited = null, save());
+      }
+    });
 
-    // Save on page unload
     window.addEventListener('beforeunload', () => {
       if (state.notes || state.bulletSpent) {
-        try {
-          localStorage.setItem('lot_backup', JSON.stringify(state));
-        } catch (e) { }
+        try { localStorage.setItem('lot_backup', JSON.stringify(state)); } catch (e) { }
       }
     });
   </script>
