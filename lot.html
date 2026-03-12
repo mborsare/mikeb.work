@@ -389,10 +389,10 @@
     }
 
     #timer {
-      font-size: clamp(2rem, 9vw, 5rem);
+      font-size: 2rem;
+      font-weight: bold;
       line-height: 1;
       margin: 0 0 0.15em 0;
-      letter-spacing: -0.02em;
       transition: color 0.4s ease, background 0.4s ease, padding 0.4s ease;
       display: inline-block;
     }
@@ -604,41 +604,6 @@
       color: var(--bg);
     }
 
-    .float-stamp-btn {
-      position: fixed;
-      z-index: 900;
-      pointer-events: none;
-      display: none;
-      background: transparent;
-      border: 2px solid var(--seal);
-      border-radius: 0.4rem;
-      color: var(--seal);
-      font-family: 'ComicMono', monospace;
-      font-size: 0.8rem;
-      padding: 0.6rem 1.2rem;
-      cursor: pointer;
-      opacity: 0.85;
-      transition: opacity 0.15s, background 0.15s, transform 0.05s;
-      transform: translate(-50%, -50%);
-      white-space: nowrap;
-      user-select: none;
-    }
-
-    .float-stamp-btn.visible {
-      pointer-events: auto;
-      display: block;
-    }
-
-    .float-stamp-btn:hover {
-      opacity: 1;
-      background: var(--seal);
-      color: var(--bg);
-    }
-
-    .float-stamp-btn:active {
-      transform: translate(-50%, -50%) scale(0.93);
-    }
-
     .hidden {
       display: none !important;
     }
@@ -692,8 +657,6 @@
 </head>
 
 <body>
-  <button id="addTimestampBtn" class="float-stamp-btn" aria-label="Add timestamped entry">+ entry</button>
-
   <div class="undo-notification" id="undoNotification">
     <span id="undoMessage">Trade exited</span>
     <button class="undo-btn" id="undoExitBtn">Undo</button>
@@ -755,7 +718,10 @@
       <div class="notes-section">
         <label class="notes-label" for="notesArea">
           <span>Trade notes & reflection</span>
-          <span class="save-status" id="saveStatus"></span>
+          <span style="display:flex;align-items:center;gap:0.75rem;">
+            <button id="addTimestampBtn" class="btn-small" style="opacity:1;">+ entry</button>
+            <span class="save-status" id="saveStatus"></span>
+          </span>
         </label>
         <textarea id="notesArea" placeholder="Ctrl+Enter to add timestamped entry..."></textarea>
       </div>
@@ -1149,74 +1115,6 @@
       );
     }
 
-    // ── Floating timestamp button ────────────────────────────────────────────
-    {
-      let mx = window.innerWidth / 2, my = window.innerHeight / 2;
-      let bx = mx, by = my;
-      let prevMx = mx, prevMy = my;
-
-      let vel = 0;
-      let frozen = false;
-
-      const btn = els.addTimestampBtn;
-
-      document.addEventListener('mousemove', e => {
-        const dx = e.clientX - prevMx;
-        const dy = e.clientY - prevMy;
-
-        const rawVel = Math.sqrt(dx * dx + dy * dy);
-
-        // smooth velocity instead of snapping
-        vel += (rawVel - vel) * 0.25;
-
-        prevMx = e.clientX;
-        prevMy = e.clientY;
-
-        mx = e.clientX;
-        my = e.clientY;
-      });
-
-      btn.addEventListener('mouseenter', () => { frozen = true; });
-      btn.addEventListener('mouseleave', () => { frozen = false; vel = 0; });
-
-      (function loop() {
-        requestAnimationFrame(loop);
-
-        const inTrade = getView() === 'trade';
-        if (!inTrade) {
-          btn.classList.remove('visible');
-          frozen = false;
-          return;
-        }
-
-        btn.classList.add('visible');
-
-        if (frozen) return;
-
-        const snap = Math.min(vel / 30, 1);
-        vel *= 0.90;
-
-        // more natural distance range
-        const offset = 18 + (1 - snap) * 60;
-
-        const tx = mx + offset;
-        const ty = my + offset;
-
-        // smoother follow
-        const lf = 0.12 + snap * 0.35;
-
-        bx += (tx - bx) * lf;
-        by += (ty - by) * lf;
-
-        const p = 44;
-
-        btn.style.left =
-          Math.max(p, Math.min(window.innerWidth - p, bx)) + 'px';
-
-        btn.style.top =
-          Math.max(p, Math.min(window.innerHeight - p, by)) + 'px';
-      })();
-    }
     // ── Events ───────────────────────────────────────────────────────────────
     els.spendBtn.onclick = () => {
       const reason = els.reasonInput.value.trim();

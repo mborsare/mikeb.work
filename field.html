@@ -43,6 +43,22 @@
       padding: 1.5rem 1rem 4rem;
     }
 
+    body.instrument-nq {
+      --bg: #000000;
+      --text: #c0c0c0;
+      --stamp: #888888;
+      --seal: #eaffea;
+      --sell: #ffaaaa;
+    }
+
+    body.instrument-es {
+      --bg: #ffffff;
+      --text: #000000;
+      --stamp: #666666;
+      --seal: #000000;
+      --sell: #aa0000;
+    }
+
     h2 {
       color: var(--text);
       margin-bottom: 0.8rem;
@@ -129,8 +145,6 @@
     }
 
     .ascii {
-      white-space: normal;
-      overflow-wrap: anywhere;
       line-height: 1;
     }
 
@@ -219,14 +233,29 @@
     #countdown {
       color: var(--stamp);
     }
+
+    button {
+      background: transparent;
+      border-radius: 1rem;
+      border: 1px solid currentColor;
+      color: inherit;
+      font-family: 'ComicMono', monospace;
+      font-size: clamp(.5rem, 4vw, 1rem);
+      padding: clamp(1rem, 5vw, 2rem);
+      cursor: pointer;
+      flex: 1;
+      max-width: 200px;
+      -webkit-tap-highlight-color: transparent;
+    }
   </style>
 </head>
 
-<body>
+<body class="instrument-nq">
 
   <div class="top-bar">
     <a href="/">← back</a>
     <span id="clock"></span>
+
 
 
     <pre style="text-align: center; font-size: .3rem; padding: 4rem 0;">
@@ -235,13 +264,17 @@
 ▐▛▀▀▘  █  ▐▛▀▀▘▐▌   ▐▌  █    ▐▌   ▐▌ ▐▌▐▌ ▝▜▌▐▌  █  █    █    █  ▐▌ ▐▌▐▌ ▝▜▌ ▝▀▚▖
 ▐▌   ▗▄█▄▖▐▙▄▄▖▐▙▄▄▖▐▙▄▄▀    ▝▚▄▄▖▝▚▄▞▘▐▌  ▐▌▐▙▄▄▀▗▄█▄▖  █  ▗▄█▄▖▝▚▄▞▘▐▌  ▐▌▗▄▄▞▘
     </pre>
+    <div id="symbolTabs" style="display:flex;gap:1rem">
+      <button class="tab active" data-symbol="NQ">NQ</button>
+      <button class="tab" data-symbol="ES">ES</button>
+    </div>
   </div>
 
 
 
   <div id="marketStatus"
-    style="display:none; max-width:860px; margin:1rem 0 2rem; padding:1rem; border:1px solid var(--stamp); font-size:.8rem; letter-spacing:.1em; text-transform:uppercase; color:var(--seal);">
-    MARKET CLOSED
+    style="display:none; max-width:860px; margin:1rem 0 2rem; padding:1rem; font-size: 3rem; color:var(--seal);">
+    Trading is paused
   </div>
 
   <div class="battlefield" id="battlefield">
@@ -317,18 +350,22 @@
 </pre>
 
   <script>
-    const STORAGE_KEY = 'primeWeatherHistory';
+    let SYMBOL = "NQ";
+    const STORAGE_KEY_BASE = 'primeWeatherHistory';
+    function storageKey() {
+      return `${STORAGE_KEY_BASE}_${SYMBOL}`;
+    }
     const MAX_POINTS = 300;
     const ET_TZ = "America/New_York";
     const TOTAL_SOLDIERS = 250;
 
     // ── storage ─────────────────────────────────
     function loadHistory() {
-      try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+      try { return JSON.parse(localStorage.getItem(storageKey())) || []; }
       catch { return []; }
     }
     function saveHistory(history) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+      localStorage.setItem(storageKey(), JSON.stringify(history));
     }
     function appendToHistory(data) {
       const history = loadHistory();
@@ -387,7 +424,6 @@
       if (["Mon", "Tue", "Wed", "Thu"].includes(p.weekday) && p.hour === 17) return true;
 
       // Weekend closure (Fri 6pm → Sun 6pm)
-      // If CME closes at 5pm Friday instead, change 18 → 17
       if (p.weekday === "Fri" && p.hour >= 18) return true;
       if (p.weekday === "Sat") return true;
       if (p.weekday === "Sun" && p.hour < 18) return true;
@@ -537,8 +573,13 @@
       if (!updateMarketStatus()) return;
 
       try {
-        const res = await fetch('https://weather.mborsare.workers.dev/prime/weather/ES', { cache: 'no-store' });
+        const res = await fetch(
+          `https://weather.mborsare.workers.dev/prime/weather/${SYMBOL}`,
+          { cache: 'no-store' }
+        );
+
         if (!res.ok) throw new Error();
+
         updateUI(await res.json());
       } catch (err) {
         console.error('Failed to fetch weather data');
@@ -546,7 +587,7 @@
     }
 
     // ── hydrate ──────────────────────────────────
-    (function hydrateFromStorage() {
+    function hydrateFromStorage() {
       const history = loadHistory();
       if (history.length === 0) return;
 
@@ -555,12 +596,43 @@
       const asOf = history[history.length - 1].ts;
 
       renderGrid(prices, ranges, asOf);
-    })();
+    }
+
+    hydrateFromStorage();
 
     // ── loop ─────────────────────────────────────
     function tickSystem() {
       if (updateMarketStatus()) fetchWeather();
     }
+
+    document.querySelectorAll(".tab").forEach(tab => {
+
+      tab.onclick = () => {
+
+        SYMBOL = tab.dataset.symbol;
+
+        document.querySelectorAll(".tab")
+          .forEach(t => t.classList.remove("active"));
+
+        tab.classList.add("active");
+
+        document.body.className =
+          `instrument-${SYMBOL.toLowerCase()}`;
+
+        // clear current display
+        document.getElementById("dataGrid").innerHTML = "";
+        document.getElementById("buyAscii").innerHTML = "";
+        document.getElementById("sellAscii").innerHTML = "";
+
+        // load history for that instrument
+        hydrateFromStorage();
+
+        // fetch fresh data
+        fetchWeather();
+
+      }
+
+    });
 
     tickSystem();
     setInterval(tickSystem, 60000);
