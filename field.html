@@ -108,6 +108,7 @@
       margin: 4rem auto;
       gap: .5rem;
       display: grid;
+      text-align: center;
     }
 
     /* ── battlefield ── */
@@ -133,7 +134,8 @@
 
     .army-label {
       font-size: .8rem;
-      margin-bottom: .3rem;
+      margin-bottom: 1rem;
+      text-align: center;
     }
 
     .army.buy .army-label {
@@ -196,6 +198,7 @@
 
     /* ── meta ── */
     .meta-grid {
+      background-color: #cccccc21;
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
       gap: 2rem;
@@ -241,11 +244,15 @@
       color: inherit;
       font-family: 'ComicMono', monospace;
       font-size: clamp(.5rem, 4vw, 1rem);
-      padding: clamp(1rem, 5vw, 2rem);
+      padding: clamp(.5rem, 3vw, 1rem);
       cursor: pointer;
       flex: 1;
       max-width: 200px;
       -webkit-tap-highlight-color: transparent;
+    }
+
+    .active {
+      border: 2px solid var(--seal);
     }
   </style>
 </head>
@@ -254,20 +261,20 @@
 
   <div class="top-bar">
     <a href="/">← back</a>
-    <span id="clock"></span>
+    <div id="symbolTabs" style="display:flex;gap:1rem">
+      <button class="tab active" data-symbol="NQ">NQ</button>
+      <button class="tab" data-symbol="ES">ES</button>
+    </div>
 
 
-
-    <pre style="text-align: center; font-size: .3rem; padding: 4rem 0;">
+    <pre style="text-align: center; font-size: .3rem; padding: 4rem 0 0;">
 ▗▄▄▄▖▗▄▄▄▖▗▄▄▄▖▗▖   ▗▄▄▄      ▗▄▄▖ ▗▄▖ ▗▖  ▗▖▗▄▄▄ ▗▄▄▄▖▗▄▄▄▖▗▄▄▄▖ ▗▄▖ ▗▖  ▗▖ ▗▄▄▖
 ▐▌     █  ▐▌   ▐▌   ▐▌  █    ▐▌   ▐▌ ▐▌▐▛▚▖▐▌▐▌  █  █    █    █  ▐▌ ▐▌▐▛▚▖▐▌▐▌   
 ▐▛▀▀▘  █  ▐▛▀▀▘▐▌   ▐▌  █    ▐▌   ▐▌ ▐▌▐▌ ▝▜▌▐▌  █  █    █    █  ▐▌ ▐▌▐▌ ▝▜▌ ▝▀▚▖
 ▐▌   ▗▄█▄▖▐▙▄▄▖▐▙▄▄▖▐▙▄▄▀    ▝▚▄▄▖▝▚▄▞▘▐▌  ▐▌▐▙▄▄▀▗▄█▄▖  █  ▗▄█▄▖▝▚▄▞▘▐▌  ▐▌▗▄▄▞▘
     </pre>
-    <div id="symbolTabs" style="display:flex;gap:1rem">
-      <button class="tab active" data-symbol="NQ">NQ</button>
-      <button class="tab" data-symbol="ES">ES</button>
-    </div>
+    <span id="clock" style="padding-bottom: 3rem;"></span>
+
   </div>
 
 
@@ -279,17 +286,17 @@
 
   <div class="battlefield" id="battlefield">
     <div class="army buy">
-      <div class="army-label">Buy side</div>
+      <div class="army-label">Upward pressure</div>
       <div class="ascii" id="buyAscii"></div>
     </div>
     <div class="army sell">
-      <div class="army-label">Sell side</div>
+      <div class="army-label">Downward pressure</div>
       <div class="ascii" id="sellAscii"></div>
     </div>
   </div>
 
 
-
+  <h2>Report card</h2>
   <div class="meta-grid">
     <div class="meta-item">
       <span class="meta-key">Regime</span>
@@ -297,12 +304,12 @@
     </div>
 
     <div class="meta-item">
-      <span class="meta-key">Grade · Score</span>
+      <span class="meta-key">Prime grade</span>
       <span class="meta-val" id="mGrade">—</span>
     </div>
 
     <div class="meta-item">
-      <span class="meta-key">R+ Probability</span>
+      <span class="meta-key">Positive expectancy is:</span>
       <span class="meta-val" id="mRplus">—</span>
     </div>
 
@@ -310,17 +317,6 @@
       <span class="meta-key">Range</span>
       <span class="meta-val" id="mRange">—</span>
     </div>
-
-    <div class="meta-item">
-      <span class="meta-key">TP / SL</span>
-      <span class="meta-val" id="mShape">—</span>
-    </div>
-
-    <div class="meta-item">
-      <span class="meta-key">Profile</span>
-      <span class="meta-val" id="mProfile">—</span>
-    </div>
-
   </div>
 
 
@@ -530,9 +526,6 @@
       document.getElementById('mGrade').textContent = `${data.grade || '—'} · ${data.score || 0}`;
       document.getElementById('mRplus').textContent = data.rPlus ?? '—';
       document.getElementById('mRange').textContent = data.rangePts ?? '—';
-      document.getElementById('mShape').textContent =
-        data.suggestedOrder ? `${data.suggestedOrder.tp} / ${data.suggestedOrder.sl}` : '—';
-      document.getElementById('mProfile').textContent = data.profile || '—';
 
       document.getElementById('lastStamp').textContent =
         `Last fetch at ${new Date(data.asOf).toLocaleTimeString('en-US', { timeZone: ET_TZ })}`;
