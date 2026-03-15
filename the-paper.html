@@ -38,6 +38,12 @@
       font-size: 1rem;
     }
 
+    @media (max-width: 640px) {
+      html {
+        font-size: 18px;
+      }
+    }
+
     .container {
       min-width: 20rem;
       max-width: 60rem;
@@ -61,12 +67,10 @@
 
     #clock {
       color: var(--seal);
-      opacity: 0.45;
-      filter: blur(0.25px);
+      opacity: .45;
+      filter: blur(.25px);
       display: inline-block;
     }
-
-    /* ---- FEED ---- */
 
     .feed {
       margin: 2rem 0;
@@ -79,19 +83,19 @@
 
     .source-label {
       color: var(--stamp);
-      font-size: 0.75rem;
-      letter-spacing: 0.2rem;
+      font-size: .75rem;
+      letter-spacing: .2rem;
       text-transform: uppercase;
       border-bottom: 1px solid #222;
-      padding-bottom: 0.4rem;
-      margin-bottom: 0.5rem;
+      padding-bottom: .4rem;
+      margin-bottom: .5rem;
     }
 
     .article {
       border-bottom: 1px solid #111;
-      padding: 0.6rem 0;
+      padding: .6rem 0;
       cursor: pointer;
-      transition: background 0.15s;
+      transition: background .15s;
     }
 
     .article:hover {
@@ -100,21 +104,19 @@
 
     .article-title {
       color: var(--seal);
-      font-size: 0.95rem;
+      font-size: .95rem;
       line-height: 1.4;
     }
 
     .article-meta {
       color: var(--stamp);
-      font-size: 0.7rem;
-      margin-top: 0.2rem;
+      font-size: .7rem;
+      margin-top: .2rem;
     }
-
-    /* ---- STATUS ---- */
 
     .status {
       color: var(--stamp);
-      font-size: 0.8rem;
+      font-size: .8rem;
       padding: 1rem 0;
       text-align: left;
     }
@@ -123,29 +125,31 @@
       color: #ff6b6b;
     }
 
-    /* ---- NAV ---- */
     nav a {
       color: var(--seal);
       text-decoration: none;
-      font-size: 0.85rem;
+      font-size: .85rem;
     }
   </style>
 </head>
 
 <body>
+
   <div class="container">
+
     <h1>Mike Borsare</h1>
     <time id="clock"></time>
 
     <div style="padding:1rem;">
       <nav><a href="index.html" class="ascii">back</a></nav>
-      <pre class="ascii" style="font-size:0.4rem;">
+
+      <pre class="ascii" style="font-size:.4rem;">
         ______   __  __     ______        ______   ______     ______   ______     ______    
         /\__  _\ /\ \_\ \   /\  ___\      /\  == \ /\  __ \   /\  == \ /\  ___\   /\  == \   
         \/_/\ \/ \ \  __ \  \ \  __\      \ \  _-/ \ \  __ \  \ \  _-/ \ \  __\   \ \  __\   
           \ \_\  \ \_\ \_\  \ \_____\     \ \_\    \ \_\ \_\  \ \_\    \ \_____\  \ \_\ \_\ 
             \/_/   \/_/\/_/   \/_____/      \/_/     \/_/\/_/   \/_/     \/_____/   \/_/ /_/ 
-      </pre>
+</pre>
     </div>
 
     <main>
@@ -154,139 +158,208 @@
       </div>
     </main>
 
-    <pre class="ascii" style="font-size:0.4rem;">
-      ██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████ 
-      ▓██░  ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█   ▀ 
-      ▓██░ ██▓▒▓██ ░▄█ ▒▒██▒▓██    ▓██░▒███   
-      ▒██▄█▓▒ ▒▒██▀▀█▄  ░██░▒██    ▒██ ▒▓█  ▄ 
-      ▒██▒ ░  ░░██▓ ▒██▒░██░▒██▒   ░██▒░▒████▒
-      ▒▓▒░ ░  ░░ ▒▓ ░▒▓░░▓  ░ ▒░   ░  ░░░ ▒░ ░
-      ░▒ ░       ░▒ ░ ▒░ ▒ ░░  ░      ░ ░ ░  ░
-      ░░         ░░   ░  ▒ ░░      ░      ░   
-                  ░      ░         ░      ░  ░
-    </pre>
+    <pre class="ascii" style="font-size:.4rem;">
+██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████ 
+▓██░  ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█   ▀ 
+▓██░ ██▓▒▓██ ░▄█ ▒▒██▒▓██    ▓██░▒███   
+▒██▄█▓▒ ▒▒██▀▀█▄  ░██░▒██    ▒██ ▒▓█  ▄ 
+▒██▒ ░  ░░██▓ ▒██▒░██░▒██▒   ░██▒░▒████▒
+▒▓▒░ ░  ░░ ▒▓ ░▒▓░░▓  ░ ▒░   ░  ░░░ ▒░ ░
+░▒ ░       ░▒ ░ ▒░ ▒ ░░  ░      ░ ░ ░  ░
+░░         ░░   ░  ▒ ░░      ░      ░   
+            ░      ░         ░      ░  ░
+</pre>
+
   </div>
 
   <script>
-    // ---- Clock ----
+
+    //////////////// CLOCK //////////////////
+
     (() => {
-      const clock = document.getElementById('clock');
-      let t = 0;
-      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const clock = document.getElementById('clock')
+      let t = 0
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
       function updateClock() {
-        const now = new Date();
+        const now = new Date()
         clock.textContent =
           `${days[now.getDay()]} ${months[now.getMonth()]} ${now.getDate()} ` +
           `${String(now.getHours()).padStart(2, '0')}:` +
           `${String(now.getMinutes()).padStart(2, '0')}:` +
           `${String(now.getSeconds()).padStart(2, '0')}:` +
-          `${String(now.getMilliseconds()).padStart(3, '0')}`;
+          `${String(now.getMilliseconds()).padStart(3, '0')}`
       }
+
       function pulse() {
-        t += 0.02;
-        clock.style.opacity = 0.35 + (Math.sin(t) + 1) * 0.15;
-        requestAnimationFrame(pulse);
+        t += .02
+        clock.style.opacity = .35 + (Math.sin(t) + 1) * .15
+        requestAnimationFrame(pulse)
       }
-      updateClock();
-      setInterval(updateClock, 50);
-      pulse();
-    })();
 
-    // ---- Feed ----
+      updateClock()
+      setInterval(updateClock, 50)
+      pulse()
+
+    })()
+
+    //////////////// FEED //////////////////
+
     const SOURCES = [
-      {
-        label: 'NEW YORK TIMES',
-        rss: 'https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml',
-      },
-      {
-        label: 'WASHINGTON POST',
-        rss: 'https://feeds.washingtonpost.com/rss/homepage',
-      },
-    ];
+      { label: 'NEW YORK TIMES', rss: 'https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml' },
+      { label: 'WASHINGTON POST', rss: 'https://feeds.washingtonpost.com/rss/homepage' }
+    ]
 
-    const RSS2JSON = 'https://api.rss2json.com/v1/api.json?rss_url=';
-    const LIMIT = 12;
+    const RSS2JSON = 'https://api.rss2json.com/v1/api.json?rss_url='
+    const LIMIT = 12
+    const CACHE_TTL = 1000 * 60 * 30
+
+    function getCache(key) {
+
+      const raw = localStorage.getItem(key)
+      if (!raw) return null
+
+      const parsed = JSON.parse(raw)
+
+      if (Date.now() - parsed.time > CACHE_TTL) {
+        localStorage.removeItem(key)
+        return null
+      }
+
+      return parsed.data
+    }
+
+    function setCache(key, data) {
+
+      localStorage.setItem(
+        key,
+        JSON.stringify({ time: Date.now(), data })
+      )
+
+    }
 
     function fmt(dateStr) {
-      if (!dateStr) return '';
-      const d = new Date(dateStr);
-      if (isNaN(d)) return dateStr;
-      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+      if (!dateStr) return ''
+      const d = new Date(dateStr)
+      if (isNaN(d)) return dateStr
+
+      return d.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      })
+
     }
 
     function buildCard(item) {
-      const article = document.createElement('div');
-      article.className = 'article';
 
-      const title = document.createElement('div');
-      title.className = 'article-title';
-      title.textContent = item.title;
+      const article = document.createElement('div')
+      article.className = 'article'
 
-      const meta = document.createElement('div');
-      meta.className = 'article-meta';
-      meta.textContent = fmt(item.pubDate) + (item.author ? '  ·  ' + item.author : '');
+      const title = document.createElement('div')
+      title.className = 'article-title'
+      title.textContent = item.title
 
-      article.appendChild(title);
-      article.appendChild(meta);
+      const meta = document.createElement('div')
+      meta.className = 'article-meta'
+      meta.textContent = fmt(item.pubDate) + (item.author ? '  ·  ' + item.author : '')
+
+      article.appendChild(title)
+      article.appendChild(meta)
 
       article.addEventListener('click', () => {
-        const clean = item.link.split('?')[0];
-        window.open('https://archive.ph/newest/' + encodeURIComponent(clean), '_blank');
-      });
 
-      return article;
+        const clean = item.link.replace(/\?.*/, '')
+
+        window.open(
+          'https://archive.ph/newest/' + encodeURIComponent(clean),
+          '_blank'
+        )
+
+      })
+
+      return article
+
     }
 
     async function loadSource(source, container) {
-      const block = document.createElement('div');
-      block.className = 'source-block';
 
-      const label = document.createElement('div');
-      label.className = 'source-label';
-      label.textContent = source.label;
+      const cacheKey = 'feed:' + source.label
 
-      const loading = document.createElement('div');
-      loading.className = 'status';
-      loading.textContent = 'fetching…';
+      const block = document.createElement('div')
+      block.className = 'source-block'
 
-      block.appendChild(label);
-      block.appendChild(loading);
-      container.appendChild(block);
+      const label = document.createElement('div')
+      label.className = 'source-label'
+      label.textContent = source.label
 
-      try {
-        const res = await fetch(RSS2JSON + encodeURIComponent(source.rss));
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        if (data.status !== 'ok') throw new Error(data.message || 'feed error');
+      block.appendChild(label)
+      container.appendChild(block)
 
-        block.removeChild(loading);
-        const items = (data.items || []).slice(0, LIMIT);
+      let items = getCache(cacheKey)
 
-        if (!items.length) {
-          const empty = document.createElement('div');
-          empty.className = 'status';
-          empty.textContent = 'no items';
-          block.appendChild(empty);
-          return;
+      if (!items) {
+
+        const loading = document.createElement('div')
+        loading.className = 'status'
+        loading.textContent = 'fetching…'
+        block.appendChild(loading)
+
+        try {
+
+          const res = await fetch(RSS2JSON + encodeURIComponent(source.rss))
+          const data = await res.json()
+
+          if (data.status !== 'ok') throw new Error(data.message)
+
+          items = (data.items || [])
+            .slice(0, LIMIT)
+            .filter((v, i, a) => a.findIndex(t => t.link === v.link) === i)
+
+          setCache(cacheKey, items)
+
+          block.removeChild(loading)
+
+        } catch (err) {
+
+          loading.className = 'status err'
+          loading.textContent = err.message
+          return
+
         }
 
-        items.forEach(item => block.appendChild(buildCard(item)));
-
-      } catch (err) {
-        loading.className = 'status err';
-        loading.textContent = `${source.label}: ${err.message}`;
       }
+
+      if (!items.length) {
+
+        const empty = document.createElement('div')
+        empty.className = 'status'
+        empty.textContent = 'no items'
+        block.appendChild(empty)
+        return
+
+      }
+
+      items.forEach(item => block.appendChild(buildCard(item)))
+
     }
 
-    (async () => {
-      const feed = document.getElementById('feed');
-      const status = document.getElementById('status');
-      feed.removeChild(status);
+    ; (async () => {
 
-      await Promise.all(SOURCES.map(s => loadSource(s, feed)));
-    })();
+      const feed = document.getElementById('feed')
+      const status = document.getElementById('status')
+      feed.removeChild(status)
+
+      await Promise.all(
+        SOURCES.map(s => loadSource(s, feed))
+      )
+
+    })()
+
   </script>
+
 </body>
 
 </html>
