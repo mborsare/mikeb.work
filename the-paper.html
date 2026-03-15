@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Mike Borsare — The Paper</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    :root {
+      --bg: #000000;
+      --text: #c0c0c0;
+      --stamp: #888888;
+      --seal: #eaffea;
+      --btn-fill: color-mix(in hsl, var(--bg), var(--seal) 20%);
+      --btn-text: #ffffff;
+      --dim: #1a1a1a;
+    }
+
+    html {
+      font-size: 14px;
+    }
+
+    @font-face {
+      font-family: 'ComicMono';
+      src: url('/fonts/ComicMono-Regular.woff') format('woff');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'ComicMono', monospace;
+      font-size: 1rem;
+    }
+
+    .container {
+      min-width: 20rem;
+      max-width: 60rem;
+      width: 100%;
+      padding: clamp(0.75rem, 2vw, 1.25rem);
+      margin: 0 auto;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    h1 {
+      color: var(--bg);
+      font-size: 0.275rem;
+    }
+
+    .ascii {
+      white-space: pre;
+      line-height: 1.1;
+      color: var(--seal);
+    }
+
+    #clock {
+      color: var(--seal);
+      opacity: 0.45;
+      filter: blur(0.25px);
+      display: inline-block;
+    }
+
+    /* ---- FEED ---- */
+
+    .feed {
+      margin: 2rem 0;
+      text-align: left;
+    }
+
+    .source-block {
+      margin-bottom: 2.5rem;
+    }
+
+    .source-label {
+      color: var(--stamp);
+      font-size: 0.75rem;
+      letter-spacing: 0.2rem;
+      text-transform: uppercase;
+      border-bottom: 1px solid #222;
+      padding-bottom: 0.4rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .article {
+      border-bottom: 1px solid #111;
+      padding: 0.6rem 0;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .article:hover {
+      background: #0a0a0a;
+    }
+
+    .article-title {
+      color: var(--seal);
+      font-size: 0.95rem;
+      line-height: 1.4;
+    }
+
+    .article-meta {
+      color: var(--stamp);
+      font-size: 0.7rem;
+      margin-top: 0.2rem;
+    }
+
+    /* ---- STATUS ---- */
+
+    .status {
+      color: var(--stamp);
+      font-size: 0.8rem;
+      padding: 1rem 0;
+      text-align: left;
+    }
+
+    .err {
+      color: #ff6b6b;
+    }
+
+    /* ---- NAV ---- */
+    nav a {
+      color: var(--seal);
+      text-decoration: none;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Mike Borsare</h1>
+    <time id="clock"></time>
+
+    <div style="padding:1rem;">
+      <nav><a href="index.html" class="ascii">back</a></nav>
+      <pre class="ascii" style="font-size:0.8rem;">
+        ______   __  __     ______        ______   ______     ______   ______     ______    
+        /\__  _\ /\ \_\ \   /\  ___\      /\  == \ /\  __ \   /\  == \ /\  ___\   /\  == \   
+        \/_/\ \/ \ \  __ \  \ \  __\      \ \  _-/ \ \  __ \  \ \  _-/ \ \  __\   \ \  __\   
+          \ \_\  \ \_\ \_\  \ \_____\     \ \_\    \ \_\ \_\  \ \_\    \ \_____\  \ \_\ \_\ 
+            \/_/   \/_/\/_/   \/_____/      \/_/     \/_/\/_/   \/_/     \/_____/   \/_/ /_/ 
+      </pre>
+    </div>
+
+    <main>
+      <div class="feed" id="feed">
+        <div class="status" id="status">fetching feeds…</div>
+      </div>
+    </main>
+
+    <pre class="ascii" style="font-size:0.4rem;">
+      ██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████ 
+      ▓██░  ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█   ▀ 
+      ▓██░ ██▓▒▓██ ░▄█ ▒▒██▒▓██    ▓██░▒███   
+      ▒██▄█▓▒ ▒▒██▀▀█▄  ░██░▒██    ▒██ ▒▓█  ▄ 
+      ▒██▒ ░  ░░██▓ ▒██▒░██░▒██▒   ░██▒░▒████▒
+      ▒▓▒░ ░  ░░ ▒▓ ░▒▓░░▓  ░ ▒░   ░  ░░░ ▒░ ░
+      ░▒ ░       ░▒ ░ ▒░ ▒ ░░  ░      ░ ░ ░  ░
+      ░░         ░░   ░  ▒ ░░      ░      ░   
+                  ░      ░         ░      ░  ░
+    </pre>
+  </div>
+
+  <script>
+    // ---- Clock ----
+    (() => {
+      const clock = document.getElementById('clock');
+      let t = 0;
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      function updateClock() {
+        const now = new Date();
+        clock.textContent =
+          `${days[now.getDay()]} ${months[now.getMonth()]} ${now.getDate()} ` +
+          `${String(now.getHours()).padStart(2, '0')}:` +
+          `${String(now.getMinutes()).padStart(2, '0')}:` +
+          `${String(now.getSeconds()).padStart(2, '0')}:` +
+          `${String(now.getMilliseconds()).padStart(3, '0')}`;
+      }
+      function pulse() {
+        t += 0.02;
+        clock.style.opacity = 0.35 + (Math.sin(t) + 1) * 0.15;
+        requestAnimationFrame(pulse);
+      }
+      updateClock();
+      setInterval(updateClock, 50);
+      pulse();
+    })();
+
+    // ---- Feed ----
+    const SOURCES = [
+      {
+        label: 'NEW YORK TIMES',
+        rss: 'https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml',
+      },
+      {
+        label: 'WASHINGTON POST',
+        rss: 'https://feeds.washingtonpost.com/rss/homepage',
+      },
+    ];
+
+    const RSS2JSON = 'https://api.rss2json.com/v1/api.json?rss_url=';
+    const LIMIT = 12;
+
+    function fmt(dateStr) {
+      if (!dateStr) return '';
+      const d = new Date(dateStr);
+      if (isNaN(d)) return dateStr;
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function buildCard(item) {
+      const article = document.createElement('div');
+      article.className = 'article';
+
+      const title = document.createElement('div');
+      title.className = 'article-title';
+      title.textContent = item.title;
+
+      const meta = document.createElement('div');
+      meta.className = 'article-meta';
+      meta.textContent = fmt(item.pubDate) + (item.author ? '  ·  ' + item.author : '');
+
+      article.appendChild(title);
+      article.appendChild(meta);
+
+      article.addEventListener('click', () => {
+        const clean = item.link.split('?')[0];
+        window.open('https://archive.ph/newest/' + encodeURIComponent(clean), '_blank');
+      });
+
+      return article;
+    }
+
+    async function loadSource(source, container) {
+      const block = document.createElement('div');
+      block.className = 'source-block';
+
+      const label = document.createElement('div');
+      label.className = 'source-label';
+      label.textContent = source.label;
+
+      const loading = document.createElement('div');
+      loading.className = 'status';
+      loading.textContent = 'fetching…';
+
+      block.appendChild(label);
+      block.appendChild(loading);
+      container.appendChild(block);
+
+      try {
+        const res = await fetch(RSS2JSON + encodeURIComponent(source.rss));
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (data.status !== 'ok') throw new Error(data.message || 'feed error');
+
+        block.removeChild(loading);
+        const items = (data.items || []).slice(0, LIMIT);
+
+        if (!items.length) {
+          const empty = document.createElement('div');
+          empty.className = 'status';
+          empty.textContent = 'no items';
+          block.appendChild(empty);
+          return;
+        }
+
+        items.forEach(item => block.appendChild(buildCard(item)));
+
+      } catch (err) {
+        loading.className = 'status err';
+        loading.textContent = `${source.label}: ${err.message}`;
+      }
+    }
+
+    (async () => {
+      const feed = document.getElementById('feed');
+      const status = document.getElementById('status');
+      feed.removeChild(status);
+
+      await Promise.all(SOURCES.map(s => loadSource(s, feed)));
+    })();
+  </script>
+</body>
+
+</html>
