@@ -63,6 +63,14 @@
       white-space: pre;
       line-height: 1.1;
       color: var(--seal);
+      font-size: 0.8rem;
+    }
+
+    /* 375px ÷ 14px root = ~26.8rem */
+    @media (max-width: 26.8rem) {
+      .ascii {
+        font-size: 0.3rem;
+      }
     }
 
     #clock {
@@ -92,9 +100,10 @@
     }
 
     .article {
+      display: block;
       border-bottom: 1px solid #111;
       padding: .6rem 0;
-      cursor: pointer;
+      text-decoration: none;
       transition: background .15s;
     }
 
@@ -141,14 +150,25 @@
     <time id="clock"></time>
 
     <div style="padding:1rem;">
-      <nav><a href="index.html" class="ascii">back</a></nav>
+      <nav><a href="index.html">back</a></nav>
 
-      <pre class="ascii" style="font-size:.4rem;">
-╔╦╗┬ ┬┌─┐  ┌─┐┌─┐┌─┐┌─┐┬─┐
- ║ ├─┤├┤   ├─┘├─┤├─┘├┤ ├┬┘
- ╩ ┴ ┴└─┘  ┴  ┴ ┴┴  └─┘┴└─
-      </pre>
-
+      <pre class="ascii">
+sdSS_SSSSSSbs   .S    S.     sSSs         .S_sSSs     .S_SSSs     .S_sSSs      sSSs   .S_sSSs    
+YSSS~S%SSSSSP  .SS    SS.   d%%SP        .SS~YS%%b   .SS~SSSSS   .SS~YS%%b    d%%SP  .SS~YS%%b   
+     S%S       S%S    S%S  d%S'          S%S   `S%b  S%S   SSSS  S%S   `S%b  d%S'    S%S   `S%b  
+     S%S       S%S    S%S  S%S           S%S    S%S  S%S    S%S  S%S    S%S  S%S     S%S    S%S  
+     S&S       S%S SSSS%S  S&S           S%S    d*S  S%S SSSS%S  S%S    d*S  S&S     S%S    d*S  
+     S&S       S&S  SSS&S  S&S_Ss        S&S   .S*S  S&S  SSS%S  S&S   .S*S  S&S_Ss  S&S   .S*S  
+     S&S       S&S    S&S  S&S~SP        S&S_sdSSS   S&S    S&S  S&S_sdSSS   S&S~SP  S&S_sdSSS   
+     S&S       S&S    S&S  S&S           S&S~YSSY    S&S    S&S  S&S~YSSY    S&S     S&S~YSY%b   
+     S*S       S*S    S*S  S*b           S*S         S*S    S&S  S*S         S*b     S*S   `S%b  
+     S*S       S*S    S*S  S*S.          S*S         S*S    S*S  S*S         S*S.    S*S    S%S  
+     S*S       S*S    S*S   SSSbs        S*S         S*S    S*S  S*S          SSSbs  S*S    S&S  
+     S*S       SSS    S*S    YSSP        S*S         SSS    S*S  S*S           YSSP  S*S    SSS  
+     SP               SP                 SP                 SP   SP                  SP          
+     Y                Y                  Y                  Y    Y                   Y           
+                                                                                                 
+</pre>
     </div>
 
     <main>
@@ -173,8 +193,7 @@
 
   <script>
 
-    //////////////// CLOCK //////////////////
-
+    // CLOCK
     (() => {
       const clock = document.getElementById('clock')
       let t = 0
@@ -200,11 +219,9 @@
       updateClock()
       setInterval(updateClock, 50)
       pulse()
-
     })()
 
-    //////////////// FEED //////////////////
-
+    // FEED
     const SOURCES = [
       { label: 'NEW YORK TIMES', rss: 'https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml' },
       { label: 'WASHINGTON POST', rss: 'https://feeds.washingtonpost.com/rss/homepage' }
@@ -215,47 +232,39 @@
     const CACHE_TTL = 1000 * 60 * 30
 
     function getCache(key) {
-
       const raw = localStorage.getItem(key)
       if (!raw) return null
-
       const parsed = JSON.parse(raw)
-
       if (Date.now() - parsed.time > CACHE_TTL) {
         localStorage.removeItem(key)
         return null
       }
-
       return parsed.data
     }
 
     function setCache(key, data) {
-
-      localStorage.setItem(
-        key,
-        JSON.stringify({ time: Date.now(), data })
-      )
-
+      localStorage.setItem(key, JSON.stringify({ time: Date.now(), data }))
     }
 
     function fmt(dateStr) {
-
       if (!dateStr) return ''
       const d = new Date(dateStr)
       if (isNaN(d)) return dateStr
-
       return d.toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
         year: 'numeric'
       })
-
     }
 
     function buildCard(item) {
 
-      const article = document.createElement('div')
+      const clean = item.link.replace(/\?.*/, '')
+
+      const article = document.createElement('a')
       article.className = 'article'
+      article.href = 'https://archive.ph/newest/' + encodeURIComponent(clean)
+      article.target = '_blank'
 
       const title = document.createElement('div')
       title.className = 'article-title'
@@ -268,19 +277,7 @@
       article.appendChild(title)
       article.appendChild(meta)
 
-      article.addEventListener('click', () => {
-
-        const clean = item.link.replace(/\?.*/, '')
-
-        window.open(
-          'https://archive.ph/newest/' + encodeURIComponent(clean),
-          '_blank'
-        )
-
-      })
-
       return article
-
     }
 
     async function loadSource(source, container) {
@@ -307,7 +304,6 @@
         block.appendChild(loading)
 
         try {
-
           const res = await fetch(RSS2JSON + encodeURIComponent(source.rss))
           const data = await res.json()
 
@@ -318,43 +314,32 @@
             .filter((v, i, a) => a.findIndex(t => t.link === v.link) === i)
 
           setCache(cacheKey, items)
-
           block.removeChild(loading)
 
         } catch (err) {
-
           loading.className = 'status err'
           loading.textContent = err.message
           return
-
         }
-
       }
 
       if (!items.length) {
-
         const empty = document.createElement('div')
         empty.className = 'status'
         empty.textContent = 'no items'
         block.appendChild(empty)
         return
-
       }
 
       items.forEach(item => block.appendChild(buildCard(item)))
-
     }
 
     ; (async () => {
-
       const feed = document.getElementById('feed')
       const status = document.getElementById('status')
       feed.removeChild(status)
 
-      await Promise.all(
-        SOURCES.map(s => loadSource(s, feed))
-      )
-
+      await Promise.all(SOURCES.map(s => loadSource(s, feed)))
     })()
 
   </script>
