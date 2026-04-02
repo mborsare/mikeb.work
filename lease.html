@@ -574,33 +574,37 @@
         <span class="deposit-check">✓</span>
         <span class="deposit-title">Security deposit received</span>
       </div>
-      <div>
-        <div class="deposit-item">
-          <div class="deposit-label">Amount</div>
-          <div class="deposit-value deposit-amount">$1,000.00</div>
+
+      <div class="deposit-item">
+        <div class="deposit-label">Amount</div>
+        <div class="deposit-value deposit-amount">$1,000.00</div>
+      </div>
+      <div class="deposit-item">
+        <div class="deposit-label">Bank</div>
+        <div class="deposit-value">Capital One</div>
+      </div>
+      <div class="deposit-item">
+        <div class="deposit-label">Account</div>
+        <div class="account-reveal">
+          <span class="account-number deposit-value" id="account-number">1234567890</span>
+          <button class="reveal-btn btn" id="reveal-btn" type="button"> Show
+          </button>
         </div>
-        <div class="deposit-item">
-          <div class="deposit-label">Bank</div>
-          <div class="deposit-value">Capital One</div>
-        </div>
-        <div class="deposit-item">
-          <div class="deposit-label">Account</div>
-          <div class="account-reveal">
-            <span class="account-number deposit-value" id="account-number">1234567890</span>
-            <button class="reveal-btn btn" id="reveal-btn" type="button"> Show
-            </button>
-          </div>
-        </div>
+      </div>
+      <div class="deposit-header" style="margin-top: 2rem">
+        <span class="deposit-check">✓</span>
+        <span class="deposit-title">Last month's rent cashed</span>
       </div>
     </div>
     <div class="title">Announcements</div>
     <div class="countdown-display">
       <div class="countdown-card">
-        <div class="countdown-event">Cash last month's rent in</div>
+        <div class="countdown-event">Cash last month's rent</div>
         <div class="countdown-number" id="countdown-april-days"></div>
+        <div>Cashed on Wed Apr 1, 2026</div>
       </div>
       <div class="countdown-card">
-        <div class="countdown-event">Cash first month's rent in</div>
+        <div class="countdown-event">Cash first month's rent</div>
         <div class="countdown-number" id="countdown-may-days"></div>
       </div>
     </div>
@@ -857,7 +861,7 @@
       downloadBtn.addEventListener('click', (e) => {
         e.preventDefault();
         const leaseText = document.getElementById('leaseText').textContent;
-        const blob = new Blob([leaseText], { type: 'text/plain' });
+        const blob = new Blob([leaseText], {type: 'text/plain'});
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
