@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Mike Borsare — The Paper</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    :root {
+      --bg: #000000;
+      --text: #c0c0c0;
+      --stamp: #888888;
+      --seal: #eaffea;
+      --dim: #1a1a1a;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    @font-face {
+      font-family: 'ComicMono';
+      src: url('/fonts/ComicMono-Regular.woff') format('woff');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    body {
+      font-family: 'ComicMono', monospace;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      flex-shrink: 0;
+      text-align: center;
+      padding: clamp(0.4rem, 1.5vw, 0.9rem) clamp(0.75rem, 2vw, 1.25rem);
+      border-bottom: 1px solid #1a1a1a;
+    }
+
+    h1 {
+      color: var(--bg);
+      font-size: 0.275rem;
+      margin: 0;
+    }
+
+    .ascii {
+      white-space: pre;
+      line-height: 1.1;
+      color: var(--seal);
+      font-size: 0.8rem;
+      display: inline-block;
+      margin: 0;
+    }
+
+    @media (max-width: 26.8rem) {
+      .ascii {
+        font-size: 0.3rem;
+      }
+    }
+
+    .header-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 0.3rem;
+    }
+
+    nav a {
+      color: var(--stamp);
+      text-decoration: none;
+      font-size: .75rem;
+      letter-spacing: .05rem;
+    }
+
+    nav a:hover {
+      color: var(--seal);
+    }
+
+    #clock {
+      color: var(--seal);
+      opacity: .45;
+      filter: blur(.25px);
+      display: inline-block;
+      font-size: 0.75rem;
+    }
+
+    /* ── HUGE TOGGLE ── */
+    .toggle-label {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 0.35rem;
+      cursor: pointer;
+      font-size: .75rem;
+      color: var(--stamp);
+      letter-spacing: .05rem;
+      user-select: none;
+      transition: color .15s;
+    }
+
+    .toggle-label:hover {
+      color: var(--seal);
+    }
+
+    .toggle-label input[type="checkbox"] {
+      appearance: none;
+      -webkit-appearance: none;
+      width: .65rem;
+      height: .65rem;
+      border: 1px solid var(--stamp);
+      background: transparent;
+      cursor: pointer;
+      position: relative;
+      top: 0.05rem;
+      flex-shrink: 0;
+      transition: border-color .15s, background .15s;
+    }
+
+    .toggle-label input[type="checkbox"]:checked {
+      background: var(--seal);
+      border-color: var(--seal);
+    }
+
+    .toggle-label input[type="checkbox"]:checked::after {
+      content: '';
+      display: block;
+      position: absolute;
+      inset: 1px;
+      background: var(--bg);
+      clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+    }
+
+    /* huge overrides */
+    body.huge .row-0 .headline {
+      font-size: 4.5rem;
+      letter-spacing: -.02em;
+    }
+
+    body.huge .row-1 .headline {
+      font-size: 3.2rem;
+      letter-spacing: -.01em;
+    }
+
+    body.huge .row-2 .headline {
+      font-size: 2.4rem;
+      letter-spacing: .02em;
+    }
+
+    body.huge .row-3 .headline {
+      font-size: 3.8rem;
+      letter-spacing: -.015em;
+    }
+
+    body.huge .src-badge {
+      display: none;
+    }
+
+    body.huge .sep {
+      font-size: 2rem;
+      margin: 0 1.2rem;
+    }
+
+    /* ── STAGE: fills remaining height ── */
+    #stage {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    .marquee-stage {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      border-bottom: 1px solid #111;
+    }
+
+    .marquee-row {
+      display: flex;
+      white-space: nowrap;
+      will-change: transform;
+    }
+
+    .marquee-row.row-rtl {
+      animation: scroll-rtl linear infinite;
+    }
+
+    .marquee-row.row-ltr {
+      animation: scroll-ltr linear infinite;
+    }
+
+    @keyframes scroll-rtl {
+      from {
+        transform: translateX(0);
+      }
+
+      to {
+        transform: translateX(-50%);
+      }
+    }
+
+    @keyframes scroll-ltr {
+      from {
+        transform: translateX(-50%);
+      }
+
+      to {
+        transform: translateX(0);
+      }
+    }
+
+    .marquee-item {
+      display: inline-flex;
+      align-items: center;
+      cursor: pointer;
+      padding: 0 0.4rem;
+      text-decoration: none;
+    }
+
+    .marquee-item:hover .headline {
+      color: #ffffff;
+    }
+
+    .marquee-item:hover .sep {
+      color: var(--seal);
+    }
+
+    .row-0 .headline {
+      color: var(--seal);
+      font-size: 1.05rem;
+    }
+
+    .row-1 .headline {
+      color: #b0c8b0;
+      font-size: 0.85rem;
+    }
+
+    .row-2 .headline {
+      color: var(--stamp);
+      font-size: 0.75rem;
+      letter-spacing: .05rem;
+    }
+
+    .row-3 .headline {
+      color: var(--seal);
+      font-size: 0.95rem;
+      opacity: .7;
+    }
+
+    .sep {
+      color: #2a2a2a;
+      margin: 0 0.75rem;
+      user-select: none;
+    }
+
+    .src-badge {
+      font-size: 0.55rem;
+      letter-spacing: .15rem;
+      text-transform: uppercase;
+      color: var(--stamp);
+      margin-right: 0.45rem;
+      opacity: .6;
+      flex-shrink: 0;
+    }
+
+    #status {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--stamp);
+      font-size: .75rem;
+      letter-spacing: .1rem;
+      opacity: .6;
+    }
+
+    #status.err {
+      color: #ff6b6b;
+      opacity: 1;
+    }
+
+    #status.hidden {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="header">
+    <h1>Mike Borsare</h1>
+    <div class="header-row">
+      <nav><a href="index.html">back</a></nav>
+      <time id="clock"></time>
+      <label class="toggle-label">
+        <input type="checkbox" id="hugeToggle" /> huge
+      </label>
+    </div>
+  </div>
+
+  <div id="status">fetching feeds…</div>
+  <div id="stage"></div>
+
+  <script>
+    // ── HUGE MODE ──
+    const hugeToggle = document.getElementById('hugeToggle')
+    if (hugeToggle) {
+      hugeToggle.checked = localStorage.getItem('paper:huge') === '1'
+      document.body.classList.toggle('huge', hugeToggle.checked)
+      hugeToggle.addEventListener('change', () => {
+        document.body.classList.toggle('huge', hugeToggle.checked)
+        localStorage.setItem('paper:huge', hugeToggle.checked ? '1' : '0')
+        // recalc scroll speeds for new text size
+        document.querySelectorAll('.marquee-row[data-speed]').forEach(row => {
+          const half = row.scrollWidth / 2
+          const speed = parseFloat(row.dataset.speed)
+          row.style.animationDuration = (half / speed) + 's'
+        })
+      })
+    }
+
+    // ── CLOCK ──
+    (() => {
+      const clock = document.getElementById('clock')
+      let t = 0
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+      function updateClock() {
+        const now = new Date()
+        clock.textContent =
+          `${days[now.getDay()]} ${months[now.getMonth()]} ${now.getDate()} ` +
+          `${String(now.getHours()).padStart(2, '0')}:` +
+          `${String(now.getMinutes()).padStart(2, '0')}:` +
+          `${String(now.getSeconds()).padStart(2, '0')}:` +
+          `${String(now.getMilliseconds()).padStart(3, '0')}`
+      }
+      function pulse() {
+        t += .02
+        clock.style.opacity = .35 + (Math.sin(t) + 1) * .15
+        requestAnimationFrame(pulse)
+      }
+      updateClock()
+      setInterval(updateClock, 50)
+      pulse()
+    })()
+
+    // ── FEED ──
+    const SOURCES = [
+      {label: 'NYT', rss: 'https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml'},
+      {label: 'WAPO', rss: 'https://feeds.washingtonpost.com/rss/homepage'}
+    ]
+    const RSS2JSON = 'https://api.rss2json.com/v1/api.json?rss_url='
+    const LIMIT = 20
+    const CACHE_TTL = 1000 * 60 * 30
+    const REFRESH_MS = 1000 * 60 * 10
+
+    const ROW_CONFIGS = [
+      {speed: 55, dir: 'rtl'},
+      {speed: 38, dir: 'ltr'},
+      {speed: 70, dir: 'rtl'},
+      {speed: 45, dir: 'ltr'},
+    ]
+
+    function getCache(key) {
+      try {
+        const raw = localStorage.getItem(key)
+        if (!raw) return null
+        const p = JSON.parse(raw)
+        if (Date.now() - p.time > CACHE_TTL) {localStorage.removeItem(key); return null}
+        return p.data
+      } catch {return null}
+    }
+    function setCache(key, data) {
+      try {localStorage.setItem(key, JSON.stringify({time: Date.now(), data}))} catch { }
+    }
+
+    async function fetchSource(source) {
+      const key = 'feed:' + source.label
+      let items = getCache(key)
+      if (!items) {
+        const res = await fetch(RSS2JSON + encodeURIComponent(source.rss))
+        const data = await res.json()
+        if (data.status !== 'ok') throw new Error(data.message)
+        items = (data.items || [])
+          .slice(0, LIMIT)
+          .filter((v, i, a) => a.findIndex(t => t.link === v.link) === i)
+        setCache(key, items)
+      }
+      return items.map(item => ({
+        title: item.title,
+        link: 'https://archive.ph/newest/' + encodeURIComponent(item.link.replace(/\?.*/, '')),
+        label: source.label
+      }))
+    }
+
+    function makeItems(items) {
+      const frag = document.createDocumentFragment()
+      items.forEach(item => {
+        const a = document.createElement('a')
+        a.className = 'marquee-item'
+        a.href = item.link
+        a.target = '_blank'
+        a.rel = 'noopener'
+
+        const badge = document.createElement('span')
+        badge.className = 'src-badge'
+        badge.textContent = item.label
+
+        const hl = document.createElement('span')
+        hl.className = 'headline'
+        hl.textContent = item.title
+
+        const sep = document.createElement('span')
+        sep.className = 'sep'
+        sep.textContent = '◆'
+
+        a.appendChild(badge)
+        a.appendChild(hl)
+        a.appendChild(sep)
+        frag.appendChild(a)
+      })
+      return frag
+    }
+
+    function buildRow(items, rowIndex) {
+      const cfg = ROW_CONFIGS[rowIndex % ROW_CONFIGS.length]
+      const row = document.createElement('div')
+      row.className = `marquee-row row-${rowIndex % 4} row-${cfg.dir}`
+      row.dataset.speed = cfg.speed
+
+      row.appendChild(makeItems(items))
+      row.appendChild(makeItems(items))
+
+      requestAnimationFrame(() => {
+        const half = row.scrollWidth / 2
+        row.style.animationDuration = (half / cfg.speed) + 's'
+      })
+
+      return row
+    }
+
+    function buildStage(allItems) {
+      const stage = document.getElementById('stage')
+      const statusEl = document.getElementById('status')
+      stage.innerHTML = ''
+      statusEl.classList.add('hidden')
+
+      const nyt = allItems.filter(i => i.label === 'NYT')
+      const wapo = allItems.filter(i => i.label === 'WAPO')
+      const mixed = [...allItems].sort(() => Math.random() - 0.5)
+
+      const rows = [allItems, nyt, mixed, wapo]
+
+      rows.forEach((items, i) => {
+        if (!items.length) return
+        const wrapper = document.createElement('div')
+        wrapper.className = 'marquee-stage'
+        wrapper.appendChild(buildRow(items, i))
+        stage.appendChild(wrapper)
+      })
+    }
+
+    async function load() {
+      const statusEl = document.getElementById('status')
+      try {
+        const results = await Promise.all(SOURCES.map(fetchSource))
+        const all = results.flat()
+        if (!all.length) {statusEl.textContent = 'no items'; return }
+        buildStage(all)
+      } catch (err) {
+        statusEl.classList.remove('hidden')
+        statusEl.classList.add('err')
+        statusEl.textContent = err.message
+      }
+    }
+
+    load()
+    setInterval(load, REFRESH_MS)
+  </script>
+
+</body>
+
+</html>
