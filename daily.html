@@ -803,16 +803,143 @@
       const grid = document.getElementById('calendar-grid');
       const days = new Date(y, m + 1, 0).getDate();
 
-      // Economic calendar events (high-impact prints)
-      const events = {
-        1: [{ name: 'NFP', time: '8:30 ET', desc: 'Non-Farm Payrolls' }],
-        5: [{ name: 'FOMC', time: '2:00 ET', desc: 'Fed Decision' }],
-        12: [{ name: 'CPI', time: '8:30 ET', desc: 'Inflation Data' }],
-        15: [{ name: 'Retail Sales', time: '8:30 ET', desc: 'Consumer Spending' }],
-        26: [{ name: 'GDP', time: '8:30 ET', desc: 'Economic Growth' }]
+      // ---- Economic Calendar ----
+      // Live source: Finnhub free tier — get a key at https://finnhub.io
+      // To keep the key off the client, add a route to your existing weather worker:
+      //   GET /prime/calendar/US  →  proxies Finnhub /calendar/economic filtered to US + high/medium impact
+      // Then replace FINNHUB_CALENDAR_URL below with your worker URL.
+
+      const FINNHUB_TOKEN = '';  // key lives in the worker — not needed here
+      const WORKER_CALENDAR_URL = 'https://weather.mborsare.workers.dev/prime/calendar/US';
+
+      // High-impact USD events fallback (manually maintained as a last resort)
+      const FALLBACK_EVENTS = {
+        1: [
+          {name: 'ISM Mfg PMI', time: '10:00 ET', desc: 'ISM Manufacturing PMI — factory sector health'},
+          {name: 'ADP Jobs', time: '8:15 ET', desc: 'ADP Non-Farm Employment Change (private payrolls)'}
+        ],
+        2: [{name: 'Jobless Claims', time: '8:30 ET', desc: 'Weekly initial unemployment claims'}],
+        3: [{name: 'NFP', time: '8:30 ET', desc: 'Non-Farm Payrolls + Unemployment Rate (Good Friday — equities closed, reaction Mon)'}],
+        6: [
+          {name: 'ISM Svcs PMI ★', time: '10:00 ET', desc: 'ISM Non-Manufacturing PMI (prev 56.1, cons. 54.8). Rescheduled from Good Friday.'},
+          {name: 'CB Employ Trends', time: '10:00 ET', desc: 'Conference Board Employment Trends Index'}
+        ],
+        8: [{name: 'FOMC Minutes ★', time: '2:00 ET', desc: 'Minutes from March 18 hold — tariff, oil shock & inflation debate'}],
+        9: [
+          {name: 'Core PCE ★', time: '8:30 ET', desc: "Fed's preferred inflation gauge m/m (prev 0.4%)"},
+          {name: 'GDP Final', time: '8:30 ET', desc: 'Q4 GDP final revision q/q + GDP Price Index'},
+          {name: 'Jobless Claims', time: '8:30 ET', desc: 'Weekly initial unemployment claims'}
+        ],
+        10: [
+          {name: 'CPI ★★', time: '8:30 ET', desc: 'March CPI — first read reflecting oil shock (cons. +0.9% MoM / 3.3% YoY)'},
+          {name: 'Core CPI ★', time: '8:30 ET', desc: 'Core CPI ex food & energy m/m (cons. 0.3%)'},
+          {name: 'UoM Sentiment', time: '10:00 ET', desc: 'Prelim UoM Consumer Sentiment & Inflation Expectations'}
+        ],
+        14: [
+          {name: 'PPI ★', time: '8:30 ET', desc: 'Producer Price Index m/m — pipeline inflation'},
+          {name: 'Core PPI', time: '8:30 ET', desc: 'Core PPI m/m ex food & energy'}
+        ],
+        15: [
+          {name: 'Retail Sales ★', time: '8:30 ET', desc: 'March consumer spending m/m'},
+          {name: 'Empire State', time: '8:30 ET', desc: 'NY Empire State Manufacturing Index'}
+        ],
+        16: [
+          {name: 'Jobless Claims', time: '8:30 ET', desc: 'Weekly initial unemployment claims'},
+          {name: 'Housing Starts', time: '8:30 ET', desc: 'March housing starts & building permits'},
+          {name: 'Philly Fed', time: '8:30 ET', desc: 'Philadelphia Fed Manufacturing Survey'}
+        ],
+        17: [{name: 'Indus Production', time: '9:15 ET', desc: 'Industrial Production m/m + Capacity Utilization'}],
+        21: [{name: 'Pending Homes', time: '10:00 ET', desc: 'Pending Home Sales m/m'}],
+        23: [
+          {name: 'Flash PMIs', time: '9:45 ET', desc: 'S&P Global Flash Mfg & Services PMI for April'},
+          {name: 'Jobless Claims', time: '8:30 ET', desc: 'Weekly initial unemployment claims'},
+          {name: 'New Home Sales', time: '10:00 ET', desc: 'New Home Sales'}
+        ],
+        24: [
+          {name: 'Durable Goods ★', time: '8:30 ET', desc: 'Durable Goods Orders m/m & Core (ex-transport)'},
+          {name: 'UoM Revised', time: '10:00 ET', desc: 'Revised UoM Consumer Sentiment & Inflation Expectations'}
+        ],
+        28: [{name: 'CB Confidence ★', time: '10:00 ET', desc: 'Conference Board Consumer Confidence'}],
+        29: [
+          {name: 'FOMC Decision ★★', time: '2:00 ET', desc: 'Fed rate decision — hold expected at 3.75%. Press conference follows.'},
+          {name: 'ADP Jobs', time: '8:15 ET', desc: 'ADP Non-Farm Employment Change (private payrolls)'}
+        ],
+        30: [
+          {name: 'GDP Advance ★★', time: '8:30 ET', desc: 'Q1 2026 GDP Advance — first read on growth'},
+          {name: 'Core PCE ★', time: '8:30 ET', desc: 'Core PCE Price Index m/m (Fed inflation gauge)'},
+          {name: 'ECI ★', time: '8:30 ET', desc: 'Employment Cost Index q/q — wage pressures'},
+          {name: 'Jobless Claims', time: '8:30 ET', desc: 'Weekly initial unemployment claims'}
+        ]
       };
 
+      // Convert Finnhub API response into the {day: [{name, time, desc}]} shape the calendar expects.
+      // Finnhub returns UTC times — convert to ET for display.
+      function parseFinnhubEvents(data) {
+        const result = {};
+        const impactOrder = {high: 0, medium: 1, low: 2};
+        const items = (data.economicCalendar || [])
+          .filter(e => e.country === 'US' && (e.impact === 'high' || e.impact === 'medium'))
+          .sort((a, b) => {
+            const da = new Date(a.time), db = new Date(b.time);
+            if (da - db !== 0) return da - db;
+            return (impactOrder[a.impact] ?? 9) - (impactOrder[b.impact] ?? 9);
+          });
+
+        for (const e of items) {
+          const localDate = new Date(new Date(e.time).toLocaleString('en-US', {timeZone: 'America/New_York'}));
+          const d = localDate.getDate();
+          const hh = String(localDate.getHours()).padStart(2, '0');
+          const mm = String(localDate.getMinutes()).padStart(2, '0');
+          const star = e.impact === 'high' ? ' ★' : '';
+          const prev = e.prev != null ? ` | prev ${e.prev}` : '';
+          const est = e.estimate != null ? ` | est ${e.estimate}` : '';
+          if (!result[d]) result[d] = [];
+          result[d].push({name: e.event + star, time: `${hh}:${mm} ET`, desc: e.event + est + prev});
+        }
+        return result;
+      }
+
+      // Attempt live fetch (worker first, then direct Finnhub), fall back to hardcoded.
+      let events = FALLBACK_EVENTS;
+      const calendarSource = document.getElementById('calendar-title'); // reuse to show source badge
+
+      try {
+        const from = `${y}-${String(m + 1).padStart(2, '0')}-01`;
+        const to = `${y}-${String(m + 1).padStart(2, '0')}-${String(days).padStart(2, '0')}`;
+
+        let raw;
+        if (WORKER_CALENDAR_URL) {
+          const res = await fetch(WORKER_CALENDAR_URL, {cache: 'no-store'});
+          if (!res.ok) throw new Error(res.status);
+          raw = await res.json();
+        } else if (FINNHUB_TOKEN) {
+          const url = `https://finnhub.io/api/v1/calendar/economic?from=${from}&to=${to}&token=${FINNHUB_TOKEN}`;
+          const res = await fetch(url, {cache: 'no-store'});
+          if (!res.ok) throw new Error(res.status);
+          raw = await res.json();
+        } else {
+          throw new Error('no source configured');
+        }
+
+        const live = parseFinnhubEvents(raw);
+        if (Object.keys(live).length > 0) {
+          events = live;
+          console.log('Calendar: live Finnhub data loaded');
+        }
+      } catch (err) {
+        console.warn('Calendar: using fallback data —', err.message);
+      }
+
       let currentExpand = null;
+
+      // Add empty spacer cells so day 1 lands in the correct Mon–Fri column
+      const firstWd = new Date(y, m, 1).getDay(); // 0=Sun … 6=Sat
+      const firstCol = (firstWd >= 1 && firstWd <= 5) ? firstWd - 1 : 0;
+      for (let s = 0; s < firstCol; s++) {
+        const spacer = document.createElement('div');
+        spacer.className = 'calendar-day';
+        grid.appendChild(spacer);
+      }
 
       // Build calendar
       const cells = [];
@@ -934,7 +1061,7 @@
 
     // Prime Weather — reads score + grade directly from worker (single source of truth)
     (async () => {
-      const gradeColors = { A: '#6eff8a', B: '#a8f0b0', C: '#f0e060', D: '#f0a030', F: '#ff5555' };
+      const gradeColors = {A: '#6eff8a', B: '#a8f0b0', C: '#f0e060', D: '#f0a030', F: '#ff5555'};
       const gradeLabels = {
         A: 'Prime conditions',
         B: 'Good conditions',
@@ -946,7 +1073,7 @@
       try {
         const res = await fetch(
           'https://weather.mborsare.workers.dev/prime/weather/ES',
-          { cache: 'no-store' }
+          {cache: 'no-store'}
         );
 
         if (!res.ok) throw new Error(res.status);
@@ -999,7 +1126,7 @@
         document.getElementById('w-grade').textContent = '?';
         document.getElementById('w-grade-label').textContent = 'Weather unavailable';
         ['w-score', 'w-regime', 'w-range', 'w-liquidity', 'w-rp', 'w-shape', 'w-time']
-          .forEach(id => { document.getElementById(id).textContent = ''; });
+          .forEach(id => {document.getElementById(id).textContent = '';});
       }
     })();
 
