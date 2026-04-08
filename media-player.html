@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>looney tunes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    @font-face {
+      font-family: 'ComicMono';
+      src: url('/fonts/ComicMono-Regular.woff') format('woff');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --bg: #000000;
+      --text: #c0c0c0;
+      --seal: #eaffea;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'ComicMono', monospace;
+      font-size: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: background 0.9s ease;
+      padding-bottom: 60vh;
+      overflow-x: hidden;
+    }
+
+    /* TRINITRON-STYLE ASCII INDICATOR */
+    #led {
+      position: fixed;
+      bottom: 3rem;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.2rem;
+      margin: 0;
+      pointer-events: none;
+      z-index: 1000;
+      color: #110000;
+      /* Dark when off */
+      transition: color 0.3s ease, text-shadow 0.3s ease;
+    }
+
+    /* The .on class is toggled by play/pause */
+    #led.on {
+      opacity: 1;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 50rem;
+      padding: clamp(0.75rem, 2vw, 1.5rem);
+      box-sizing: border-box;
+      margin-top: 4rem;
+    }
+
+    #player-unit {
+      width: 100vw;
+      margin-left: calc(50% - 50vw);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 4rem;
+      margin-bottom: 8rem;
+      position: relative;
+      z-index: 10;
+      will-change: background;
+      transition: background 0.9s ease;
+    }
+
+    video {
+      width: 100vw;
+      max-width: 100vw;
+      max-height: 90vh;
+      display: block;
+      background: #000;
+      box-shadow: 0 0 100px rgba(0, 0, 0, 0.8);
+      object-fit: contain;
+      cursor: pointer;
+    }
+
+    #wave {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100vw;
+      height: 300px;
+      top: 100%;
+      pointer-events: none;
+      background: transparent !important;
+      will-change: transform;
+    }
+
+    nav {
+      padding: 2rem 0;
+      display: flex;
+      gap: 1.5rem;
+      justify-content: center;
+    }
+
+    button {
+      background: none;
+      border: none;
+      color: var(--seal);
+      font: inherit;
+      cursor: pointer;
+      opacity: 0.7;
+      text-transform: lowercase;
+    }
+
+    button:hover {
+      opacity: 1;
+      text-decoration: underline;
+    }
+
+    .file-item {
+      padding: 0.8rem 0;
+      cursor: pointer;
+      opacity: 0.1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .file-item.active {
+      opacity: .5;
+      color: var(--text);
+    }
+
+    @media (max-width: 40rem) {
+      body {
+        font-size: 12px;
+      }
+
+      #wave {
+        height: 150px;
+      }
+
+      #led {
+        font-size: 0.25rem;
+      }
+    }
+
+    a {
+      color: unset;
+    }
+  </style>
+</head>
+
+<body>
+  <pre id="led">
+      ██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████
+      ▓██░  ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█   ▀
+      ▓██░ ██▓▒▓██ ░▄█ ▒▒██▒▓██    ▓██░▒███
+      ▒██▄█▓▒ ▒▒██▀▀█▄  ░██░▒██    ▒██ ▒▓█  ▄
+      ▒██▒ ░  ░░██▓ ▒██▒░██░▒██▒   ░██▒░▒████▒
+      ▒▓▒░ ░  ░░ ▒▓ ░▒▓░░▓  ░ ▒░   ░  ░░░ ▒░ ░
+      ░▒ ░       ░▒ ░ ▒░ ▒ ░░  ░      ░ ░ ░  ░
+      ░░         ░░   ░  ▒ ░░      ░      ░
+                  ░      ░         ░      ░  ░
+  </pre>
+
+  <div class="container">
+    <nav>
+      <nav><a href="index.html">back</a></nav>
+      <button id="pick-btn">[load directory]</button>
+      <button id="shuf-btn">[shuffle: off]</button>
+    </nav>
+    <h1>local media player</h1>
+    <p>Load a directory with media</p>
+    <p>Use the up and down keys to explore</p>
+    <div id="file-list"></div>
+  </div>
+
+  <div id="player-unit">
+    <video id="vid" playsinline controls crossorigin="anonymous"></video>
+    <canvas id="wave"></canvas>
+  </div>
+
+  <script>
+    let playlist = [], order = [], pos = -1, isShuffled = false;
+    let aCtx, analyser, data;
+    let frameCount = 0;
+
+    const vid = document.getElementById('vid');
+    const wave = document.getElementById('wave');
+    const wCtx = wave.getContext('2d', {alpha: true});
+    const unit = document.getElementById('player-unit');
+    const fileList = document.getElementById('file-list');
+    const led = document.getElementById('led');
+
+    const sampler = document.createElement('canvas');
+    sampler.width = sampler.height = 1;
+    const sCtx = sampler.getContext('2d', {willReadFrequently: true});
+
+    function applyFramePalette() {
+      sCtx.drawImage(vid, 0, 0, 1, 1);
+      const [r, g, b] = sCtx.getImageData(0, 0, 1, 1).data;
+
+      const bg = `rgb(${Math.round(r / 15)}, ${Math.round(g / 15)}, ${Math.round(b / 15)})`;
+      const fg = `rgb(${r}, ${g}, ${b})`;
+      const glow = `0 0 8px ${fg}, 0 0 15px ${fg}66`;
+
+      document.documentElement.style.setProperty('--bg', bg);
+      document.documentElement.style.setProperty('--text', fg);
+
+      document.body.style.background = bg;
+      unit.style.background = bg;
+      fileList.style.color = fg;
+
+      wCtx.strokeStyle = fg;
+      led.style.color = fg;
+      led.style.textShadow = glow;
+    }
+
+    function resetPalette() {
+      const off = '#110000';
+      document.documentElement.style.setProperty('--bg', '#000000');
+      document.documentElement.style.setProperty('--text', '#c0c0c0');
+
+      document.body.style.background = '#000000';
+      unit.style.background = '#000000';
+      fileList.style.color = '';
+
+      led.style.color = off;
+      led.style.textShadow = 'none';
+      wCtx.strokeStyle = '#c0c0c0';
+    }
+
+    document.getElementById('pick-btn').onclick = async () => {
+      try {
+        const dir = await window.showDirectoryPicker();
+        playlist = [];
+        for await (const entry of dir.values()) {
+          if (entry.kind === 'file' && /\.(mp4|webm|mkv|mov|avi)$/i.test(entry.name)) {
+            playlist.push({name: entry.name.toLowerCase(), file: await entry.getFile()});
+          }
+        }
+        playlist.sort((a, b) => a.name.localeCompare(b.name, undefined, {numeric: true}));
+        order = playlist.map((_, i) => i);
+        render();
+        if (playlist.length) play(0);
+      } catch (e) { }
+    };
+
+    function render() {
+      fileList.innerHTML = playlist.map((f, i) =>
+        `<div class="file-item" id="i${i}" onclick="play(order.indexOf(${i}))">[${i + 1}] ${f.name}</div>`
+      ).join('');
+    }
+
+    async function play(p) {
+      if (!playlist.length) return;
+      if (aCtx && aCtx.state === 'suspended') await aCtx.resume();
+
+      pos = (p + order.length) % order.length;
+      const index = order[pos];
+      const activeEl = document.getElementById(`i${index}`);
+
+      unit.style.display = 'flex';
+      activeEl.after(unit);
+
+      setTimeout(() => {
+        vid.scrollIntoView({behavior: 'smooth', block: 'center'});
+      }, 50);
+
+      document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
+      activeEl.classList.add('active');
+
+      if (vid.src) URL.revokeObjectURL(vid.src);
+      vid.src = URL.createObjectURL(playlist[index].file);
+      vid.play();
+
+      if (!aCtx) initAudio();
+    }
+
+    function initAudio() {
+      aCtx = new (window.AudioContext || window.webkitAudioContext)();
+      analyser = aCtx.createAnalyser();
+      analyser.fftSize = 512;
+      const src = aCtx.createMediaElementSource(vid);
+      src.connect(analyser);
+      analyser.connect(aCtx.destination);
+      data = new Uint8Array(analyser.frequencyBinCount);
+
+      const smoothData = new Float32Array(512);
+
+      function loop() {
+        requestAnimationFrame(loop);
+
+        if (vid.paused || vid.ended) {
+          if (vid.paused) resetPalette();
+          return;
+        }
+
+        frameCount++;
+        if (frameCount % 10 === 0) {
+          applyFramePalette();
+        }
+
+        analyser.getByteTimeDomainData(data);
+        wCtx.clearRect(0, 0, wave.width, wave.height);
+        wCtx.beginPath();
+
+        const count = Math.floor(data.length / 3);
+        const step = wave.width / (count - 1);
+        const mid = wave.height / 2;
+
+        let energy = 0;
+        for (let i = 0; i < count; i++) {
+          energy += Math.abs((data[i] / 128) - 1);
+        }
+        energy /= count;
+
+        const ampBase = wave.height * 0.9;
+        const ampBoost = 1 + (energy * 2.8);
+
+        wCtx.moveTo(0, mid);
+
+        for (let i = 0; i < count; i++) {
+          const target = (data[i] / 128.0) - 1;
+          const lag = 0.14 + (Math.sin(i * 0.06) * 0.04) + ((i / count) * 0.08);
+          smoothData[i] += (target - smoothData[i]) * lag;
+
+          const exaggerated =
+            Math.sign(smoothData[i]) *
+            Math.pow(Math.abs(smoothData[i]), 0.72);
+
+          const wobble =
+            Math.sin((performance.now() * 0.012) + (i * 0.22)) *
+            energy *
+            10;
+
+          const bias =
+            Math.sin((i / count) * Math.PI * 3) *
+            energy *
+            18;
+
+          const y =
+            mid +
+            (exaggerated * ampBase * ampBoost) +
+            wobble +
+            bias;
+
+          const nextIndex = Math.min(i + 1, count - 1);
+          const nextTarget = (data[nextIndex] / 128.0) - 1;
+          smoothData[nextIndex] += (nextTarget - smoothData[nextIndex]) * lag;
+
+          const nextExaggerated =
+            Math.sign(smoothData[nextIndex]) *
+            Math.pow(Math.abs(smoothData[nextIndex]), 0.72);
+
+          const nextWobble =
+            Math.sin((performance.now() * 0.012) + (nextIndex * 0.22)) *
+            energy *
+            10;
+
+          const nextBias =
+            Math.sin((nextIndex / count) * Math.PI * 3) *
+            energy *
+            18;
+
+          const yNext =
+            mid +
+            (nextExaggerated * ampBase * ampBoost) +
+            nextWobble +
+            nextBias;
+
+          const xc = (i * step) + (step / 2);
+          const yc = (y + yNext) / 2;
+
+          wCtx.quadraticCurveTo(i * step, y, xc, yc);
+        }
+
+        wCtx.lineWidth = 2 + (energy * 8);
+        wCtx.stroke();
+      }
+
+      loop();
+    }
+
+    vid.onclick = () => vid.scrollIntoView({behavior: 'smooth', block: 'center'});
+    vid.onplay = () => led.classList.add('on');
+    vid.onpause = () => {
+      led.classList.remove('on');
+      resetPalette();
+    };
+    vid.onended = () => {
+      led.classList.remove('on');
+      play(pos + 1);
+    };
+
+    document.getElementById('shuf-btn').onclick = function () {
+      isShuffled = !isShuffled;
+      this.textContent = `[shuffle: ${isShuffled ? 'on' : 'off'}]`;
+      const cur = order[pos];
+      isShuffled ? order.sort(() => Math.random() - 0.5) : order = playlist.map((_, i) => i);
+      pos = order.indexOf(cur);
+    };
+
+    window.onkeydown = (e) => {
+      if (e.key === 'ArrowDown') {e.preventDefault(); play(pos + 1);}
+      if (e.key === 'ArrowUp') {e.preventDefault(); play(pos - 1);}
+    };
+
+    function resizer() {
+      wave.width = window.innerWidth;
+      wave.height = window.innerWidth < 640 ? 150 : 300;
+    }
+
+    window.addEventListener('resize', resizer, {passive: true});
+    resizer();
+    resetPalette();
+  </script>
+</body>
+
+</html>
