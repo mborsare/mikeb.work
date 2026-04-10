@@ -106,19 +106,10 @@
       justify-content: center;
     }
 
-    button {
-      background: none;
-      border: none;
-      color: var(--seal);
+    button,
+    label {
       font: inherit;
       cursor: pointer;
-      opacity: 0.7;
-      text-transform: lowercase;
-    }
-
-    button:hover {
-      opacity: 1;
-      text-decoration: underline;
     }
 
     .file-item {
@@ -128,6 +119,11 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      transition: opacity 0.15s ease;
+    }
+
+    .file-item:hover {
+      opacity: 0.75;
     }
 
     .file-item.active {
@@ -152,6 +148,49 @@
     a {
       color: unset;
     }
+
+    body.lights {
+      --bg: #f5f0e8;
+      --text: #1a1a1a;
+      --seal: #2a2a2a;
+      background: var(--bg) !important;
+      color: var(--text);
+    }
+
+    body.lights #player-unit {
+      background: var(--bg) !important;
+    }
+
+    /* PICTURE-IN-PICTURE */
+    video.pip {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      width: clamp(180px, 28vw, 320px);
+      height: auto;
+      max-height: none;
+      max-width: none;
+      z-index: 999;
+      border-radius: 4px;
+      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.08);
+      transition: box-shadow 0.35s ease;
+    }
+
+    video.pip:hover {
+      box-shadow: 0 8px 50px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.18);
+    }
+
+    /* overlay that intercepts taps in pip mode so controls never see the click */
+    #pip-tap {
+      display: none;
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      width: clamp(180px, 28vw, 320px);
+      aspect-ratio: 16 / 9;
+      z-index: 1000;
+      cursor: pointer;
+    }
   </style>
 </head>
 
@@ -170,18 +209,19 @@
 
   <div class="container">
     <nav>
-      <nav><a href="index.html">back</a></nav>
-      <button id="pick-btn">[load directory]</button>
-      <button id="shuf-btn">[shuffle: off]</button>
+      <a href="index.html">back</a>
+      <button id="pick-btn">Load directory</button>
+      <label for="shuf-chk"><input type="checkbox" id="shuf-chk" /> shuffle</label>
+      <label for="lights-chk"><input type="checkbox" id="lights-chk" /> lights</label>
     </nav>
     <h1>local media player</h1>
-    <p>Load a directory with media</p>
-    <p>Use the up and down keys to explore</p>
+    <p>load a directory, then use <kbd>↑</kbd> <kbd>↓</kbd> to navigate</p>
     <div id="file-list"></div>
   </div>
 
   <div id="player-unit">
     <video id="vid" playsinline controls crossorigin="anonymous"></video>
+    <div id="pip-tap"></div>
     <canvas id="wave"></canvas>
   </div>
 
@@ -234,6 +274,10 @@
       led.style.textShadow = 'none';
       wCtx.strokeStyle = '#c0c0c0';
     }
+
+    document.getElementById('lights-chk').onchange = function () {
+      document.body.classList.toggle('lights', this.checked);
+    };
 
     document.getElementById('pick-btn').onclick = async () => {
       try {
@@ -296,10 +340,9 @@
       function loop() {
         requestAnimationFrame(loop);
 
-        if (vid.paused || vid.ended) {
-          if (vid.paused) resetPalette();
-          return;
-        }
+        // FIX: don't call resetPalette() every frame when paused — onpause already handles it once.
+        // Also reset on ended so colors don't stay stuck between tracks.
+        if (vid.paused || vid.ended) return;
 
         frameCount++;
         if (frameCount % 10 === 0) {
@@ -387,28 +430,63 @@
       loop();
     }
 
-    vid.onclick = () => vid.scrollIntoView({behavior: 'smooth', block: 'center'});
+    const pipTap = document.getElementById('pip-tap');
+
+    function enterPip() {
+      vid.classList.add('pip');
+      pipTap.style.display = 'block';
+    }
+
+    function exitPip() {
+      vid.classList.remove('pip');
+      pipTap.style.display = 'none';
+    }
+
+    // overlay eats the tap — controls never see it, video keeps playing
+    pipTap.onclick = () => {
+      exitPip();
+      vid.scrollIntoView({behavior: 'smooth', block: 'center'});
+    };
+
+    vid.onclick = () => {
+      if (!vid.classList.contains('pip')) {
+        vid.scrollIntoView({behavior: 'smooth', block: 'center'});
+      }
+    };
+
+    const pipObserver = new IntersectionObserver((entries) => {
+      if (!entries[0].isIntersecting && !vid.paused && !vid.ended) {
+        enterPip();
+      } else {
+        exitPip();
+      }
+    }, {threshold: 0.1});
+
+    pipObserver.observe(unit);
     vid.onplay = () => led.classList.add('on');
     vid.onpause = () => {
       led.classList.remove('on');
+      exitPip();
       resetPalette();
     };
     vid.onended = () => {
       led.classList.remove('on');
+      exitPip();
+      resetPalette();
       play(pos + 1);
     };
 
-    document.getElementById('shuf-btn').onclick = function () {
-      isShuffled = !isShuffled;
-      this.textContent = `[shuffle: ${isShuffled ? 'on' : 'off'}]`;
+    document.getElementById('shuf-chk').onchange = function () {
+      isShuffled = this.checked;
       const cur = order[pos];
       isShuffled ? order.sort(() => Math.random() - 0.5) : order = playlist.map((_, i) => i);
-      pos = order.indexOf(cur);
+      if (cur >= 0) pos = order.indexOf(cur);
     };
 
     window.onkeydown = (e) => {
       if (e.key === 'ArrowDown') {e.preventDefault(); play(pos + 1);}
       if (e.key === 'ArrowUp') {e.preventDefault(); play(pos - 1);}
+      if (e.key === ' ') {e.preventDefault(); vid.paused ? vid.play() : vid.pause();}
     };
 
     function resizer() {
