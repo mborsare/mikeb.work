@@ -295,43 +295,37 @@
     </div>
   </div>
 
+  <details class="report-card">
+    <summary class="army-label"> Report card </summary>
+    <div class="meta-grid">
+      <div class="meta-item">
+        <span class="meta-key">Regime</span>
+        <span class="meta-val" id="mRegime">—</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-key">Prime grade</span>
+        <span class="meta-val" id="mGrade">—</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-key">Positive expectancy is:</span>
+        <span class="meta-val" id="mRplus">—</span>
+      </div>
 
-  <h2>Report card</h2>
-  <div class="meta-grid">
-    <div class="meta-item">
-      <span class="meta-key">Regime</span>
-      <span class="meta-val" id="mRegime">—</span>
+      <div class="meta-item">
+        <span class="meta-key">Range</span>
+        <span class="meta-val" id="mRange">—</span>
+      </div>
     </div>
-
-    <div class="meta-item">
-      <span class="meta-key">Prime grade</span>
-      <span class="meta-val" id="mGrade">—</span>
-    </div>
-
-    <div class="meta-item">
-      <span class="meta-key">Positive expectancy is:</span>
-      <span class="meta-val" id="mRplus">—</span>
-    </div>
-
-    <div class="meta-item">
-      <span class="meta-key">Range</span>
-      <span class="meta-val" id="mRange">—</span>
-    </div>
-  </div>
-
-
-
-  <div style="font-size: .6rem;">
-    <span id="lastStamp">—</span>
-    <span id="countdown">—</span>
-  </div>
+  </details>
 
   <div class="section">
     <h2>The past</h2>
+    <div style="font-size: .6rem;">
+      <span id="lastStamp">—</span>
+      <span id="countdown">—</span>
+    </div>
     <div class="data-grid" id="dataGrid"></div>
   </div>
-
-
 
   <pre id="prime-logo" class="ascii" style="font-size:0.4rem; margin-top:9rem;">
   ██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████ 
@@ -344,7 +338,6 @@
   ░░         ░░   ░  ▒ ░░      ░      ░   
               ░      ░         ░      ░  ░
 </pre>
-
   <script>
     let SYMBOL = "NQ";
     const STORAGE_KEY_BASE = 'primeWeatherHistory';
@@ -357,8 +350,8 @@
 
     // ── storage ─────────────────────────────────
     function loadHistory() {
-      try { return JSON.parse(localStorage.getItem(storageKey())) || []; }
-      catch { return []; }
+      try {return JSON.parse(localStorage.getItem(storageKey())) || [];}
+      catch {return [];}
     }
     function saveHistory(history) {
       localStorage.setItem(storageKey(), JSON.stringify(history));
@@ -410,7 +403,7 @@
       }).formatToParts(date);
 
       const get = t => parts.find(p => p.type === t)?.value;
-      return { weekday: get("weekday"), hour: Number(get("hour")) };
+      return {weekday: get("weekday"), hour: Number(get("hour"))};
     }
 
     function isClosedET(date) {
@@ -429,13 +422,13 @@
 
     function prevOpenMinute(date) {
       let t = new Date(date.getTime());
-      do { t = new Date(t.getTime() - 60000); } while (isClosedET(t));
+      do {t = new Date(t.getTime() - 60000);} while (isClosedET(t));
       return t;
     }
 
     function nextOpenMinute(date) {
       let t = new Date(date.getTime());
-      do { t = new Date(t.getTime() + 60000); } while (isClosedET(t));
+      do {t = new Date(t.getTime() + 60000);} while (isClosedET(t));
       return t;
     }
 
@@ -458,7 +451,7 @@
     function getStats(values) {
       const mean = values.reduce((a, b) => a + b, 0) / values.length;
       const variance = values.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / values.length;
-      return { mean, std: Math.sqrt(variance) };
+      return {mean, std: Math.sqrt(variance)};
     }
 
     // ── render grid ──────────────────────────────
@@ -469,7 +462,7 @@
       grid.innerHTML = '';
 
       const times = buildSeriesTimes(asOf, prices.length);
-      const { mean, std } = getStats(ranges);
+      const {mean, std} = getStats(ranges);
 
       for (let i = prices.length - 1; i >= 0; i--) {
         const p = prices[i];
@@ -483,7 +476,7 @@
 
         const time = document.createElement('span');
         time.textContent =
-          ts.toLocaleTimeString('en-US', { timeZone: ET_TZ });
+          ts.toLocaleTimeString('en-US', {timeZone: ET_TZ});
 
         const val = document.createElement('span');
         const range = ranges[i];
@@ -528,7 +521,7 @@
       document.getElementById('mRange').textContent = data.rangePts ?? '—';
 
       document.getElementById('lastStamp').textContent =
-        `Last fetch at ${new Date(data.asOf).toLocaleTimeString('en-US', { timeZone: ET_TZ })}`;
+        `Last fetch at ${new Date(data.asOf).toLocaleTimeString('en-US', {timeZone: ET_TZ})}`;
 
       nextFetch = computeNextFetch(data.asOf);
 
@@ -568,7 +561,7 @@
       try {
         const res = await fetch(
           `https://weather.mborsare.workers.dev/prime/weather/${SYMBOL}`,
-          { cache: 'no-store' }
+          {cache: 'no-store'}
         );
 
         if (!res.ok) throw new Error();
