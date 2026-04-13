@@ -53,21 +53,6 @@
       margin: 0;
     }
 
-    .ascii {
-      white-space: pre;
-      line-height: 1.1;
-      color: var(--seal);
-      font-size: 0.8rem;
-      display: inline-block;
-      margin: 0;
-    }
-
-    @media (max-width: 26.8rem) {
-      .ascii {
-        font-size: 0.3rem;
-      }
-    }
-
     .header-row {
       display: flex;
       align-items: baseline;
@@ -79,8 +64,8 @@
     nav a {
       color: var(--stamp);
       text-decoration: none;
-      font-size: .75rem;
-      letter-spacing: .05rem;
+      font-size: 0.75rem;
+      letter-spacing: 0.05rem;
     }
 
     nav a:hover {
@@ -89,49 +74,49 @@
 
     #clock {
       color: var(--seal);
-      opacity: .45;
-      filter: blur(.25px);
+      opacity: 0.45;
+      filter: blur(0.25px);
       display: inline-block;
       font-size: 0.75rem;
     }
 
-    /* ── HUGE TOGGLE ── */
+    /* ── TOGGLE ── */
     .toggle-label {
       display: inline-flex;
       align-items: baseline;
       gap: 0.35rem;
       cursor: pointer;
-      font-size: .75rem;
+      font-size: 0.75rem;
       color: var(--stamp);
-      letter-spacing: .05rem;
+      letter-spacing: 0.05rem;
       user-select: none;
-      transition: color .15s;
+      transition: color 0.15s;
     }
 
     .toggle-label:hover {
       color: var(--seal);
     }
 
-    .toggle-label input[type="checkbox"] {
+    .toggle-label input[type='checkbox'] {
       appearance: none;
       -webkit-appearance: none;
-      width: .65rem;
-      height: .65rem;
+      width: 0.65rem;
+      height: 0.65rem;
       border: 1px solid var(--stamp);
       background: transparent;
       cursor: pointer;
       position: relative;
       top: 0.05rem;
       flex-shrink: 0;
-      transition: border-color .15s, background .15s;
+      transition: border-color 0.15s, background 0.15s;
     }
 
-    .toggle-label input[type="checkbox"]:checked {
+    .toggle-label input[type='checkbox']:checked {
       background: var(--seal);
       border-color: var(--seal);
     }
 
-    .toggle-label input[type="checkbox"]:checked::after {
+    .toggle-label input[type='checkbox']:checked::after {
       content: '';
       display: block;
       position: absolute;
@@ -143,22 +128,22 @@
     /* huge overrides */
     body.huge .row-0 .headline {
       font-size: 4.5rem;
-      letter-spacing: -.02em;
+      letter-spacing: -0.02em;
     }
 
     body.huge .row-1 .headline {
       font-size: 3.2rem;
-      letter-spacing: -.01em;
+      letter-spacing: -0.01em;
     }
 
     body.huge .row-2 .headline {
       font-size: 2.4rem;
-      letter-spacing: .02em;
+      letter-spacing: 0.02em;
     }
 
     body.huge .row-3 .headline {
       font-size: 3.8rem;
-      letter-spacing: -.015em;
+      letter-spacing: -0.015em;
     }
 
     body.huge .src-badge {
@@ -170,7 +155,7 @@
       margin: 0 1.2rem;
     }
 
-    /* ── STAGE: fills remaining height ── */
+    /* ── STAGE ── */
     #stage {
       flex: 1;
       display: flex;
@@ -185,46 +170,30 @@
       align-items: center;
       overflow: hidden;
       border-bottom: 1px solid #111;
+      cursor: grab;
+      touch-action: pan-y;
+    }
+
+    .marquee-stage.dragging {
+      cursor: grabbing;
     }
 
     .marquee-row {
       display: flex;
       white-space: nowrap;
       will-change: transform;
+      user-select: none;
     }
 
-    .marquee-row.row-rtl {
-      animation: scroll-rtl linear infinite;
-    }
-
-    .marquee-row.row-ltr {
-      animation: scroll-ltr linear infinite;
-    }
-
-    @keyframes scroll-rtl {
-      from {
-        transform: translateX(0);
-      }
-
-      to {
-        transform: translateX(-50%);
-      }
-    }
-
-    @keyframes scroll-ltr {
-      from {
-        transform: translateX(-50%);
-      }
-
-      to {
-        transform: translateX(0);
-      }
+    /* block link-click during and briefly after drag */
+    .marquee-stage.dragging .marquee-item,
+    .marquee-stage.drag-end .marquee-item {
+      pointer-events: none;
     }
 
     .marquee-item {
       display: inline-flex;
       align-items: center;
-      cursor: pointer;
       padding: 0 0.4rem;
       text-decoration: none;
     }
@@ -250,13 +219,13 @@
     .row-2 .headline {
       color: var(--stamp);
       font-size: 0.75rem;
-      letter-spacing: .05rem;
+      letter-spacing: 0.05rem;
     }
 
     .row-3 .headline {
       color: var(--seal);
       font-size: 0.95rem;
-      opacity: .7;
+      opacity: 0.7;
     }
 
     .sep {
@@ -267,11 +236,11 @@
 
     .src-badge {
       font-size: 0.55rem;
-      letter-spacing: .15rem;
+      letter-spacing: 0.15rem;
       text-transform: uppercase;
       color: var(--stamp);
       margin-right: 0.45rem;
-      opacity: .6;
+      opacity: 0.6;
       flex-shrink: 0;
     }
 
@@ -281,9 +250,9 @@
       align-items: center;
       justify-content: center;
       color: var(--stamp);
-      font-size: .75rem;
-      letter-spacing: .1rem;
-      opacity: .6;
+      font-size: 0.75rem;
+      letter-spacing: 0.1rem;
+      opacity: 0.6;
     }
 
     #status.err {
@@ -298,7 +267,6 @@
 </head>
 
 <body>
-
   <div class="header">
     <h1>Mike Borsare</h1>
     <div class="header-row">
@@ -314,6 +282,10 @@
   <div id="stage"></div>
 
   <script>
+    // ── SCROLL STATE ──
+    // All row states live here; huge-toggle recalc also uses this.
+    let allStates = []
+
     // ── HUGE MODE ──
     const hugeToggle = document.getElementById('hugeToggle')
     if (hugeToggle) {
@@ -322,21 +294,25 @@
       hugeToggle.addEventListener('change', () => {
         document.body.classList.toggle('huge', hugeToggle.checked)
         localStorage.setItem('paper:huge', hugeToggle.checked ? '1' : '0')
-        // recalc scroll speeds for new text size
-        document.querySelectorAll('.marquee-row[data-speed]').forEach(row => {
-          const half = row.scrollWidth / 2
-          const speed = parseFloat(row.dataset.speed)
-          row.style.animationDuration = (half / speed) + 's'
+        requestAnimationFrame(() => {
+          for (const s of allStates) {
+            const newHalf = s.el.scrollWidth / 2
+            if (s.halfWidth > 0 && newHalf > 0) {
+              s.offset = s.offset * (newHalf / s.halfWidth)
+            }
+            s.halfWidth = newHalf || 1
+          }
         })
       })
     }
 
     // ── CLOCK ──
-    (() => {
+    ; (() => {
       const clock = document.getElementById('clock')
       let t = 0
       const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
       function updateClock() {
         const now = new Date()
         clock.textContent =
@@ -346,11 +322,13 @@
           `${String(now.getSeconds()).padStart(2, '0')}:` +
           `${String(now.getMilliseconds()).padStart(3, '0')}`
       }
+
       function pulse() {
-        t += .02
-        clock.style.opacity = .35 + (Math.sin(t) + 1) * .15
+        t += 0.02
+        clock.style.opacity = 0.35 + (Math.sin(t) + 1) * 0.15
         requestAnimationFrame(pulse)
       }
+
       updateClock()
       setInterval(updateClock, 50)
       pulse()
@@ -359,55 +337,71 @@
     // ── FEED ──
     const SOURCES = [
       {label: 'NYT', rss: 'https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml'},
-      {label: 'WAPO', rss: 'https://feeds.washingtonpost.com/rss/homepage'}
+      {label: 'WAPO', rss: 'https://feeds.washingtonpost.com/rss/homepage'},
     ]
     const RSS2JSON = 'https://api.rss2json.com/v1/api.json?rss_url='
     const LIMIT = 20
     const CACHE_TTL = 1000 * 60 * 30
     const REFRESH_MS = 1000 * 60 * 10
 
+    // 8 rows — 2× vertical density
     const ROW_CONFIGS = [
       {speed: 55, dir: 'rtl'},
       {speed: 38, dir: 'ltr'},
       {speed: 70, dir: 'rtl'},
       {speed: 45, dir: 'ltr'},
+      {speed: 60, dir: 'rtl'},
+      {speed: 42, dir: 'ltr'},
+      {speed: 50, dir: 'rtl'},
+      {speed: 35, dir: 'ltr'},
     ]
 
     function getCache(key) {
       try {
         const raw = localStorage.getItem(key)
         if (!raw) return null
-        const p = JSON.parse(raw)
-        if (Date.now() - p.time > CACHE_TTL) {localStorage.removeItem(key); return null}
-        return p.data
-      } catch {return null}
+        const parsed = JSON.parse(raw)
+        if (Date.now() - parsed.time > CACHE_TTL) {
+          localStorage.removeItem(key)
+          return null
+        }
+        return parsed.data
+      } catch {
+        return null
+      }
     }
+
     function setCache(key, data) {
-      try {localStorage.setItem(key, JSON.stringify({time: Date.now(), data}))} catch { }
+      try {
+        localStorage.setItem(key, JSON.stringify({time: Date.now(), data}))
+      } catch { }
     }
 
     async function fetchSource(source) {
       const key = 'feed:' + source.label
       let items = getCache(key)
+
       if (!items) {
         const res = await fetch(RSS2JSON + encodeURIComponent(source.rss))
         const data = await res.json()
         if (data.status !== 'ok') throw new Error(data.message)
         items = (data.items || [])
           .slice(0, LIMIT)
-          .filter((v, i, a) => a.findIndex(t => t.link === v.link) === i)
+          .filter((v, i, a) => a.findIndex((x) => x.link === v.link) === i)
         setCache(key, items)
       }
-      return items.map(item => ({
+
+      return items.map((item) => ({
         title: item.title,
         link: 'https://archive.ph/newest/' + encodeURIComponent(item.link.replace(/\?.*/, '')),
-        label: source.label
+        label: source.label,
       }))
     }
 
     function makeItems(items) {
       const frag = document.createDocumentFragment()
-      items.forEach(item => {
+
+      items.forEach((item) => {
         const a = document.createElement('a')
         a.className = 'marquee-item'
         a.href = item.link
@@ -431,24 +425,134 @@
         a.appendChild(sep)
         frag.appendChild(a)
       })
+
       return frag
     }
 
-    function buildRow(items, rowIndex) {
-      const cfg = ROW_CONFIGS[rowIndex % ROW_CONFIGS.length]
-      const row = document.createElement('div')
-      row.className = `marquee-row row-${rowIndex % 4} row-${cfg.dir}`
-      row.dataset.speed = cfg.speed
+    // Clamp offset into [-halfWidth, 0] with modulo
+    function normalise(offset, halfWidth) {
+      if (halfWidth <= 0) return 0
+      let o = offset % halfWidth
+      if (o > 0) o -= halfWidth
+      if (o <= -halfWidth) o += halfWidth
+      return o
+    }
 
-      row.appendChild(makeItems(items))
-      row.appendChild(makeItems(items))
+    // ── DRAG ──
+    function attachDrag(s, hitArea) {
+      let pointerId = null
+      let down = false
+      let moved = false
 
-      requestAnimationFrame(() => {
-        const half = row.scrollWidth / 2
-        row.style.animationDuration = (half / cfg.speed) + 's'
+      hitArea.addEventListener('pointerdown', (e) => {
+        if (e.button !== 0) return
+        down = true
+        moved = false
+        pointerId = e.pointerId
+        s.dragging = false
+        s.dragStartX = e.clientX
+        s.dragStartOffset = s.offset
+        s.dragDelta = 0
       })
 
-      return row
+      hitArea.addEventListener('pointermove', (e) => {
+        if (!down || e.pointerId !== pointerId) return
+
+        s.dragDelta = e.clientX - s.dragStartX
+
+        if (!moved && Math.abs(s.dragDelta) > 4) {
+          moved = true
+          s.dragging = true
+          hitArea.setPointerCapture(e.pointerId)
+          hitArea.classList.add('dragging')
+        }
+
+        if (!moved) return
+
+        s.offset = s.dragStartOffset + s.dragDelta
+      })
+
+      function endDrag(e) {
+        if (!down || e.pointerId !== pointerId) return
+
+        down = false
+
+        if (s.dragging) {
+          s.dragging = false
+          hitArea.classList.remove('dragging')
+          s.offset = normalise(s.offset, s.halfWidth)
+
+          hitArea.classList.add('drag-end')
+          setTimeout(() => hitArea.classList.remove('drag-end'), 150)
+        }
+
+        pointerId = null
+      }
+
+      hitArea.addEventListener('pointerup', endDrag)
+      hitArea.addEventListener('pointercancel', endDrag)
+
+      hitArea.addEventListener(
+        'click',
+        (e) => {
+          if (Math.abs(s.dragDelta) > 4) {
+            e.preventDefault()
+            e.stopPropagation()
+          }
+        },
+        true
+      )
+    }
+
+    // ── RAF LOOP (single shared loop) ──
+    let rafStarted = false
+
+    function startRaf() {
+      if (rafStarted) return
+      rafStarted = true
+      let last = null
+
+      function frame(ts) {
+        if (last === null) last = ts
+        const dt = Math.min((ts - last) / 1000, 0.05)
+        last = ts
+
+        for (const s of allStates) {
+          if (!s.dragging) {
+            s.offset += s.pps * dt
+            s.offset = normalise(s.offset, s.halfWidth)
+          }
+          s.el.style.transform = `translateX(${s.offset}px)`
+        }
+
+        requestAnimationFrame(frame)
+      }
+
+      requestAnimationFrame(frame)
+    }
+
+    // ── BUILD ──
+    function buildRow(items, rowIndex) {
+      const cfg = ROW_CONFIGS[rowIndex % ROW_CONFIGS.length]
+      const el = document.createElement('div')
+      el.className = `marquee-row row-${rowIndex % 4}`
+      el.appendChild(makeItems(items))
+      el.appendChild(makeItems(items))
+
+      const s = {
+        el,
+        halfWidth: 1,
+        pps: cfg.dir === 'rtl' ? -cfg.speed : cfg.speed,
+        dir: cfg.dir,
+        offset: 0,
+        dragging: false,
+        dragStartX: 0,
+        dragStartOffset: 0,
+        dragDelta: 0,
+      }
+
+      allStates.push(s)
+      return s
     }
 
     function buildStage(allItems) {
@@ -456,28 +560,61 @@
       const statusEl = document.getElementById('status')
       stage.innerHTML = ''
       statusEl.classList.add('hidden')
+      allStates = []
 
-      const nyt = allItems.filter(i => i.label === 'NYT')
-      const wapo = allItems.filter(i => i.label === 'WAPO')
-      const mixed = [...allItems].sort(() => Math.random() - 0.5)
+      const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5)
+      const nyt = allItems.filter((i) => i.label === 'NYT')
+      const wapo = allItems.filter((i) => i.label === 'WAPO')
 
-      const rows = [allItems, nyt, mixed, wapo]
+      const rowSets = [
+        allItems,
+        nyt.length ? nyt : allItems,
+        shuffle(allItems),
+        wapo.length ? wapo : allItems,
+        shuffle(allItems),
+        wapo.length ? wapo : allItems,
+        nyt.length ? shuffle(nyt) : shuffle(allItems),
+        allItems,
+      ]
 
-      rows.forEach((items, i) => {
+      rowSets.forEach((items, i) => {
         if (!items.length) return
+
         const wrapper = document.createElement('div')
         wrapper.className = 'marquee-stage'
-        wrapper.appendChild(buildRow(items, i))
+
+        const s = buildRow(items, i)
+        wrapper.appendChild(s.el)
+
+        attachDrag(s, wrapper)
+
         stage.appendChild(wrapper)
       })
+
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => {
+          for (const s of allStates) {
+            s.halfWidth = s.el.scrollWidth / 2 || 1
+            s.offset = s.dir === 'ltr' ? -s.halfWidth : 0
+          }
+        })
+      )
+
+      startRaf()
     }
 
     async function load() {
       const statusEl = document.getElementById('status')
+
       try {
         const results = await Promise.all(SOURCES.map(fetchSource))
         const all = results.flat()
-        if (!all.length) {statusEl.textContent = 'no items'; return }
+
+        if (!all.length) {
+          statusEl.textContent = 'no items'
+          return
+        }
+
         buildStage(all)
       } catch (err) {
         statusEl.classList.remove('hidden')
@@ -489,7 +626,6 @@
     load()
     setInterval(load, REFRESH_MS)
   </script>
-
 </body>
 
 </html>
