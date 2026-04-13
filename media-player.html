@@ -17,7 +17,7 @@
     :root {
       --bg: #000000;
       --text: #c0c0c0;
-      --seal: #eaffea;
+      --glow: transparent;
     }
 
     body {
@@ -29,9 +29,28 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      transition: background 0.9s ease;
+      transition: background 0.8s ease, color 0.8s ease;
       padding-bottom: 60vh;
       overflow-x: hidden;
+    }
+
+    /* CINEMA MODE BLUR LOGIC */
+    /* We explicitly target only the text elements */
+    body.cinema-mode nav,
+    body.cinema-mode h1,
+    body.cinema-mode p,
+    body.cinema-mode .file-item {
+      filter: blur(10px);
+      transition: filter 0.6s ease;
+      pointer-events: auto;
+    }
+
+    /* Un-blur when hovering anywhere near the main list/nav */
+    .container:hover nav,
+    .container:hover h1,
+    .container:hover p,
+    .container:hover .file-item {
+      filter: blur(0px);
     }
 
     /* TRINITRON-STYLE ASCII INDICATOR */
@@ -45,11 +64,9 @@
       pointer-events: none;
       z-index: 1000;
       color: #110000;
-      /* Dark when off */
-      transition: color 0.3s ease, text-shadow 0.3s ease;
+      transition: color 0.4s ease, text-shadow 0.4s ease;
     }
 
-    /* The .on class is toggled by play/pause */
     #led.on {
       opacity: 1;
     }
@@ -60,9 +77,11 @@
       padding: clamp(0.75rem, 2vw, 1.5rem);
       box-sizing: border-box;
       margin-top: 4rem;
+      position: relative;
     }
 
     #player-unit {
+      /* Removed the filter here so position: fixed works for the child video */
       width: 100vw;
       margin-left: calc(50% - 50vw);
       display: none;
@@ -72,8 +91,8 @@
       margin-bottom: 8rem;
       position: relative;
       z-index: 10;
-      will-change: background;
-      transition: background 0.9s ease;
+      background: var(--bg);
+      transition: background 0.8s ease;
     }
 
     video {
@@ -82,9 +101,10 @@
       max-height: 90vh;
       display: block;
       background: #000;
-      box-shadow: 0 0 100px rgba(0, 0, 0, 0.8);
+      box-shadow: var(--glow);
       object-fit: contain;
       cursor: pointer;
+      transition: box-shadow 0.8s ease;
     }
 
     #wave {
@@ -96,7 +116,6 @@
       top: 100%;
       pointer-events: none;
       background: transparent !important;
-      will-change: transform;
     }
 
     nav {
@@ -115,7 +134,7 @@
     .file-item {
       padding: 0.8rem 0;
       cursor: pointer;
-      opacity: 0.1;
+      opacity: 0.2;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -123,12 +142,12 @@
     }
 
     .file-item:hover {
-      opacity: 0.75;
+      opacity: 0.8;
     }
 
     .file-item.active {
-      opacity: .5;
-      color: var(--text);
+      opacity: 0.6;
+      font-weight: bold;
     }
 
     @media (max-width: 40rem) {
@@ -147,21 +166,17 @@
 
     a {
       color: unset;
+      text-decoration: none;
+      border-bottom: 1px solid currentColor;
     }
 
     body.lights {
-      --bg: #f5f0e8;
-      --text: #1a1a1a;
-      --seal: #2a2a2a;
-      background: var(--bg) !important;
-      color: var(--text);
+      --bg: #f5f0e8 !important;
+      --text: #1a1a1a !important;
+      --glow: 0 0 40px rgba(0, 0, 0, 0.2) !important;
     }
 
-    body.lights #player-unit {
-      background: var(--bg) !important;
-    }
-
-    /* PICTURE-IN-PICTURE */
+    /* PICTURE IN PICTURE LOGIC */
     video.pip {
       position: fixed;
       bottom: 1.5rem;
@@ -180,7 +195,6 @@
       box-shadow: 0 8px 50px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.18);
     }
 
-    /* overlay that intercepts taps in pip mode so controls never see the click */
     #pip-tap {
       display: none;
       position: fixed;
@@ -200,19 +214,19 @@
       ▓██░  ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█   ▀
       ▓██░ ██▓▒▓██ ░▄█ ▒▒██▒▓██    ▓██░▒███
       ▒██▄█▓▒ ▒▒██▀▀█▄  ░██░▒██    ▒██ ▒▓█  ▄
-      ▒██▒ ░  ░░██▓ ▒██▒░██░▒██▒   ░██▒░▒████▒
-      ▒▓▒░ ░  ░░ ▒▓ ░▒▓░░▓  ░ ▒░   ░  ░░░ ▒░ ░
-      ░▒ ░       ░▒ ░ ▒░ ▒ ░░  ░      ░ ░ ░  ░
-      ░░         ░░   ░  ▒ ░░      ░      ░
-                  ░      ░         ░      ░  ░
+      ▒██▒ ░  ░░██▓ ▒██▒░██░▒██▒    ░██▒░▒████▒
+      ▒▓▒░ ░  ░░ ▒▓ ░▒▓░░▓  ░ ▒░    ░  ░░░ ▒░ ░
+      ░▒ ░        ░▒ ░ ▒░ ▒ ░░  ░      ░ ░ ░  ░
+      ░░          ░░   ░  ▒ ░░      ░      ░
+                  ░      ░          ░      ░  ░
   </pre>
 
   <div class="container">
     <nav>
       <a href="index.html">back</a>
       <button id="pick-btn">Load directory</button>
-      <label for="shuf-chk"><input type="checkbox" id="shuf-chk" /> shuffle</label>
-      <label for="lights-chk"><input type="checkbox" id="lights-chk" /> lights</label>
+      <label><input type="checkbox" id="shuf-chk" /> shuffle</label>
+      <label><input type="checkbox" id="lights-chk" /> lights</label>
     </nav>
     <h1>local media player</h1>
     <p>load a directory, then use <kbd>↑</kbd> <kbd>↓</kbd> to navigate</p>
@@ -236,47 +250,43 @@
     const unit = document.getElementById('player-unit');
     const fileList = document.getElementById('file-list');
     const led = document.getElementById('led');
+    const root = document.documentElement;
 
     const sampler = document.createElement('canvas');
     sampler.width = sampler.height = 1;
     const sCtx = sampler.getContext('2d', {willReadFrequently: true});
 
     function applyFramePalette() {
+      if (vid.paused || vid.ended || document.body.classList.contains('lights')) return;
       sCtx.drawImage(vid, 0, 0, 1, 1);
       const [r, g, b] = sCtx.getImageData(0, 0, 1, 1).data;
 
-      const bg = `rgb(${Math.round(r / 15)}, ${Math.round(g / 15)}, ${Math.round(b / 15)})`;
+      const bg = `rgb(${Math.round(r * 0.2)}, ${Math.round(g * 0.2)}, ${Math.round(b * 0.2)})`;
       const fg = `rgb(${r}, ${g}, ${b})`;
-      const glow = `0 0 8px ${fg}, 0 0 15px ${fg}66`;
+      const glow = `0 0 120px 30px rgba(${r}, ${g}, ${b}, 0.4)`;
+      const textGlow = `0 0 8px ${fg}, 0 0 15px ${fg}66`;
 
-      document.documentElement.style.setProperty('--bg', bg);
-      document.documentElement.style.setProperty('--text', fg);
-
-      document.body.style.background = bg;
-      unit.style.background = bg;
-      fileList.style.color = fg;
-
-      wCtx.strokeStyle = fg;
+      root.style.setProperty('--bg', bg);
+      root.style.setProperty('--text', fg);
+      root.style.setProperty('--glow', glow);
       led.style.color = fg;
-      led.style.textShadow = glow;
+      led.style.textShadow = textGlow;
+      wCtx.strokeStyle = fg;
     }
 
     function resetPalette() {
-      const off = '#110000';
-      document.documentElement.style.setProperty('--bg', '#000000');
-      document.documentElement.style.setProperty('--text', '#c0c0c0');
-
-      document.body.style.background = '#000000';
-      unit.style.background = '#000000';
-      fileList.style.color = '';
-
-      led.style.color = off;
+      root.style.setProperty('--bg', '#000000');
+      root.style.setProperty('--text', '#c0c0c0');
+      root.style.setProperty('--glow', '0 0 100px rgba(0,0,0,0.8)');
+      led.style.color = '#110000';
       led.style.textShadow = 'none';
       wCtx.strokeStyle = '#c0c0c0';
     }
 
     document.getElementById('lights-chk').onchange = function () {
       document.body.classList.toggle('lights', this.checked);
+      if (!this.checked && !vid.paused) applyFramePalette();
+      else resetPalette();
     };
 
     document.getElementById('pick-btn').onclick = async () => {
@@ -304,7 +314,6 @@
     async function play(p) {
       if (!playlist.length) return;
       if (aCtx && aCtx.state === 'suspended') await aCtx.resume();
-
       pos = (p + order.length) % order.length;
       const index = order[pos];
       const activeEl = document.getElementById(`i${index}`);
@@ -312,17 +321,13 @@
       unit.style.display = 'flex';
       activeEl.after(unit);
 
-      setTimeout(() => {
-        vid.scrollIntoView({behavior: 'smooth', block: 'center'});
-      }, 50);
-
+      setTimeout(() => vid.scrollIntoView({behavior: 'smooth', block: 'center'}), 50);
       document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
       activeEl.classList.add('active');
 
       if (vid.src) URL.revokeObjectURL(vid.src);
       vid.src = URL.createObjectURL(playlist[index].file);
       vid.play();
-
       if (!aCtx) initAudio();
     }
 
@@ -334,145 +339,60 @@
       src.connect(analyser);
       analyser.connect(aCtx.destination);
       data = new Uint8Array(analyser.frequencyBinCount);
-
       const smoothData = new Float32Array(512);
 
       function loop() {
         requestAnimationFrame(loop);
-
-        // FIX: don't call resetPalette() every frame when paused — onpause already handles it once.
-        // Also reset on ended so colors don't stay stuck between tracks.
         if (vid.paused || vid.ended) return;
-
         frameCount++;
-        if (frameCount % 10 === 0) {
-          applyFramePalette();
-        }
-
+        if (frameCount % 10 === 0) applyFramePalette();
         analyser.getByteTimeDomainData(data);
         wCtx.clearRect(0, 0, wave.width, wave.height);
         wCtx.beginPath();
-
         const count = Math.floor(data.length / 3);
         const step = wave.width / (count - 1);
         const mid = wave.height / 2;
-
         let energy = 0;
-        for (let i = 0; i < count; i++) {
-          energy += Math.abs((data[i] / 128) - 1);
-        }
+        for (let i = 0; i < count; i++) energy += Math.abs((data[i] / 128) - 1);
         energy /= count;
-
-        const ampBase = wave.height * 0.9;
-        const ampBoost = 1 + (energy * 2.8);
-
         wCtx.moveTo(0, mid);
-
         for (let i = 0; i < count; i++) {
           const target = (data[i] / 128.0) - 1;
-          const lag = 0.14 + (Math.sin(i * 0.06) * 0.04) + ((i / count) * 0.08);
+          const lag = 0.14 + (Math.sin(i * 0.06) * 0.04);
           smoothData[i] += (target - smoothData[i]) * lag;
-
-          const exaggerated =
-            Math.sign(smoothData[i]) *
-            Math.pow(Math.abs(smoothData[i]), 0.72);
-
-          const wobble =
-            Math.sin((performance.now() * 0.012) + (i * 0.22)) *
-            energy *
-            10;
-
-          const bias =
-            Math.sin((i / count) * Math.PI * 3) *
-            energy *
-            18;
-
-          const y =
-            mid +
-            (exaggerated * ampBase * ampBoost) +
-            wobble +
-            bias;
-
-          const nextIndex = Math.min(i + 1, count - 1);
-          const nextTarget = (data[nextIndex] / 128.0) - 1;
-          smoothData[nextIndex] += (nextTarget - smoothData[nextIndex]) * lag;
-
-          const nextExaggerated =
-            Math.sign(smoothData[nextIndex]) *
-            Math.pow(Math.abs(smoothData[nextIndex]), 0.72);
-
-          const nextWobble =
-            Math.sin((performance.now() * 0.012) + (nextIndex * 0.22)) *
-            energy *
-            10;
-
-          const nextBias =
-            Math.sin((nextIndex / count) * Math.PI * 3) *
-            energy *
-            18;
-
-          const yNext =
-            mid +
-            (nextExaggerated * ampBase * ampBoost) +
-            nextWobble +
-            nextBias;
-
-          const xc = (i * step) + (step / 2);
-          const yc = (y + yNext) / 2;
-
-          wCtx.quadraticCurveTo(i * step, y, xc, yc);
+          const y = mid + (Math.sign(smoothData[i]) * Math.pow(Math.abs(smoothData[i]), 0.7) * wave.height * (1 + energy * 2));
+          wCtx.lineTo(i * step, y);
         }
-
-        wCtx.lineWidth = 2 + (energy * 8);
+        wCtx.lineWidth = 2 + (energy * 10);
         wCtx.stroke();
       }
-
       loop();
     }
 
     const pipTap = document.getElementById('pip-tap');
-
-    function enterPip() {
-      vid.classList.add('pip');
-      pipTap.style.display = 'block';
-    }
-
-    function exitPip() {
-      vid.classList.remove('pip');
-      pipTap.style.display = 'none';
-    }
-
-    // overlay eats the tap — controls never see it, video keeps playing
-    pipTap.onclick = () => {
-      exitPip();
-      vid.scrollIntoView({behavior: 'smooth', block: 'center'});
-    };
-
-    vid.onclick = () => {
-      if (!vid.classList.contains('pip')) {
-        vid.scrollIntoView({behavior: 'smooth', block: 'center'});
-      }
-    };
+    function enterPip() {vid.classList.add('pip'); pipTap.style.display = 'block';}
+    function exitPip() {vid.classList.remove('pip'); pipTap.style.display = 'none';}
+    pipTap.onclick = () => {exitPip(); vid.scrollIntoView({behavior: 'smooth', block: 'center'});};
+    vid.onclick = () => {if (!vid.classList.contains('pip')) vid.scrollIntoView({behavior: 'smooth', block: 'center'});};
 
     const pipObserver = new IntersectionObserver((entries) => {
-      if (!entries[0].isIntersecting && !vid.paused && !vid.ended) {
-        enterPip();
-      } else {
-        exitPip();
-      }
+      if (!entries[0].isIntersecting && !vid.paused && !vid.ended) enterPip();
+      else exitPip();
     }, {threshold: 0.1});
-
     pipObserver.observe(unit);
-    vid.onplay = () => led.classList.add('on');
+
+    vid.onplay = () => {
+      led.classList.add('on');
+      document.body.classList.add('cinema-mode');
+    };
     vid.onpause = () => {
       led.classList.remove('on');
+      document.body.classList.remove('cinema-mode');
       exitPip();
       resetPalette();
     };
     vid.onended = () => {
-      led.classList.remove('on');
-      exitPip();
-      resetPalette();
+      document.body.classList.remove('cinema-mode');
       play(pos + 1);
     };
 
@@ -493,7 +413,6 @@
       wave.width = window.innerWidth;
       wave.height = window.innerWidth < 640 ? 150 : 300;
     }
-
     window.addEventListener('resize', resizer, {passive: true});
     resizer();
     resetPalette();
