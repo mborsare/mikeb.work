@@ -1,0 +1,533 @@
+<!doctype hvvetml>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Drop In</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #000000;
+      --text: #c0c0c0;
+      --stamp: #888888;
+      --seal: #eaffea;
+      --red: #e50914;
+      --btn-fill: #1a1a1a;
+    }
+
+    html {
+      font-size: 14px;
+    }
+
+    @font-face {
+      font-family: 'ComicMono';
+      src: url('/fonts/ComicMono-Regular.woff') format('woff');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'ComicMono', monospace;
+      font-size: 1rem;
+      overflow-x: hidden;
+    }
+
+    /* Vector Background Grid */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(234, 255, 234, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(234, 255, 234, 0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      z-index: -1;
+    }
+
+    nav a {
+      color: var(--text);
+      text-decoration: none;
+      font-size: 0.8rem;
+      letter-spacing: 0.1rem;
+      border-bottom: 1px solid transparent;
+    }
+
+    nav a:hover {
+      color: var(--seal);
+      border-bottom-color: var(--seal);
+    }
+
+    .wrap {
+      width: 100%;
+      max-width: 44rem;
+      padding: clamp(1rem, 4vw, 2.5rem);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: clamp(1.2rem, 3vw, 2rem);
+      text-align: center;
+    }
+
+    #clock {
+      color: var(--seal);
+      font-size: 0.8rem;
+      letter-spacing: 0.05rem;
+      display: block;
+    }
+
+    .site-title {
+      color: var(--seal);
+      font-size: clamp(2.5rem, 10vw, 5rem);
+      letter-spacing: 0.6rem;
+      margin: 0;
+      font-weight: 400;
+      text-transform: uppercase;
+      border-bottom: 2px solid var(--seal);
+    }
+
+    .state {
+      width: 100%;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .state.active {
+      display: flex;
+    }
+
+    .paste-prompt {
+      color: var(--text);
+      line-height: 2;
+      font-size: clamp(0.9rem, 3vw, 1.1rem);
+    }
+
+    .paste-target {
+      position: relative;
+      width: 100%;
+      max-width: 28rem;
+    }
+
+    .paste-target input {
+      width: 100%;
+      background: transparent;
+      border: 1px solid #333;
+      color: var(--seal);
+      caret-color: var(--seal);
+      font: inherit;
+      font-size: 1rem;
+      padding: 0.75rem 0;
+      outline: none;
+      text-align: center;
+    }
+
+    .paste-target input:focus {
+      border-color: var(--seal);
+    }
+
+    .kbd {
+      display: inline-block;
+      border: 1px solid var(--seal);
+      color: var(--seal);
+      padding: 0.2rem 0.6rem;
+      font-family: inherit;
+      font-size: 1.1rem;
+    }
+
+    .cursor-blink {
+      display: inline-block;
+      width: 10px;
+      height: 1.1rem;
+      background: var(--seal);
+      vertical-align: text-bottom;
+      animation: blink 0.1s steps(2) infinite;
+    }
+
+    @keyframes blink {
+      0% {
+        opacity: 1
+      }
+
+      100% {
+        opacity: 0
+      }
+    }
+
+    .stamp-text {
+      color: var(--stamp);
+      font-size: 0.75rem;
+      letter-spacing: 0.25rem;
+      margin: 0;
+    }
+
+    .crt-wrap {
+      width: 100%;
+      aspect-ratio: 16/9;
+      position: relative;
+      border: 2px solid var(--seal);
+      background: #000;
+    }
+
+    #crt-canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .crt-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      pointer-events: none;
+    }
+
+    .crt-n {
+      font-size: clamp(3rem, 10vw, 5.5rem);
+      color: var(--red);
+      font-style: italic;
+      font-weight: 900;
+      font-family: Georgia, serif;
+    }
+
+    .crt-id {
+      color: var(--seal);
+      font-size: clamp(0.6rem, 2vw, 0.8rem);
+      letter-spacing: 0.3rem;
+    }
+
+    .crt-on-air {
+      color: var(--red);
+      font-size: clamp(0.55rem, 1.5vw, 0.7rem);
+      letter-spacing: 0.4rem;
+      animation: flash 0.2s steps(2) infinite;
+    }
+
+    @keyframes flash {
+      0% {
+        opacity: 1;
+      }
+
+      100% {
+        opacity: 0;
+      }
+    }
+
+    .channel-bug {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      color: var(--seal);
+      font-size: 0.7rem;
+      text-align: right;
+    }
+
+    .radio-group {
+      display: flex;
+      gap: 4px;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .zone-label {
+      cursor: pointer;
+      border: 1px solid #333;
+      padding: 1rem;
+      flex: 1;
+      transition: none;
+    }
+
+    .zone-label input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+    }
+
+    .zone-name {
+      color: #555;
+      display: block;
+    }
+
+    .zone-label:has(input:checked) {
+      background: var(--seal);
+      border-color: var(--seal);
+    }
+
+    .zone-label:has(input:checked) .zone-name {
+      color: #000;
+      font-weight: 900;
+    }
+
+    .zone-label:has(input:checked) .zone-range {
+      color: #000;
+    }
+
+    #drop-btn {
+      width: 100%;
+      max-width: 24rem;
+      padding: 1.4rem;
+      background: transparent;
+      border: 2px solid #222;
+      color: #333;
+      font-family: inherit;
+      font-size: 1.6rem;
+      letter-spacing: 0.6rem;
+      text-transform: uppercase;
+      cursor: not-allowed;
+    }
+
+    #drop-btn.ready {
+      border-color: var(--seal);
+      color: var(--seal);
+      cursor: pointer;
+    }
+
+    #drop-btn.ready:hover {
+      background: var(--seal);
+      color: #000;
+    }
+
+    #drop-btn.ready:active {
+      transform: scale(0.98);
+    }
+
+    #countdown {
+      color: var(--seal);
+      font-size: 11rem;
+      line-height: 1;
+    }
+
+    .reset-link {
+      color: var(--stamp);
+      font-size: 0.7rem;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+
+<body>
+  <nav>
+    <a href="/">Back</a>
+  </nav>
+
+  <div class="wrap">
+    <time id="clock"></time>
+    <h1 class="site-title">drop in</h1>
+
+    <div id="state-paste" class="state active">
+      <p class="paste-prompt">
+        paste your netflix link<br>
+        <span class="kbd" id="kbd-hint">⌘V</span>
+        <span class="cursor-blink"></span>
+      </p>
+      <div class="paste-target">
+        <input type="text" id="paste-input" placeholder="netflix.com/watch/..." autocomplete="off" spellcheck="false" />
+      </div>
+      <p class="stamp-text">MJB</p>
+    </div>
+
+    <div id="state-preview" class="state">
+      <div class="crt-wrap">
+        <canvas id="crt-canvas"></canvas>
+        <div class="crt-overlay">
+          <div class="crt-n">N</div>
+          <div class="crt-id" id="crt-id-label"></div>
+          <div class="crt-on-air">● on air</div>
+        </div>
+        <div class="channel-bug" id="channel-bug">
+          CH 36<br>
+          <span id="bug-time"></span>
+        </div>
+      </div>
+
+      <div class="radio-group">
+        <label class="zone-label">
+          <input type="radio" name="zone" value="beginning" />
+          <span class="zone-name">beginning</span>
+          <span class="zone-range">~1–20 min</span>
+        </label>
+        <label class="zone-label">
+          <input type="radio" name="zone" value="middle" />
+          <span class="zone-name">middle</span>
+          <span class="zone-range">~35–75 min</span>
+        </label>
+        <label class="zone-label">
+          <input type="radio" name="zone" value="end" />
+          <span class="zone-name">end</span>
+          <span class="zone-range">~85–110 min</span>
+        </label>
+      </div>
+
+      <button id="drop-btn" disabled>drop in</button>
+      <a class="reset-link" id="reset-link">paste a different link</a>
+      <p class="stamp-text">MJB</p>
+    </div>
+
+    <div id="state-dropping" class="state">
+      <p class="drop-label">dropping you in</p>
+      <div id="countdown">3</div>
+      <p class="dropping-zone-hint" id="zone-hint"></p>
+      <p class="stamp-text">MJB</p>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const el = document.getElementById('clock');
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      function tick() {
+        const now = new Date();
+        el.textContent = `${days[now.getDay()]} ${months[now.getMonth()]} ${now.getDate()} ` +
+          `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+      }
+      tick();
+      setInterval(tick, 1000);
+    })();
+
+    setInterval(() => {
+      const now = new Date();
+      document.getElementById('bug-time').textContent = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    }, 1000);
+
+    (() => {
+      const canvas = document.getElementById('crt-canvas');
+      const ctx = canvas.getContext('2d');
+      function resize() {
+        canvas.width = canvas.parentElement.clientWidth;
+        canvas.height = canvas.parentElement.clientHeight;
+      }
+      window.addEventListener('resize', resize);
+      resize();
+
+      function draw() {
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = '#eaffea';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < 3; i++) {
+          let y = Math.random() * canvas.height;
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(canvas.width, y);
+          ctx.stroke();
+        }
+        requestAnimationFrame(draw);
+      }
+      draw();
+    })();
+
+    const STORAGE_KEY_ID = 'dropin:lastNetflixId';
+    const STORAGE_KEY_ZONE = 'dropin:lastZone';
+    let netflixId = null, destUrl = null, countdownInterval = null;
+
+    const stPaste = document.getElementById('state-paste');
+    const stPreview = document.getElementById('state-preview');
+    const stDrop = document.getElementById('state-dropping');
+    const pasteInput = document.getElementById('paste-input');
+    const dropBtn = document.getElementById('drop-btn');
+    const countdown = document.getElementById('countdown');
+    const zoneHint = document.getElementById('zone-hint');
+    const resetLink = document.getElementById('reset-link');
+    const crtIdLabel = document.getElementById('crt-id-label');
+
+    function parseId(text) {
+      const m = text.match(/netflix\.com\/watch\/(\d+)/);
+      return m ? m[1] : null;
+    }
+
+    function showState(name) {
+      [stPaste, stPreview, stDrop].forEach((s) => s.classList.remove('active'));
+      ({paste: stPaste, preview: stPreview, dropping: stDrop})[name].classList.add('active');
+    }
+
+    function syncDropButton() {
+      const selectedZone = document.querySelector('input[name="zone"]:checked')?.value;
+      const ready = Boolean(netflixId && selectedZone);
+      dropBtn.disabled = !ready;
+      dropBtn.classList.toggle('ready', ready);
+    }
+
+    function activate(url) {
+      const id = parseId(url);
+      if (!id) return;
+      netflixId = id;
+      localStorage.setItem(STORAGE_KEY_ID, id);
+      crtIdLabel.textContent = `id · ${id}`;
+      showState('preview');
+      syncDropButton();
+    }
+
+    const ZONES = {beginning: [60, 1200], middle: [2100, 4500], end: [5100, 6600]};
+
+    document.querySelectorAll('input[name="zone"]').forEach((radio) => {
+      radio.addEventListener('change', () => {
+        localStorage.setItem(STORAGE_KEY_ZONE, radio.value);
+        syncDropButton();
+      });
+    });
+
+    dropBtn.addEventListener('click', () => {
+      const zone = document.querySelector('input[name="zone"]:checked')?.value;
+      const t = Math.floor(Math.random() * (ZONES[zone][1] - ZONES[zone][0]) + ZONES[zone][0]);
+      destUrl = `https://www.netflix.com/watch/${netflixId}?t=${t}`;
+      zoneHint.textContent = `${zone} · ~injected`;
+      showState('dropping');
+
+      let n = 3;
+      countdown.textContent = n;
+      countdownInterval = setInterval(() => {
+        n -= 1;
+        if (n <= 0) {
+          clearInterval(countdownInterval);
+          window.location.href = destUrl;
+        }
+        countdown.textContent = n;
+      }, 700);
+    });
+
+    resetLink.addEventListener('click', () => {
+      localStorage.clear();
+      showState('paste');
+    });
+
+    document.addEventListener('paste', (e) => {
+      const text = e.clipboardData?.getData('text') || '';
+      if (parseId(text)) activate(text);
+    });
+
+    pasteInput.addEventListener('input', (e) => {
+      if (parseId(e.target.value)) activate(e.target.value);
+    });
+
+    window.addEventListener('load', () => {
+      const savedId = localStorage.getItem(STORAGE_KEY_ID);
+      if (savedId) {
+        netflixId = savedId;
+        crtIdLabel.textContent = `id · ${savedId}`;
+        showState('preview');
+      }
+    });
+  </script>
+</body>
+
+</html>
