@@ -268,7 +268,8 @@
     <div style="padding:1rem;">
       <h2>Workshop</h2>
       <nav>
-        <a href="#" id="sortNav">* S O R T *</a>
+        <a href="#" id="sortNav">[ S O R T ] </a>
+        <a href="#" id="randomNav">[ M I X - U P ]</a>
         <a href="drop-in.html" class="ascii">Drop in</a>
         <a href="media-player.html" class="ascii">Media player</a>
         <a href="headlines.html" class="ascii">Headlines</a>
@@ -781,17 +782,23 @@ your attention
       pulse();
     })();
 
-    // ---- Nav sort ----
+    // ---- Nav sort + randomize ----
     (() => {
       const nav = document.querySelector('nav')
-      const btn = document.getElementById('sortNav')
+      const sortBtn = document.getElementById('sortNav')
+      const randomBtn = document.getElementById('randomNav')
       let asc = true
 
-      btn.addEventListener('click', (e) => {
+      function getLinks() {
+        return [...nav.querySelectorAll('a')].filter(
+          a => a !== sortBtn && a !== randomBtn
+        )
+      }
+
+      sortBtn.addEventListener('click', (e) => {
         e.preventDefault()
 
-        const links = [...nav.querySelectorAll('a')]
-          .filter(a => a !== btn)
+        const links = getLinks()
 
         links.sort((a, b) =>
           asc
@@ -802,8 +809,20 @@ your attention
         links.forEach(a => nav.appendChild(a))
         asc = !asc
       })
-    })()
-  </script>
+
+      randomBtn.addEventListener('click', (e) => {
+        e.preventDefault()
+
+        const links = getLinks()
+
+        for (let i = links.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1))
+            ;[links[i], links[j]] = [links[j], links[i]]
+        }
+
+        links.forEach(a => nav.appendChild(a))
+      })
+    })()  </script>
 </body>
 
 </html>
