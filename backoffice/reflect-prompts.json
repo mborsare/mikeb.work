@@ -1,92 +1,22 @@
 [
-  {
-    "prompt": "Am I steady or am I spinning?"
-  },
-  {
-    "prompt": "What's the first sign I'm about to blow it?"
-  },
-  {
-    "prompt": "What calms me down that I'm not doing?"
-  },
-  {
-    "prompt": "Am I being myself or am I being reactive?"
-  },
-  {
-    "prompt": "What did I do yesterday that worked?"
-  },
-  {
-    "prompt": "What's making me bounce around?"
-  },
-  {
-    "prompt": "When did I last feel level?"
-  },
-  {
-    "prompt": "What do I do when I'm solid?"
-  },
-  {
-    "prompt": "What move would I make if I was tilted?"
-  },
-  {
-    "prompt": "What always happens right before I lose it?"
-  },
-  {
-    "prompt": "What keeps me tight?"
-  },
-  {
-    "prompt": "What's pulling me off my game?"
-  },
-  {
-    "prompt": "How would I act if I wasn't in my head?"
-  },
-  {
-    "prompt": "What's not my trade today?"
-  },
-  {
-    "prompt": "What amps me up?"
-  },
-  {
-    "prompt": "What's been true all week?"
-  },
-  {
-    "prompt": "What would unremarkable look like today?"
-  },
-  {
-    "prompt": "What am I doing that makes swings bigger?"
-  },
-  {
-    "prompt": "Is this a normal day or am I off?"
-  },
-  {
-    "prompt": "What would settle me?"
-  },
-  {
-    "prompt": "What just got under my skin?"
-  },
-  {
-    "prompt": "What does centered feel like?"
-  },
-  {
-    "prompt": "What makes me recognize myself?"
-  },
-  {
-    "prompt": "How much did I swing today?"
-  },
-  {
-    "prompt": "What keeps me in bounds?"
-  },
-  {
-    "prompt": "What would steady look like?"
-  },
-  {
-    "prompt": "What stops me when I need stopping?"
-  },
-  {
-    "prompt": "Am I following my plan or making it up?"
-  },
-  {
-    "prompt": "What does locked-in feel like today?"
-  },
-  {
-    "prompt": "What version of me am I being?"
-  }
+  { "prompt": "At what exact moment did today stop being simple?" },
+  { "prompt": "Which tiny decision quietly set this whole thing off?" },
+  { "prompt": "If I had to name the mood of this day, what would it be?" },
+  { "prompt": "Where did I start narrating instead of trading?" },
+  { "prompt": "What am I insisting on that the market has already declined?" },
+  { "prompt": "If this day were a story, where did it turn?" },
+  { "prompt": "What am I protecting that isn’t actually at risk?" },
+  { "prompt": "What would happen if I let this be ordinary?" },
+  { "prompt": "What am I subtly trying to prove, and to whom?" },
+  { "prompt": "What part of this feels familiar in a way that isn’t helpful?" },
+  { "prompt": "If I stepped away, what would continue without me?" },
+  { "prompt": "What am I editing out of my own memory right now?" },
+  { "prompt": "Where am I adding meaning that isn’t there?" },
+  { "prompt": "What would this look like if I were a little less impressed by it?" },
+  { "prompt": "What am I dragging forward that belongs to an earlier trade?" },
+  { "prompt": "If I stopped mid-thought, what would be left?" },
+  { "prompt": "What am I refusing to call done?" },
+  { "prompt": "What is the smallest honest version of this moment?" },
+  { "prompt": "What am I doing to make this feel bigger than it is?" },
+  { "prompt": "What would ending cleanly look like?" }
 ]
