@@ -12,11 +12,7 @@
       --text: #c0c0c0;
       --stamp: #888888;
       --seal: #eaffea;
-
-      /* derived button colors */
-      --btn-fill: color-mix(in hsl,
-          var(--bg),
-          var(--seal) 20%);
+      --btn-fill: color-mix(in hsl, var(--bg), var(--seal) 20%);
       --btn-text: #ffffff;
     }
 
@@ -75,12 +71,6 @@
       font-size: 0.5rem;
     }
 
-    @media (max-width: 768px) {
-      .ascii {
-        font-size: 0.65rem;
-      }
-    }
-
     #clock {
       color: var(--seal);
       opacity: 0.45;
@@ -91,33 +81,6 @@
 
     button:active {
       scale: 0.9;
-    }
-
-    /* ---- lease builder ---- */
-    input {
-      width: 100%;
-      box-sizing: border-box;
-      padding: 0.75rem;
-      border-radius: 0.6rem;
-      border: 1px solid color-mix(in hsl, var(--text), transparent 70%);
-      background: color-mix(in hsl, var(--bg), var(--seal) 6%);
-      color: var(--text);
-      font-family: 'ComicMono', monospace;
-      font-size: 1rem;
-      line-height: 1.5;
-      outline: none;
-    }
-
-    @media (max-width: 768px) {
-      input {
-        padding: 0.85rem;
-        font-size: 16px;
-      }
-    }
-
-    input:focus {
-      border-color: color-mix(in hsl, var(--seal), transparent 35%);
-      box-shadow: 0 0 0 2px color-mix(in hsl, var(--seal), transparent 80%);
     }
 
     .btn {
@@ -133,19 +96,18 @@
       cursor: pointer;
     }
 
-    @media (max-width: 768px) {
-      .btn {
-        padding: 0.85rem 1.25rem;
-        font-size: 1rem;
-      }
+    main {
+      font-size: 1rem;
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+      width: 100%;
     }
 
-    /* ---- details container ---- */
     main>details {
       width: 100%;
     }
 
-    /* ---- details styling ---- */
     details {
       margin: 0;
       border: 3px double color-mix(in hsl, var(--text), transparent 60%);
@@ -223,10 +185,6 @@
       display: inline-block;
     }
 
-    details summary:hover::after {
-      opacity: 0.9;
-    }
-
     @keyframes pulse {
 
       0%,
@@ -241,13 +199,26 @@
       }
     }
 
-    /* ---- main content ---- */
-    main {
-      font-size: 1rem;
-      line-height: 1.6;
-      display: flex;
-      flex-direction: column;
-      width: 100%;
+    .title {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: yellow;
+      margin: 1.5rem auto;
+    }
+
+    .countdown-event {
+      font-size: 0.85rem;
+      color: var(--stamp);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .countdown-number {
+      font-weight: bold;
+      color: var(--seal);
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+      margin-bottom: 0.5rem;
     }
 
     .detail-label {
@@ -275,6 +246,7 @@
       grid-template-columns: 1fr 1fr;
       gap: 1.5rem;
       margin-top: 1rem;
+      <time id="clock"></time>
     }
 
     .detail-item {
@@ -296,112 +268,6 @@
       user-select: text;
     }
 
-    /* ===============================================
-       COUNTDOWN HERO (New Year's Eve style)
-       =============================================== */
-    .countdown-hero {
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-
-    .title {
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: yellow;
-      margin: 1.5rem auto;
-    }
-
-    .countdown-display {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 2rem;
-      max-width: 50rem;
-      margin: 0 auto;
-    }
-
-    .countdown-card {
-      background: color-mix(in hsl, var(--bg), var(--seal) 5%);
-      padding: 1.5rem;
-      border-radius: 0.75rem;
-      border: 1px solid color-mix(in hsl, var(--seal), transparent 80%);
-      transition: all 0.3s ease;
-    }
-
-    .countdown-card:hover {
-      border-color: color-mix(in hsl, var(--seal), transparent 60%);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px color-mix(in hsl, var(--seal), transparent 85%);
-    }
-
-    .countdown-event {
-      font-size: 0.85rem;
-      color: var(--stamp);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 0.75rem;
-    }
-
-    .countdown-number {
-      font-weight: bold;
-      color: var(--seal);
-      line-height: 1;
-      font-variant-numeric: tabular-nums;
-      margin-bottom: 0.5rem;
-    }
-
-    .countdown-meta {
-      font-size: 0.9rem;
-      color: var(--text);
-      opacity: 0.7;
-    }
-
-    /* Security deposit card - matches countdown style */
-    .deposit-card {
-      margin: 0 auto;
-    }
-
-    .deposit-header {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.75rem;
-    }
-
-    .deposit-check {
-      font-size: 2rem;
-      color: green;
-    }
-
-    .deposit-title {
-      font-size: 1.2rem;
-      font-weight: bold;
-      color: var(--seal);
-    }
-
-    .deposit-item {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    .deposit-label {
-      font-size: 0.75rem;
-      color: var(--stamp);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .deposit-value {
-      font-size: 1.2rem;
-      font-weight: bold;
-      color: var(--text);
-    }
-
-    .deposit-amount {
-      color: var(--seal);
-      font-size: 1.5rem;
-    }
-
     .account-reveal {
       display: flex;
       align-items: center;
@@ -409,12 +275,186 @@
       gap: 0.5rem;
     }
 
+    .pay-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1rem;
+      max-width: 52rem;
+      margin: 0 auto;
+      white-space: normal;
+    }
+
+    .pay-card {
+      border-radius: 0.75rem;
+      padding: 1.25rem 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.6rem;
+      position: relative;
+      color: inherit;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .pay-card:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.08);
+    }
+
+    .pay-card:active {
+      transform: translateY(0);
+      scale: 0.98;
+    }
+
+    .pay-card--cashapp {
+      background: #1a1a1a;
+      border: 2px solid #00d54b;
+    }
+
+    .pay-card--venmo {
+      background: #00144a;
+      border: 2px solid #008cff;
+    }
+
+    .pay-card--check {
+      background: color-mix(in hsl, var(--bg), var(--text) 6%);
+      border: 2px dashed color-mix(in hsl, var(--text), transparent 60%);
+      cursor: default;
+    }
+
+    .pay-card--check:hover,
+    .pay-card--check:active {
+      transform: none;
+      filter: none;
+      scale: 1;
+    }
+
+    .pay-rank {
+      position: absolute;
+      top: -0.6rem;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.65rem;
+      font-weight: bold;
+      padding: 0.15rem 0.5rem;
+      border-radius: 99px;
+      white-space: nowrap;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .pay-card--cashapp .pay-rank {
+      background: #00d54b;
+      color: #000;
+    }
+
+    .pay-card--venmo .pay-rank {
+      background: #008cff;
+      color: #fff;
+    }
+
+    .pay-card--check .pay-rank {
+      background: var(--stamp);
+      color: #000;
+    }
+
+    .pay-name {
+      font-size: 1rem;
+      font-weight: bold;
+      margin-top: 0.25rem;
+    }
+
+    .pay-card--cashapp .pay-name {
+      color: #00d54b;
+    }
+
+    .pay-card--venmo .pay-name {
+      color: #5bb8ff;
+    }
+
+    .pay-card--check .pay-name {
+      color: var(--text);
+    }
+
+    .pay-handle {
+      font-size: 0.85rem;
+      opacity: 0.75;
+    }
+
+    .pay-badge {
+      font-size: 0.7rem;
+      padding: 0.2rem 0.55rem;
+      border-radius: 99px;
+      font-weight: bold;
+      letter-spacing: 0.04em;
+    }
+
+    .pay-badge--instant {
+      background: #003b1a;
+      color: #00d54b;
+      border: 1px solid #00d54b44;
+    }
+
+    .pay-badge--check {
+      background: #2a2200;
+      color: #c8a700;
+      border: 1px solid #c8a70044;
+    }
+
+    .pay-qr {
+      width: 140px;
+      height: 140px;
+      border-radius: 0.5rem;
+      image-rendering: pixelated;
+      background: #fff;
+    }
+
+    .pay-link {
+      font-size: 0.8rem;
+      color: var(--stamp);
+      opacity: 0.7;
+    }
+
+    .pay-card:hover .pay-link {
+      opacity: 1;
+    }
+
+    .pay-check-body {
+      font-size: 0.85rem;
+      line-height: 1.7;
+      color: var(--text);
+      opacity: 0.8;
+      text-align: left;
+      width: 100%;
+    }
+
+    .actions {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-top: 0.75rem;
+    }
+
+    .actions .btn {
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
     @media (max-width: 768px) {
       .ascii {
-        font-size: .25rem;
+        font-size: 0.25rem;
       }
 
-      .detail-grid {
+      .btn {
+        padding: 0.85rem 1.25rem;
+        font-size: 1rem;
+      }
+
+      .detail-grid,
+      .pay-grid {
         grid-template-columns: 1fr;
         gap: 1rem;
       }
@@ -423,25 +463,21 @@
         font-size: 1.2rem;
       }
 
-      .countdown-hero {
-        padding: 1.5rem 0.75rem;
-        margin: 1rem 0;
-      }
-
       .title {
         margin-top: 1rem;
       }
-
-      .countdown-display {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-      }
-
     }
 
-    /* ===============================================
-       PRINT STYLES
-       =============================================== */
+    @media (max-width: 900px) {
+      .ascii-prime {
+        font-size: 0.2rem;
+      }
+
+      #leaseText {
+        font-size: 0.85rem;
+      }
+    }
+
     @page {
       size: letter;
       margin: 0.75in;
@@ -451,11 +487,6 @@
       * {
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
-      }
-
-      .ascii {
-        color: black;
-        font-size: .5rem !important;
       }
 
       body {
@@ -468,17 +499,16 @@
         padding: 0;
       }
 
-      nav,
       button,
-      .ascii-prime,
       time,
       h1,
-      .terms,
-      .outcomes,
-      .countdown-hero,
-      .deposit-card,
       details[open] summary::before {
         display: none !important;
+      }
+
+      .ascii {
+        color: black;
+        font-size: 0.5rem !important;
       }
 
       details {
@@ -502,52 +532,26 @@
         line-height: 1.3;
       }
 
-      #lease {
+      #leaseText {
         color: #000;
         font-size: 11pt;
         line-height: 1.6;
         max-width: none;
       }
 
-      #lease p {
+      #leaseText p {
         margin: 1rem 0;
         page-break-inside: avoid;
       }
     }
-
-    @media (max-width: 900px) {
-      .ascii-prime {
-        font-size: 0.2rem;
-      }
-
-      #lease {
-        font-size: 0.85rem;
-      }
-    }
-
-    .actions {
-      display: flex;
-      gap: 0.75rem;
-      flex-wrap: wrap;
-      margin-top: 0.75rem;
-    }
-
-    .actions .btn {
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
   </style>
-
 </head>
 
 <body>
   <div class="container">
-    <h1 style="font-size:0.75rem; opacity:0.5;">Mike Borsare</h1>
-    <time id="clock"></time>
-
-    <div style="padding:1rem;">
+    <h1 style="font-size: 0.75rem; opacity: 0.5;">Mike Borsare</h1>
+    <p>Alexis and Connor live at:</p>
+    <div style="padding: 1rem;">
       <pre class="ascii">
 
         ▄▄▄▄                 ▄▄▄▄   ▄▄▄▄                                              ▄▄▄▄               
@@ -558,65 +562,98 @@
        ▀██▄▄██▀             ██▄▄▄██    ██▄▄▄   ▀██▄▄▄▄█  ██    ██    ████    ██▄▄▄███    ██▄▄▄   ▀██▄▄▄▄█ 
          ▀▀▀▀                 ▀▀▀▀      ▀▀▀▀     ▀▀▀▀▀   ▀▀    ▀▀     ▀▀      ▀▀▀▀ ▀▀     ▀▀▀▀     ▀▀▀▀▀  
       </pre>
-      <address style="font-style: normal; line-height: 1.5">
-        6 Glenvale Terrace #2
-        Jamaica Plain, MA 02130
-      </address>
     </div>
 
-    <div class="title">Status</div>
-    <div class="deposit-card">
-      <div class="deposit-header">
-        <span class="deposit-check">✓</span>
-        <span class="deposit-title">Lease signed</span>
-      </div>
-      <div class="deposit-header">
-        <span class="deposit-check">✓</span>
-        <span class="deposit-title">Security deposit received</span>
-      </div>
+    <div class="title">Rent is <span style="background-color:yellow; color: black; display:inline-block">$3000</span>
+    </div>
+    <div class="countdown-event" id="countdown-rent-label"></div>
+    <div class="countdown-number" id="countdown-rent-days"></div>
 
-      <div class="deposit-item">
-        <div class="deposit-label">Amount</div>
-        <div class="deposit-value deposit-amount">$1,000.00</div>
-      </div>
-      <div class="deposit-item">
-        <div class="deposit-label">Bank</div>
-        <div class="deposit-value">Capital One</div>
-      </div>
-      <div class="deposit-item">
-        <div class="deposit-label">Account</div>
-        <div class="account-reveal">
-          <span class="account-number deposit-value" id="account-number">1234567890</span>
-          <button class="reveal-btn btn" id="reveal-btn" type="button"> Show
-          </button>
+    <div style="margin-bottom: 0.5rem; white-space: normal;">
+      <h3 class="title">Pay now</h3>
+
+      <div class="pay-grid">
+        <a class="pay-card pay-card--cashapp" href="https://cash.app/$mborsare" target="_blank"
+          rel="noopener noreferrer" aria-label="Pay rent with Cash App">
+          <div class="pay-rank">Preferred</div>
+          <div class="pay-name">Cash App</div>
+          <div class="pay-handle">$mborsare</div>
+          <span class="pay-badge pay-badge--instant">⚡ Instant clearing</span>
+          <img class="pay-qr" alt="Cash App QR"
+            src="https://api.qrserver.com/v1/create-qr-code/?size=280x280&margin=6&data=https%3A%2F%2Fcash.app%2F%24mborsare" />
+          <span class="pay-link">cash.app/$mborsare</span>
+        </a>
+
+        <a class="pay-card pay-card--venmo" href="https://venmo.com/spy-treasury" target="_blank"
+          rel="noopener noreferrer" aria-label="Pay rent with Venmo">
+          <div class="pay-rank">Fine</div>
+          <div class="pay-name">Venmo</div>
+          <div class="pay-handle">@spy-treasury</div>
+          <span class="pay-badge pay-badge--instant">⚡ Instant clearing</span>
+          <img class="pay-qr" alt="Venmo QR"
+            src="https://api.qrserver.com/v1/create-qr-code/?size=280x280&margin=6&data=https%3A%2F%2Fvenmo.com%2Fspy-treasury" />
+          <span class="pay-link">venmo.com/spy-treasury</span>
+        </a>
+
+        <div class="pay-card pay-card--check">
+          <div class="pay-rank">Least best</div>
+          <div class="pay-name">Check</div>
+          <div class="pay-handle">Hand-deliver</div>
+          <span class="pay-badge pay-badge--check">🐢 Slow clearing</span>
+          <div class="pay-check-body">
+            Pay to: <strong>Mike Borsare</strong>
+            Memo: <strong>Glenvale #2 rent</strong>
+
+            Hand deliver to me. ty!
+
+            Due by the 1st.
+            Late after the 5th.
+          </div>
         </div>
       </div>
-      <div class="deposit-header" style="margin-top: 2rem">
-        <span class="deposit-check">✓</span>
-        <span class="deposit-title">Last month's rent cashed</span>
-      </div>
     </div>
-    <div class="title">Announcements</div>
-    <div class="countdown-display">
-      <div class="countdown-card">
-        <div class="countdown-event">Cash last month's rent</div>
-        <div class="countdown-number" id="countdown-april-days"></div>
-        <div>Cashed on Wed Apr 1, 2026</div>
-      </div>
-      <div class="countdown-card">
-        <div class="countdown-event">Cash first month's rent</div>
-        <div class="countdown-number" id="countdown-may-days"></div>
-      </div>
-    </div>
-
 
     <div class="title">🗄️ Filing cabinet</div>
-    <main style="text-align:left; max-width: 52rem; margin: 0 auto; padding: 0;">
+    <main style="text-align: left; max-width: 52rem; margin: 0 auto; padding: 0;">
 
       <details>
-        <summary style="font-size:1rem; font-weight:bold;">2026–2027 Lease agreement</summary>
-        <div id="leaseCard" style="margin-bottom:1.25rem;">
-          <div id="leaseText" class="detail-body" style="white-space:pre-line;">
+        <summary>Status and deposit</summary>
+
+        <div class="detail-grid">
+          <div class="detail-item">
+            <div class="detail-label">Move-in</div>
+            <div class="detail-value">✓ Moved in</div>
+          </div>
+
+          <div class="detail-item">
+            <div class="detail-label">Security deposit</div>
+            <div class="detail-value">✓ Received</div>
+          </div>
+
+          <div class="detail-item">
+            <div class="detail-label">Amount</div>
+            <div class="detail-value">$1,000.00</div>
+          </div>
+
+          <div class="detail-item">
+            <div class="detail-label">Bank</div>
+            <div class="detail-value">Capital One</div>
+          </div>
+
+          <div class="detail-item">
+            <div class="detail-label">Account</div>
+            <div class="account-reveal">
+              <span class="account-number detail-value" id="account-number">***********</span>
+              <button class="btn" id="reveal-btn" type="button">Show</button>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary>2026–2027 Lease agreement</summary>
+        <div id="leaseCard" style="margin-bottom: 1.25rem;">
+          <div id="leaseText" class="detail-body" style="white-space: pre-line;">
             This Lease is made on April 27, 2026, between:
 
             Landlord:
@@ -744,20 +781,15 @@
       </details>
 
       <details>
-        <summary>Download and print</summary>
+        <summary>Download lease text</summary>
         <div class="actions">
-          <a id="downloadLease" href="#" class="btn">Download lease text</a>
-          <a href="https://drive.google.com/file/d/1LYvfklv71G6wz0povBF2pgOdSepCebaf/view" target="_blank"
-            class="btn">View signature page
-          </a>
-          <a href="#" id="printBtn" class="btn">🖨️ Print</a>
+          <a id="downloadLease" href="#" class="btn">Download</a>
         </div>
       </details>
 
-
     </main>
 
-    <pre class="ascii" style="font-size:0.6rem; color: yellow">
+    <pre class="ascii" style="font-size: 0.6rem; color: yellow;">
     ▗▄▄▄▖▄   ▄ 
       █  █   █ 
       █   ▀▀▀█ 
@@ -766,12 +798,18 @@
                
     </pre>
     <p><span style="color: red;">x </span> Mike, Ashley, and Cora</p>
+    <address style="font-style: normal; line-height: 1.5;">
+      6 Glenvale Terrace #2
+      Jamaica Plain, MA 02130
+    </address>
+    <time id="clock"></time>
+
   </div>
 
   <script>
-    // ---- Accordion: only one detail open at a time ----
     (() => {
       const details = document.querySelectorAll('main details');
+
       details.forEach(detail => {
         detail.addEventListener('toggle', () => {
           if (detail.open) {
@@ -783,55 +821,54 @@
       });
     })();
 
-    // ---- Unified Clock + Detailed Live Countdowns ----
     (() => {
       const clock = document.getElementById('clock');
+      const countdownEl = document.getElementById('countdown-rent-days');
+      const countdownLabel = document.getElementById('countdown-rent-label');
 
-      const aprilTarget = new Date('2026-04-01T00:00:00');
-      const mayTarget = new Date('2026-05-01T00:00:00');
+      const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-      let t = 0;
+      function getNextFirst() {
+        const now = new Date();
+        const thisFirst = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+        if (now < thisFirst) return thisFirst;
+        return new Date(now.getFullYear(), now.getMonth() + 1, 1, 0, 0, 0, 0);
+      }
 
-      function formatCountdown(diff) {
-        if (diff <= 0) return "0 days, 0h 0m 0.000s";
+      function formatCountdown(ms) {
+        if (ms <= 0) return '0 days, 0h 0m 0.000s';
 
-        const totalSeconds = diff / 1000;
-
-        const days = Math.floor(totalSeconds / (60 * 60 * 24));
-        const hours = Math.floor((totalSeconds % (60 * 60 * 24)) / (60 * 60));
-        const minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
-        const seconds = (totalSeconds % 60).toFixed(3);
+        const totalSec = ms / 1000;
+        const days = Math.floor(totalSec / 86400);
+        const hours = Math.floor((totalSec % 86400) / 3600);
+        const minutes = Math.floor((totalSec % 3600) / 60);
+        const seconds = (totalSec % 60).toFixed(3);
 
         return `${days} days, ${hours}h ${minutes}m ${seconds}s`;
       }
 
+      let t = 0;
+
       function update() {
         const now = new Date();
-
-        // ---- Clock ----
-        const daysArr = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const target = getNextFirst();
 
         clock.textContent =
-          `${daysArr[now.getDay()]} ${months[now.getMonth()]} ${now.getDate()} ` +
+          `${DAY_NAMES[now.getDay()]} ${MONTH_NAMES[now.getMonth()]} ${now.getDate()} ` +
           `${String(now.getHours()).padStart(2, '0')}:` +
           `${String(now.getMinutes()).padStart(2, '0')}:` +
           `${String(now.getSeconds()).padStart(2, '0')}:` +
           `${String(now.getMilliseconds()).padStart(3, '0')}`;
 
-        // ---- April ----
-        const aprilDiff = aprilTarget - now;
-        document.getElementById('countdown-april-days').textContent =
-          formatCountdown(aprilDiff);
+        countdownLabel.textContent =
+          `${MONTH_NAMES[target.getMonth()]} ${target.getFullYear()} payment due in:`;
 
-        // ---- May ----
-        const mayDiff = mayTarget - now;
-        document.getElementById('countdown-may-days').textContent =
-          formatCountdown(mayDiff);
+        countdownEl.textContent = formatCountdown(target - now);
 
-        // ---- subtle pulse reused ----
         t += 0.02;
-        clock.style.opacity = 0.35 + (Math.sin(t) + 1) * 0.15;
+        clock.style.opacity = String(0.35 + (Math.sin(t) + 1) * 0.15);
 
         requestAnimationFrame(update);
       }
@@ -839,49 +876,36 @@
       update();
     })();
 
-
-
-    // ---- Account number reveal ----
     (() => {
-      const accountNumber = document.getElementById('account-number');
+      const accountEl = document.getElementById('account-number');
       const revealBtn = document.getElementById('reveal-btn');
-      const actualNumber = '36393602***';
-      const maskedNumber = '***********';
+      const ACTUAL = '36393602***';
+      const MASKED = '***********';
 
       revealBtn.addEventListener('click', () => {
-        const revealed = accountNumber.classList.toggle('revealed');
-        accountNumber.textContent = revealed ? actualNumber : maskedNumber;
+        const revealed = accountEl.classList.toggle('revealed');
+        accountEl.textContent = revealed ? ACTUAL : MASKED;
         revealBtn.textContent = revealed ? 'Hide' : 'Show';
       });
     })();
 
-    // ---- Download lease text ----
     (() => {
-      const downloadBtn = document.getElementById('downloadLease');
-      downloadBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        const leaseText = document.getElementById('leaseText').textContent;
-        const blob = new Blob([leaseText], {type: 'text/plain'});
+      document.getElementById('downloadLease').addEventListener('click', event => {
+        event.preventDefault();
+
+        const text = document.getElementById('leaseText').textContent;
+        const blob = new Blob([text], {type: 'text/plain'});
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'glenvale-lease-2026-2027.txt';
-        a.click();
+        const link = document.createElement('a');
+
+        link.href = url;
+        link.download = 'glenvale-lease-2026-2027.txt';
+        link.click();
+
         URL.revokeObjectURL(url);
       });
     })();
-
-    // ---- Print ----
-    (() => {
-      const printBtn = document.getElementById('printBtn');
-      printBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        window.print();
-      });
-    })();
   </script>
-
-
 </body>
 
 </html>
