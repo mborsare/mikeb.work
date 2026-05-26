@@ -188,14 +188,6 @@
       border-color: var(--seal);
     }
 
-    .other-note {
-      display: none;
-    }
-
-    .other-note.show {
-      display: grid;
-    }
-
     .send {
       min-height: var(--control-h);
       margin-top: 0.75rem;
@@ -368,20 +360,11 @@
         </label>
 
         <div class="emoji-grid" aria-label="pick a vibe">
-          <button class="emoji" type="button" data-note="🍻 beers">🍻</button>
-          <button class="emoji" type="button" data-note="🏖️ beach">🏖️</button>
+          <button class="emoji" type="button" data-note="🍺 beer">🍺</button>
           <button class="emoji" type="button" data-note="☕ coffee">☕</button>
-          <button class="emoji" type="button" data-note="🍕 pizza">🍕</button>
-          <button class="emoji" type="button" data-note="🍔 food">🍔</button>
-          <button class="emoji" type="button" data-note="🚶 walk">🚶</button>
-          <button class="emoji" type="button" data-note="🎾 tennis">🎾</button>
-          <button class="emoji" type="button" data-note="🫡 other">🫡</button>
+          <button class="emoji" type="button" data-note="💬 talk">💬</button>
+          <button class="emoji" type="button" data-note="🌿 nature">🌿</button>
         </div>
-
-        <label class="other-note" id="other-note-wrap">
-          other
-          <input id="other-note" name="other-note" type="text" placeholder="say more" />
-        </label>
 
         <button class="send" type="submit">send</button>
         <sub class="send-help">this will email Mike using your email client</sub>
@@ -434,8 +417,6 @@
       const date = document.getElementById("date");
       const time = document.getElementById("time");
       const note = document.getElementById("note");
-      const otherNote = document.getElementById("other-note");
-      const otherNoteWrap = document.getElementById("other-note-wrap");
       const form = document.getElementById("pick-form");
       const fields = document.getElementById("fields");
       const fallback = document.getElementById("fallback");
@@ -455,8 +436,6 @@
       function clearPickFields() {
         time.value = "";
         note.value = "";
-        otherNote.value = "";
-        otherNoteWrap.classList.remove("show");
         chips.forEach((item) => item.classList.remove("active"));
         emojis.forEach((item) => item.classList.remove("active"));
       }
@@ -466,9 +445,8 @@
         const pickLines = picks.map((pick, index) => {
           const parts = [
             `${index + 1}. ${pick.date} at ${pick.time}`,
-            pick.note ? `   Note: ${pick.note}` : ""
+            pick.note ? `   Vibe: ${pick.note}` : ""
           ];
-
           return parts.filter(Boolean).join("\n");
         });
 
@@ -500,16 +478,20 @@
         document.body.classList.add("done");
         fields.classList.add("hide");
 
-        window.setTimeout(() => {
-          fallback.classList.add("show");
-        }, 120);
-
         const mailto =
           "mailto:mborsare@gmail.com" +
           `?subject=${encodeURIComponent(subject)}` +
           `&body=${encodeURIComponent(body)}`;
 
-        window.location.href = mailto;
+        const a = document.createElement("a");
+        a.href = mailto;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        window.setTimeout(() => {
+          fallback.classList.add("show");
+        }, 400);
       }
 
       setToday();
@@ -527,14 +509,6 @@
           note.value = emoji.dataset.note;
           emojis.forEach((item) => item.classList.remove("active"));
           emoji.classList.add("active");
-
-          if (emoji.dataset.note.includes("other")) {
-            otherNoteWrap.classList.add("show");
-            otherNote.focus();
-          } else {
-            otherNoteWrap.classList.remove("show");
-            otherNote.value = "";
-          }
         });
       });
 
@@ -544,9 +518,7 @@
         picks.push({
           date: date.value,
           time: time.value,
-          note: note.value.includes("other") && otherNote.value.trim()
-            ? `🫡 ${otherNote.value.trim()}`
-            : note.value.trim()
+          note: note.value.trim()
         });
 
         showFallback();
