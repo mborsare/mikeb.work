@@ -373,33 +373,6 @@
 
   <script>
     (() => {
-      const clock = document.getElementById("clock");
-      let pulseT = 0;
-
-      function updateClock() {
-        const now = new Date();
-        const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-        clock.textContent =
-          `${days[now.getDay()]} ${months[now.getMonth()]} ${now.getDate()} ` +
-          `${String(now.getHours()).padStart(2, "0")}:` +
-          `${String(now.getMinutes()).padStart(2, "0")}:` +
-          `${String(now.getSeconds()).padStart(2, "0")}`;
-      }
-
-      function pulse() {
-        pulseT += 0.025;
-        clock.style.opacity = 0.35 + (Math.sin(pulseT) + 1) * 0.15;
-        requestAnimationFrame(pulse);
-      }
-
-      updateClock();
-      setInterval(updateClock, 250);
-      pulse();
-    })();
-
-    (() => {
       const headline = document.getElementById("headline");
       const name = document.getElementById("name");
       const date = document.getElementById("date");
@@ -417,10 +390,20 @@
       const picks = [];
       const today = new Date();
 
+      // --- NEW: URL Name Logic ---
+      const urlParams = new URLSearchParams(window.location.search);
+      // Handles both ?Paul and ?name=Paul
+      const initialName = Array.from(urlParams.keys())[0] || urlParams.get('name');
+      if (initialName) {
+        name.value = decodeURIComponent(initialName);
+      }
+      // ---------------------------
+
       function setToday() {
         date.value = today.toISOString().slice(0, 10);
       }
 
+      // ... rest of your existing function code below ...
       function clearPickFields() {
         time.value = "";
         note.value = "";
@@ -433,7 +416,7 @@
         const pickLines = picks.map((pick, index) => {
           const parts = [
             `${index + 1}. ${pick.date} at ${pick.time}`,
-            pick.note ? `   Vibe: ${pick.note}` : ""
+            pick.note ? `    Vibe: ${pick.note}` : ""
           ];
           return parts.filter(Boolean).join("\n");
         });
@@ -502,13 +485,11 @@
 
       form.addEventListener("submit", (event) => {
         event.preventDefault();
-
         picks.push({
           date: date.value,
           time: time.value,
           note: note.value.trim()
         });
-
         showFallback();
       });
 
@@ -516,7 +497,6 @@
         fallback.classList.remove("show");
         headline.textContent = "When can you meet?";
         document.body.classList.remove("done");
-
         window.setTimeout(() => {
           fields.classList.remove("hide");
           clearPickFields();
@@ -537,7 +517,7 @@
           copy.textContent = "select + copy";
         }
       });
-    })();
+    })(); 
   </script>
 </body>
 
