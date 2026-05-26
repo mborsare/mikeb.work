@@ -9,6 +9,7 @@
   <style>
     :root {
       --bg: #000000;
+      --done-bg: #071107;
       --text: #c0c0c0;
       --seal: #eaffea;
       --dim: rgba(234, 255, 234, 0.45);
@@ -47,11 +48,21 @@
       font-family: "ComicMono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       line-height: 1.5;
       text-align: center;
+      transition: background-color 420ms ease;
+    }
+
+    body.done {
+      background: var(--done-bg);
     }
 
     main {
       width: min(100%, 34rem);
       padding: clamp(1.25rem, 5vw, 2.5rem);
+    }
+
+    body.done main {
+      display: grid;
+      align-content: start;
     }
 
     .top {
@@ -73,6 +84,10 @@
       color: var(--seal);
       font-size: clamp(2rem, 9vw, 2.5rem);
       font-weight: 400;
+    }
+
+    body.done h1 {
+      margin-bottom: 1.5rem;
     }
 
     .sub {
@@ -183,18 +198,56 @@
       line-height: 1.4;
     }
 
+    .fields {
+      display: grid;
+      gap: 1.25rem;
+      opacity: 1;
+      transform: translateY(0);
+      max-height: 80rem;
+      overflow: hidden;
+      transition:
+        opacity 220ms ease,
+        transform 220ms ease,
+        max-height 320ms ease;
+    }
+
+    .fields.hide {
+      opacity: 0;
+      transform: translateY(-0.5rem);
+      max-height: 0;
+      pointer-events: none;
+    }
+
     .fallback {
-      display: none;
-      margin-top: 1.25rem;
+      display: grid;
+      gap: 0.85rem;
+      align-self: start;
+      margin-top: 0;
       padding: 1rem;
       border: 1px solid var(--line);
       border-radius: var(--control-radius);
       background: rgba(234, 255, 234, 0.035);
+      opacity: 0;
+      transform: translateY(0.5rem);
+      pointer-events: none;
+      max-height: 0;
+      overflow: hidden;
+      transition:
+        opacity 320ms ease,
+        transform 320ms ease,
+        max-height 420ms ease,
+        border-color 420ms ease,
+        background-color 420ms ease;
     }
 
     .fallback.show {
-      display: grid;
-      gap: 0.85rem;
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+      max-height: 40rem;
+      text-align: center;
+      border-color: rgba(234, 255, 234, 0.38);
+      background: rgba(234, 255, 234, 0.06);
     }
 
     .fallback p {
@@ -204,17 +257,33 @@
     }
 
     .fallback textarea {
-      height: 9rem;
-      min-height: 9rem;
+      height: auto;
+      min-height: 14rem;
+      overflow: hidden;
       font-size: 0.9rem;
+      line-height: 1.45;
       text-align: left;
     }
 
-    .copy {
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem;
+    }
+
+    .copy,
+    .again {
       height: 3.5rem;
       min-height: 3.5rem;
       color: var(--seal);
       cursor: pointer;
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 36rem) {
+      .actions {
+        grid-template-columns: 1fr;
+      }
     }
 
     .foot {
@@ -248,42 +317,47 @@
       <time id="clock"></time>
     </div>
 
-    <h1>When can you meet?</h1>
+    <h1 id="headline">When can you meet?</h1>
     <form id="pick-form">
-      <label>
-        your name
-        <input id="name" name="name" type="text" placeholder="name" autocomplete="name" required />
-      </label>
+      <div class="fields" id="fields">
+        <label>
+          your name
+          <input id="name" name="name" type="text" placeholder="name" autocomplete="name" required />
+        </label>
 
-      <label>
-        date
-        <input id="date" name="date" type="date" required />
-      </label>
+        <label>
+          date
+          <input id="date" name="date" type="date" required />
+        </label>
 
-      <label>
-        time
-        <input id="time" name="time" type="time" required />
-      </label>
+        <label>
+          time
+          <input id="time" name="time" type="time" required />
+        </label>
 
-      <div class="presets" aria-label="preset times">
-        <button class="chip" type="button" data-time="09:30">09:30</button>
-        <button class="chip" type="button" data-time="12:00">12:00</button>
-        <button class="chip" type="button" data-time="14:30">14:30</button>
-        <button class="chip" type="button" data-time="16:00">16:00</button>
+        <div class="presets" aria-label="preset times">
+          <button class="chip" type="button" data-time="09:30">09:30</button>
+          <button class="chip" type="button" data-time="12:00">12:00</button>
+          <button class="chip" type="button" data-time="14:30">14:30</button>
+          <button class="chip" type="button" data-time="16:00">16:00</button>
+        </div>
+
+        <label>
+          note
+          <textarea id="note" name="note" placeholder="optional"></textarea>
+        </label>
+
+        <button class="send" type="submit">send</button>
+        <sub class="send-help">this will email Mike using your email client</sub>
       </div>
 
-      <label>
-        note
-        <textarea id="note" name="note" placeholder="optional"></textarea>
-      </label>
-
-      <button class="send" type="submit">send</button>
-      <sub class="send-help">this will email Mike using your email client</sub>
-
       <div class="fallback" id="fallback" aria-live="polite">
-        <p>If nothing opened, your browser may be blocking email links. Copy this and send it to mborsare@gmail.com.</p>
+        <p>If nothing opened, copy this and send it to mborsare@gmail.com.</p>
         <textarea id="fallback-text" readonly></textarea>
-        <button class="copy" id="copy" type="button">copy email text</button>
+        <div class="actions">
+          <button class="copy" id="copy" type="button">copy</button>
+          <button class="again" id="again" type="button">add another time</button>
+        </div>
       </div>
     </form>
 
@@ -319,18 +393,84 @@
     })();
 
     (() => {
+      const headline = document.getElementById("headline");
       const name = document.getElementById("name");
       const date = document.getElementById("date");
       const time = document.getElementById("time");
       const note = document.getElementById("note");
       const form = document.getElementById("pick-form");
+      const fields = document.getElementById("fields");
       const fallback = document.getElementById("fallback");
       const fallbackText = document.getElementById("fallback-text");
       const copy = document.getElementById("copy");
+      const again = document.getElementById("again");
       const chips = [...document.querySelectorAll(".chip")];
 
+      const picks = [];
       const today = new Date();
-      date.value = today.toISOString().slice(0, 10);
+
+      function setToday() {
+        date.value = today.toISOString().slice(0, 10);
+      }
+
+      function clearPickFields() {
+        time.value = "";
+        note.value = "";
+        chips.forEach((item) => item.classList.remove("active"));
+      }
+
+      function buildMessage() {
+        const selectedName = name.value.trim();
+        const pickLines = picks.map((pick, index) => {
+          const parts = [
+            `${index + 1}. ${pick.date} at ${pick.time}`,
+            pick.note ? `   Note: ${pick.note}` : ""
+          ];
+
+          return parts.filter(Boolean).join("\n");
+        });
+
+        const subject =
+          picks.length === 1
+            ? `meeting time pick — ${selectedName} — ${picks[0].date} ${picks[0].time}`
+            : `meeting time picks — ${selectedName}`;
+
+        const body = [
+          picks.length === 1 ? "Meeting time pick:" : "Meeting time picks:",
+          "",
+          `Name: ${selectedName}`,
+          "",
+          ...pickLines,
+          "",
+          "— sent from PRIME"
+        ].filter(Boolean).join("\n");
+
+        return {subject, body};
+      }
+
+      function showFallback() {
+        const {subject, body} = buildMessage();
+
+        fallbackText.value = `To: mborsare@gmail.com\nSubject: ${subject}\n\n${body}`;
+        fallbackText.style.height = "auto";
+        fallbackText.style.height = `${fallbackText.scrollHeight + 2}px`;
+        headline.textContent = "See you then!";
+        document.body.classList.add("done");
+        fields.classList.add("hide");
+
+        window.setTimeout(() => {
+          fallback.classList.add("show");
+        }, 120);
+
+        const mailto =
+          "mailto:mborsare@gmail.com" +
+          `?subject=${encodeURIComponent(subject)}` +
+          `&body=${encodeURIComponent(body)}`;
+
+        window.location.href = mailto;
+      }
+
+      setToday();
 
       chips.forEach((chip) => {
         chip.addEventListener("click", () => {
@@ -343,36 +483,25 @@
       form.addEventListener("submit", (event) => {
         event.preventDefault();
 
-        const selectedName = name.value.trim();
-        const selectedDate = date.value;
-        const selectedTime = time.value;
-        const selectedNote = note.value.trim();
+        picks.push({
+          date: date.value,
+          time: time.value,
+          note: note.value.trim()
+        });
 
-        const subject = `meeting time pick — ${selectedName} — ${selectedDate} ${selectedTime}`;
-        const body = [
-          "Meeting time pick:",
-          "",
-          `Name: ${selectedName}`,
-          `Date: ${selectedDate}`,
-          `Time: ${selectedTime}`,
-          selectedNote ? `Note: ${selectedNote}` : "",
-          "",
-          "— sent from PRIME"
-        ].filter(Boolean).join("\n");
+        showFallback();
+      });
 
-        fallbackText.value = `To: mborsare@gmail.com\nSubject: ${subject}\n\n${body}`;
-        fallback.classList.add("show");
+      again.addEventListener("click", () => {
+        fallback.classList.remove("show");
+        headline.textContent = "When can you meet?";
+        document.body.classList.remove("done");
 
-        const mailto =
-          "mailto:mborsare@gmail.com" +
-          `?subject=${encodeURIComponent(subject)}` +
-          `&body=${encodeURIComponent(body)}`;
-
-        const a = document.createElement("a");
-        a.href = mailto;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        window.setTimeout(() => {
+          fields.classList.remove("hide");
+          clearPickFields();
+          time.focus();
+        }, 180);
       });
 
       copy.addEventListener("click", async () => {
@@ -380,7 +509,7 @@
           await navigator.clipboard.writeText(fallbackText.value);
           copy.textContent = "copied";
           setTimeout(() => {
-            copy.textContent = "copy email text";
+            copy.textContent = "copy";
           }, 1400);
         } catch {
           fallbackText.focus();
