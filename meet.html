@@ -332,20 +332,10 @@
     <h1 id="headline">When can you meet?</h1>
     <form id="pick-form">
       <div class="fields" id="fields">
-        <label>
-          your name
-          <input id="name" name="name" type="text" placeholder="name" autocomplete="name" required />
-        </label>
-
-        <label>
-          date
-          <input id="date" name="date" type="date" required />
-        </label>
-
-        <label>
-          time
-          <input id="time" name="time" type="time" required />
-        </label>
+        <input id="name" name="name" type="text" placeholder="name" autocomplete="name" aria-label="your name"
+          required />
+        <input id="date" name="date" type="date" aria-label="date" required />
+        <input id="time" name="time" type="time" aria-label="time" required />
 
         <div class="presets" aria-label="preset times">
           <button class="chip" type="button" data-time="09:30">09:30</button>
@@ -354,10 +344,7 @@
           <button class="chip" type="button" data-time="16:00">16:00</button>
         </div>
 
-        <label>
-          vibe
-          <input id="note" name="note" type="hidden" />
-        </label>
+        <input id="note" name="note" type="hidden" />
 
         <div class="emoji-grid" aria-label="pick a vibe">
           <button class="emoji" type="button" data-note="🍺 beer">🍺</button>
@@ -371,7 +358,8 @@
       </div>
 
       <div class="fallback" id="fallback" aria-live="polite">
-        <p>If nothing opened, copy this and send it to mborsare@gmail.com.</p>
+        <p>Your email client should have opened — hit send in there and you're done. If nothing opened, copy this and
+          send it to mborsare@gmail.com.</p>
         <textarea id="fallback-text" readonly></textarea>
         <div class="actions">
           <button class="copy" id="copy" type="button">copy</button>
