@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Meet me · PRIME</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    :root {
+      --bg: #000000;
+      --text: #c0c0c0;
+      --seal: #eaffea;
+      --dim: rgba(234, 255, 234, 0.45);
+      --line: rgba(234, 255, 234, 0.22);
+      --control-h: 4.5rem;
+      --control-radius: 0.85rem;
+    }
+
+    html {
+      font-size: 14px;
+    }
+
+    @font-face {
+      font-family: "ComicMono";
+      src: url("/fonts/ComicMono-Regular.woff") format("woff");
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    a {
+      color: var(--seal);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "ComicMono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      line-height: 1.5;
+      text-align: center;
+    }
+
+    main {
+      width: min(100%, 34rem);
+      padding: clamp(1.25rem, 5vw, 2.5rem);
+    }
+
+    .top {
+      display: grid;
+      justify-items: center;
+      gap: 0.35rem;
+      margin-bottom: 3rem;
+      color: var(--dim);
+      font-size: 0.85rem;
+    }
+
+    #clock {
+      opacity: 0.55;
+      filter: blur(0.2px);
+    }
+
+    h1 {
+      margin: 0 0 0.5rem;
+      color: var(--seal);
+      font-size: clamp(2rem, 9vw, 2.5rem);
+      font-weight: 400;
+    }
+
+    .sub {
+      margin: 0 0 2rem;
+      font-size: 1rem;
+    }
+
+    form {
+      display: grid;
+      gap: 1.25rem;
+    }
+
+    label {
+      display: grid;
+      gap: 0.55rem;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    input,
+    textarea,
+    button {
+      width: 100%;
+      height: var(--control-h);
+      min-height: var(--control-h);
+      border: 1px solid var(--line);
+      border-radius: var(--control-radius);
+      background: rgba(234, 255, 234, 0.035);
+      color: var(--seal);
+      font: inherit;
+      font-size: 1.15rem;
+      line-height: 1;
+      text-align: center;
+      padding: 0 1rem;
+      outline: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    input[type="date"],
+    input[type="time"] {
+      font-size: 1.15rem;
+      color-scheme: dark;
+      cursor: pointer;
+    }
+
+    input:focus,
+    textarea:focus {
+      border-color: var(--seal);
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: rgba(192, 192, 192, 0.45);
+    }
+
+    textarea {
+      height: 6rem;
+      min-height: 6rem;
+      line-height: 1.4;
+      padding-block: 1rem;
+      resize: vertical;
+    }
+
+    .presets {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem;
+      margin: 0.25rem 0 0.75rem;
+    }
+
+    .chip {
+      min-height: var(--control-h);
+      border: 1px solid var(--line);
+      padding: 0 1rem;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .chip:hover,
+    .chip.active {
+      color: var(--bg);
+      background: var(--seal);
+      border-color: var(--seal);
+    }
+
+    .send {
+      min-height: var(--control-h);
+      margin-top: 0.75rem;
+      border: 1px solid var(--seal);
+      color: var(--bg);
+      background: var(--seal);
+      cursor: pointer;
+      transition: transform 120ms ease, opacity 120ms ease;
+    }
+
+    .send:active {
+      transform: scale(0.98);
+    }
+
+    .foot {
+      margin-top: 2rem;
+      font-size: 0.8rem;
+      opacity: 0.8;
+    }
+
+    @media (max-width: 36rem) {
+      main {
+        padding-inline: 1rem;
+      }
+
+      h1 {
+        font-size: clamp(2.4rem, 12vw, 4.25rem);
+      }
+
+      input,
+      textarea,
+      button {
+        font-size: 1.1rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <div class="top">
+      <a href="/">mikeb.work</a>
+      <time id="clock"></time>
+    </div>
+
+    <h1>When can you meet?</h1>
+    <form id="pick-form">
+      <label>
+        date
+        <input id="date" name="date" type="date" required />
+      </label>
+
+      <label>
+        time
+        <input id="time" name="time" type="time" required />
+      </label>
+
+      <div class="presets" aria-label="preset times">
+        <button class="chip" type="button" data-time="09:30">09:30</button>
+        <button class="chip" type="button" data-time="12:00">12:00</button>
+        <button class="chip" type="button" data-time="14:30">14:30</button>
+        <button class="chip" type="button" data-time="16:00">16:00</button>
+      </div>
+
+      <label>
+        note
+        <textarea id="note" name="note" placeholder="optional"></textarea>
+      </label>
+
+      <button class="send" type="submit">send pick</button>
+    </form>
+
+    <p class="foot">mailto: mborsare@gmail.com</p>
+  </main>
+
+  <script>
+    (() => {
+      const clock = document.getElementById("clock");
+      let pulseT = 0;
+
+      function updateClock() {
+        const now = new Date();
+        const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+        clock.textContent =
+          `${days[now.getDay()]} ${months[now.getMonth()]} ${now.getDate()} ` +
+          `${String(now.getHours()).padStart(2, "0")}:` +
+          `${String(now.getMinutes()).padStart(2, "0")}:` +
+          `${String(now.getSeconds()).padStart(2, "0")}`;
+      }
+
+      function pulse() {
+        pulseT += 0.025;
+        clock.style.opacity = 0.35 + (Math.sin(pulseT) + 1) * 0.15;
+        requestAnimationFrame(pulse);
+      }
+
+      updateClock();
+      setInterval(updateClock, 250);
+      pulse();
+    })();
+
+    (() => {
+      const date = document.getElementById("date");
+      const time = document.getElementById("time");
+      const note = document.getElementById("note");
+      const form = document.getElementById("pick-form");
+      const chips = [...document.querySelectorAll(".chip")];
+
+      const today = new Date();
+      date.value = today.toISOString().slice(0, 10);
+
+      chips.forEach((chip) => {
+        chip.addEventListener("click", () => {
+          time.value = chip.dataset.time;
+          chips.forEach((item) => item.classList.remove("active"));
+          chip.classList.add("active");
+        });
+      });
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+
+        const selectedDate = date.value;
+        const selectedTime = time.value;
+        const selectedNote = note.value.trim();
+
+        const subject = `meeting time pick — ${selectedDate} ${selectedTime}`;
+        const body = [
+          "Meeting time pick:",
+          "",
+          `Date: ${selectedDate}`,
+          `Time: ${selectedTime}`,
+          selectedNote ? `Note: ${selectedNote}` : "",
+          "",
+          "— sent from PRIME"
+        ].filter(Boolean).join("\n");
+
+        const mailto =
+          "mailto:mborsare@gmail.com" +
+          `?subject=${encodeURIComponent(subject)}` +
+          `&body=${encodeURIComponent(body)}`;
+
+        window.location.href = mailto;
+      });
+    })();
+  </script>
+</body>
+
+</html>
