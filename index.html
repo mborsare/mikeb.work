@@ -251,44 +251,114 @@
       outline-offset: 2px;
     }
 
-    .live-now {
+    .prime-tv {
       display: none;
       position: fixed;
-      right: 0;
-      bottom: 0;
-      left: 0;
+      right: 1rem;
+      bottom: 1rem;
       z-index: 1001;
       box-sizing: border-box;
+      width: min(28rem, calc(100vw - 2rem));
+      overflow: hidden;
+      background: #050505;
+      color: #ffffff;
+      border: 3px solid #ffffff;
+      box-shadow: 0 0 0 4px #ff1616, 0 1rem 3rem rgba(255, 0, 0, 0.45);
+    }
+
+    .prime-tv.is-live,
+    .prime-tv.is-inline {
+      display: block;
+    }
+
+    .prime-tv-inline-slot {
+      box-sizing: border-box;
       width: 100%;
-      justify-content: center;
+      max-width: 46rem;
+      margin: 1rem auto 2rem;
+      padding: 0 1rem;
+    }
+
+    .prime-tv.is-inline {
+      position: static;
+      z-index: auto;
+      width: 100%;
+      max-width: 42rem;
+      margin: 0 auto;
+      border: 1px solid var(--seal);
+      box-shadow: none;
+    }
+
+    .prime-tv.is-inline .prime-tv__bar {
+      background: color-mix(in hsl, var(--bg), #ff1616 24%);
+      border-bottom: 1px solid var(--seal);
+      color: #ffffff;
+    }
+
+    .prime-tv.is-inline .prime-tv__close {
+      display: none;
+    }
+
+    .prime-tv__bar {
+      display: flex;
+      justify-content: space-between;
       align-items: center;
+      gap: 1rem;
       background: #ff1616;
       color: #ffffff;
-      border-top: 3px solid #ffffff;
-      padding: 0.9rem 1rem calc(0.9rem + env(safe-area-inset-bottom));
-      text-align: center;
-      text-decoration: none;
+      padding: 0.6rem 0.75rem;
       text-transform: uppercase;
-      letter-spacing: 0.18rem;
-      box-shadow: 0 -0.75rem 2rem rgba(255, 0, 0, 0.35);
+      letter-spacing: 0.14rem;
     }
 
-    .live-now.is-live {
-      display: flex;
-    }
-
-    .live-now:active {
+    .prime-tv__close {
+      appearance: none;
+      border: 1px solid #ffffff;
+      background: #ff1616;
       color: #ffffff;
-      filter: brightness(0.9);
+      font: inherit;
+      line-height: 1;
+      padding: 0.2rem 0.45rem;
+      cursor: pointer;
     }
 
-    .live-now:focus-visible {
-      outline: 3px solid #ffffff;
-      outline-offset: -6px;
+    .prime-tv__video {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #000000;
     }
 
-    body.has-live-banner {
-      padding-bottom: calc(3.4rem + env(safe-area-inset-bottom));
+    .prime-tv__status {
+      min-height: 1.2rem;
+      padding: 0.45rem 0.75rem 0.55rem;
+      color: #c0c0c0;
+      font-size: 0.75rem;
+      text-align: left;
+    }
+
+    body.has-prime-tv {
+      padding-bottom: calc(21rem + env(safe-area-inset-bottom));
+    }
+
+    @media (max-width: 40rem) {
+      .prime-tv:not(.is-inline) {
+        right: 0;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        border-right: 0;
+        border-bottom: 0;
+        border-left: 0;
+      }
+
+      .prime-tv-inline-slot {
+        padding: 0;
+      }
+
+      body.has-prime-tv {
+        padding-bottom: calc(72vw + 4rem + env(safe-area-inset-bottom));
+      }
     }
   </style>
 </head>
@@ -296,8 +366,14 @@
 <body>
   <div id="toast"></div>
   <div id="palette-disabled-overlay" aria-hidden="true"></div>
-  <a href="https://primecast.mborsare.workers.dev/" id="live-now" class="live-now" target="_blank"
-    rel="noopener">Primetv is on air!</a>
+  <section id="prime-tv" class="prime-tv" aria-label="PrimeTV broadcast" hidden>
+    <div class="prime-tv__bar">
+      <span id="prime-tv-label">LIVE NOW!</span>
+      <button id="prime-tv-close" class="prime-tv__close" type="button" aria-label="Hide PrimeTV">×</button>
+    </div>
+    <video id="prime-tv-video" class="prime-tv__video" controls muted playsinline preload="metadata"></video>
+    <div id="prime-tv-status" class="prime-tv__status">checking broadcast…</div>
+  </section>
   <div class="container">
     <h1 style="font-size:0.275rem;">Mike Borsare</h1>
     <div
@@ -307,6 +383,7 @@
       <a href="mailto:mb@mikeb.work" style="color: var(--seal);">💌 Email Mike</a>
 
     </div>
+    <div id="prime-tv-inline-slot" class="prime-tv-inline-slot" hidden></div>
     <div style="padding:1rem;">
       <h2>Workshop</h2>
       <nav>
@@ -571,74 +648,353 @@ your attention
     // Load doctrine items on page load
     loadDoctrineItems();
 
-    // ---- Prime broadcast live banner ----
-    // Browser fetches the HTTPS Worker only.
-    // Do not fetch primebook.duckdns.org or privateStreamHref here; HTTPS pages block HTTP mixed content.
+    // ---- Prime broadcast live player ----
+    // Browser asks the HTTPS Worker for status and plays the HTTPS HLS proxy.
+    // Do not put the raw primebook HTTP stream into the page.
     (() => {
-      const liveLink = document.getElementById('live-now');
-      const LIVE_STATUS_URL = 'https://primecast.mborsare.workers.dev/prime-live.json';
-      const LIVE_FALLBACK_HREF = 'https://primecast.mborsare.workers.dev/';
+      const tv = document.getElementById('prime-tv');
+      const video = document.getElementById('prime-tv-video');
+      const label = document.getElementById('prime-tv-label');
+      const statusLine = document.getElementById('prime-tv-status');
+      const closeBtn = document.getElementById('prime-tv-close');
+      const inlineSlot = document.getElementById('prime-tv-inline-slot');
+      const floatingParent = tv.parentNode;
+      const floatingNext = tv.nextSibling;
+      const WORKER_BASE = 'https://primecast.mborsare.workers.dev/';
+      const LIVE_STATUS_URLS = [
+        `${WORKER_BASE}prime-live.json`,
+        WORKER_BASE
+      ];
+      const HLS_JS_URL = 'https://cdn.jsdelivr.net/npm/hls.js@latest';
       const CHECK_INTERVAL_MS = 30000;
+      const REQUEST_TIMEOUT_MS = 4500;
+      const MAX_STATUS_AGE_MS = 120000;
+      const MISSES_BEFORE_HIDING_LIVE = 2;
 
-      if (!liveLink) return;
+      let state = 'unknown';
+      let misses = 0;
+      let timerId;
+      let hls;
+      let hlsLoaderPromise;
+      let currentStreamHref = '';
+      let dismissedStreamHref = '';
+      let lastStreamHref = '';
+      let playerStarted = false;
 
-      function validHttpsUrl(value) {
-        return typeof value === 'string' && value.startsWith('https://');
-      }
+      if (!tv || !video || !label || !statusLine) return;
 
-      function setLive(status) {
-        const href = validHttpsUrl(status?.href)
-          ? status.href
-          : LIVE_FALLBACK_HREF;
-
-        const label = status?.label || 'LIVE NOW!';
-        const channel = status?.channel ? ` ${status.channel}` : '';
-
-        liveLink.href = href;
-        liveLink.textContent = `${label}${channel}`;
-        liveLink.classList.add('is-live');
-        document.body.classList.add('has-live-banner');
-        liveLink.setAttribute('aria-label', `${label}${channel}`);
-      }
-
-      function setOffline() {
-        liveLink.classList.remove('is-live');
-        document.body.classList.remove('has-live-banner');
-        liveLink.setAttribute('aria-label', 'Primetv is off air');
-      }
-
-      async function checkLive() {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 4500);
+      function safeHttpsUrl(value) {
+        if (typeof value !== 'string' || value.trim() === '') return '';
 
         try {
-          const response = await fetch(LIVE_STATUS_URL, {
+          const url = new URL(value, window.location.href);
+          return url.protocol === 'https:' ? url.href : '';
+        } catch (_error) {
+          return '';
+        }
+      }
+
+      function statusIsFresh(status) {
+        if (!status?.checkedAt) return true;
+
+        const checkedAt = Date.parse(status.checkedAt);
+        if (Number.isNaN(checkedAt)) return false;
+
+        return Date.now() - checkedAt <= MAX_STATUS_AGE_MS;
+      }
+
+      function textPart(value) {
+        return typeof value === 'string' ? value.trim() : '';
+      }
+
+      function buildLiveText(status) {
+        const liveLabel = textPart(status?.label) || 'LIVE NOW!';
+        const channel = textPart(status?.channel);
+        const number = textPart(status?.number);
+        const suffix = [channel, number ? `CH ${number}` : ''].filter(Boolean).join(' · ');
+
+        return suffix ? `${liveLabel} ${suffix}` : liveLabel;
+      }
+
+      function getStreamHref(status) {
+        return safeHttpsUrl(status?.streamHref) || safeHttpsUrl(status?.privateStreamHref);
+      }
+
+      function setStatus(message) {
+        statusLine.textContent = message;
+      }
+
+      function mountFloating() {
+        if (tv.parentNode !== floatingParent) {
+          floatingParent.insertBefore(tv, floatingNext);
+        }
+      }
+
+      function mountInline() {
+        if (!inlineSlot) return;
+        inlineSlot.hidden = false;
+
+        if (tv.parentNode !== inlineSlot) {
+          inlineSlot.appendChild(tv);
+        }
+      }
+
+      function setPrimeTvLayout(layout) {
+        const isFloating = layout === 'floating';
+        const isInline = layout === 'inline';
+
+        tv.hidden = false;
+        tv.classList.toggle('is-live', isFloating);
+        tv.classList.toggle('is-inline', isInline);
+        tv.dataset.layout = layout;
+        document.body.classList.toggle('has-prime-tv', isFloating);
+
+        if (inlineSlot && !isInline) {
+          inlineSlot.hidden = true;
+        }
+
+        if (closeBtn) {
+          closeBtn.setAttribute(
+            'aria-label',
+            isFloating ? 'Dock PrimeTV inline' : 'PrimeTV is docked inline'
+          );
+        }
+      }
+
+      function clearPrimeTvLayout() {
+        tv.hidden = true;
+        tv.classList.remove('is-live', 'is-inline');
+        document.body.classList.remove('has-prime-tv');
+
+        if (inlineSlot) {
+          inlineSlot.hidden = true;
+        }
+      }
+
+      function loadHlsJs() {
+        if (window.Hls) return Promise.resolve(window.Hls);
+        if (hlsLoaderPromise) return hlsLoaderPromise;
+
+        hlsLoaderPromise = new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = HLS_JS_URL;
+          script.async = true;
+          script.onload = () => resolve(window.Hls);
+          script.onerror = () => reject(new Error('hls.js failed to load'));
+          document.head.appendChild(script);
+        });
+
+        return hlsLoaderPromise;
+      }
+
+      function stopPlayer() {
+        if (hls) {
+          hls.destroy();
+          hls = null;
+        }
+
+        video.pause();
+        video.removeAttribute('src');
+        video.load();
+        currentStreamHref = '';
+        playerStarted = false;
+      }
+
+      async function startPlayer(src) {
+        if (!src) {
+          setStatus('live status is missing HTTPS streamHref');
+          return;
+        }
+
+        if (currentStreamHref === src && playerStarted) return;
+
+        stopPlayer();
+        currentStreamHref = src;
+        playerStarted = true;
+        video.muted = true;
+        video.playsInline = true;
+        setStatus('connecting… audio starts muted');
+
+        if (video.canPlayType('application/vnd.apple.mpegurl')) {
+          video.src = src;
+          video.play().then(() => {
+            setStatus('on air');
+          }).catch(() => {
+            setStatus('tap play to start');
+          });
+          return;
+        }
+
+        try {
+          const Hls = await loadHlsJs();
+
+          if (!Hls?.isSupported()) {
+            video.src = src;
+            setStatus('browser does not support HLS playback');
+            return;
+          }
+
+          hls = new Hls({
+            backBufferLength: 30,
+            liveDurationInfinity: true,
+            lowLatencyMode: true
+          });
+
+          hls.loadSource(src);
+          hls.attachMedia(video);
+          hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            video.play().then(() => {
+              setStatus('on air');
+            }).catch(() => {
+              setStatus('tap play to start');
+            });
+          });
+          hls.on(Hls.Events.ERROR, (_event, data) => {
+            if (!data?.fatal) return;
+
+            if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+              setStatus('network hiccup — reconnecting');
+              hls.startLoad();
+              return;
+            }
+
+            if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+              setStatus('media hiccup — recovering');
+              hls.recoverMediaError();
+              return;
+            }
+
+            setStatus('stream stopped');
+            stopPlayer();
+          });
+        } catch (error) {
+          console.warn('PrimeTV player failed:', error);
+          setStatus('player failed to load');
+        }
+      }
+
+      function showLive(status) {
+        const streamHref = getStreamHref(status);
+        const shouldDockInline = streamHref && dismissedStreamHref === streamHref;
+
+        state = 'live';
+        misses = 0;
+        lastStreamHref = streamHref;
+        label.textContent = buildLiveText(status);
+        tv.dataset.state = 'live';
+
+        if (shouldDockInline) {
+          mountInline();
+          setPrimeTvLayout('inline');
+          startPlayer(streamHref);
+          return;
+        }
+
+        mountFloating();
+        setPrimeTvLayout('floating');
+        startPlayer(streamHref);
+      }
+
+      function hideLive(reason = 'offline') {
+        state = reason;
+        dismissedStreamHref = '';
+        lastStreamHref = '';
+        mountFloating();
+        clearPrimeTvLayout();
+        tv.dataset.state = reason;
+        setStatus(reason === 'error' ? 'status unavailable' : 'off air');
+        stopPlayer();
+      }
+
+      function shouldShowLive(status) {
+        return status?.live === true && statusIsFresh(status) && Boolean(getStreamHref(status));
+      }
+
+      async function fetchJson(url) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+        const cacheBustedUrl = new URL(url);
+
+        cacheBustedUrl.searchParams.set('_', String(Date.now()));
+
+        try {
+          const response = await fetch(cacheBustedUrl.href, {
             cache: 'no-store',
+            headers: {accept: 'application/json'},
             signal: controller.signal
           });
 
           if (!response.ok) {
-            setOffline();
-            return;
+            throw new Error(`status ${response.status}`);
           }
 
-          const status = await response.json();
-
-          if (status?.live === true && validHttpsUrl(status.href)) {
-            setLive(status);
-            return;
+          const text = await response.text();
+          if (!text.trim()) {
+            throw new Error('empty live status');
           }
 
-          setOffline();
-        } catch (_error) {
-          setOffline();
+          return JSON.parse(text);
         } finally {
-          clearTimeout(timeout);
+          clearTimeout(timeoutId);
         }
       }
 
+      async function readLiveStatus() {
+        let lastError;
+
+        for (const url of LIVE_STATUS_URLS) {
+          try {
+            return await fetchJson(url);
+          } catch (error) {
+            lastError = error;
+          }
+        }
+
+        throw lastError || new Error('live status unavailable');
+      }
+
+      function applyStatus(status) {
+        if (shouldShowLive(status)) {
+          showLive(status);
+          return;
+        }
+
+        dismissedStreamHref = '';
+        misses++;
+        if (state !== 'live' || misses >= MISSES_BEFORE_HIDING_LIVE) {
+          hideLive('offline');
+        }
+      }
+
+      async function checkLive() {
+        try {
+          const status = await readLiveStatus();
+          applyStatus(status);
+        } catch (error) {
+          misses++;
+          console.warn('PrimeTV live status unavailable:', error);
+
+          if (state !== 'live' || misses >= MISSES_BEFORE_HIDING_LIVE) {
+            hideLive('error');
+          }
+        }
+      }
+
+      if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+          dismissedStreamHref = currentStreamHref || lastStreamHref;
+          mountInline();
+          setPrimeTvLayout('inline');
+          setStatus('on air — docked inline');
+        });
+      }
+
       checkLive();
-      setInterval(checkLive, CHECK_INTERVAL_MS);
+      timerId = setInterval(checkLive, CHECK_INTERVAL_MS);
+      window.addEventListener('pagehide', () => {
+        clearInterval(timerId);
+        stopPlayer();
+      }, {once: true});
     })();
 
     // ---- Random palette generator (with wild mode) ----
