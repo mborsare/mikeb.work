@@ -252,6 +252,7 @@
     }
 
     .live-now {
+      display: none;
       position: fixed;
       right: 0;
       bottom: 0;
@@ -358,6 +359,7 @@
 ▝▘     ▀▀  ▀▀▝▘  █  
                 █▌  
                     </pre>
+        </button>
       </div>
       <label style="display:inline-block; margin-left:1rem; margin-bottom: 6rem; cursor:pointer;">
         <input type="checkbox" id="sound-mute" /> Mute sounds
@@ -570,9 +572,11 @@ your attention
     loadDoctrineItems();
 
     // ---- Prime broadcast live banner ----
+    // Browser fetches the HTTPS Worker only.
+    // Do not fetch primebook.duckdns.org or privateStreamHref here; HTTPS pages block HTTP mixed content.
     (() => {
       const liveLink = document.getElementById('live-now');
-      const LIVE_STATUS_URL = 'https://primecast.mborsare.workers.dev/';
+      const LIVE_STATUS_URL = 'https://primecast.mborsare.workers.dev/prime-live.json';
       const LIVE_FALLBACK_HREF = 'https://primecast.mborsare.workers.dev/';
       const CHECK_INTERVAL_MS = 30000;
 
@@ -892,10 +896,10 @@ your attention
 
     // ---- Nav sort + randomize ----
     (() => {
-      const nav = document.querySelector('nav')
-      const sortBtn = document.getElementById('sortNav')
-      const randomBtn = document.getElementById('randomNav')
-      let asc = true
+      const nav = document.querySelector('nav');
+      const sortBtn = document.getElementById('sortNav');
+      const randomBtn = document.getElementById('randomNav');
+      let asc = true;
 
       function getLinks() {
         return [...nav.querySelectorAll('a')].filter(
@@ -904,7 +908,7 @@ your attention
       }
 
       sortBtn.addEventListener('click', (e) => {
-        e.preventDefault()
+        e.preventDefault();
 
         const links = getLinks()
 
@@ -914,23 +918,24 @@ your attention
             : b.textContent.localeCompare(a.textContent)
         )
 
-        links.forEach(a => nav.appendChild(a))
-        asc = !asc
+        links.forEach(a => nav.appendChild(a));
+        asc = !asc;
       })
 
       randomBtn.addEventListener('click', (e) => {
-        e.preventDefault()
+        e.preventDefault();
 
         const links = getLinks()
 
         for (let i = links.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1))
-            ;[links[i], links[j]] = [links[j], links[i]]
+            ;[links[i], links[j]] = [links[j], links[i]];
         }
 
-        links.forEach(a => nav.appendChild(a))
-      })
-    })()  </script>
+        links.forEach(a => nav.appendChild(a));
+      });
+    })();
+  </script>
 </body>
 
 </html>
