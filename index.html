@@ -252,7 +252,6 @@
     }
 
     .live-now {
-      display: none;
       position: fixed;
       right: 0;
       bottom: 0;
@@ -296,7 +295,7 @@
 <body>
   <div id="toast"></div>
   <div id="palette-disabled-overlay" aria-hidden="true"></div>
-  <a href="http://primebook.duckdns.org/Prime/index.m3u8" id="live-now" class="live-now" target="_blank"
+  <a href="https://primecast.mborsare.workers.dev/" id="live-now" class="live-now" target="_blank"
     rel="noopener">Primetv is on air!</a>
   <div class="container">
     <h1 style="font-size:0.275rem;">Mike Borsare</h1>
@@ -570,99 +569,68 @@ your attention
     // Load doctrine items on page load
     loadDoctrineItems();
 
-    // ---- Prime broadcast live badge ----
+    // ---- Prime broadcast live banner ----
     (() => {
       const liveLink = document.getElementById('live-now');
-      if (!liveLink) return;
-
-      // Best path for a Cloudflare-hosted index: create this Worker route.
-      // It avoids HTTPS pages trying to directly fetch an HTTP DuckDNS stream.
-      const LIVE_STATUS_ENDPOINTS = [
-        'https://primecast.mborsare.workers.dev/prime-live.json',
-        'https://primecast.mborsare.workers.dev/'
-      ];
-
-      // Direct fallback. Works when DuckDNS is HTTPS, or when this page is not HTTPS.
-      const STREAM_ORIGINS = [
-        'https://primebook.duckdns.org',
-        'http://primebook.duckdns.org',
-        'http://primebook.duckdns.org:8090'
-      ];
-
-      const MANIFEST_PATH = '/channels.json';
-      const DEFAULT_CHANNEL_PATH = '/Prime/index.m3u8';
+      const LIVE_STATUS_URL = 'https://primecast.mborsare.workers.dev/';
+      const LIVE_FALLBACK_HREF = 'https://primecast.mborsare.workers.dev/';
       const CHECK_INTERVAL_MS = 30000;
 
-      function absoluteUrl(origin, path) {
-        return `${origin}${path.startsWith('/') ? path : `/${path}`}`;
+      if (!liveLink) return;
+
+      function validHttpsUrl(value) {
+        return typeof value === 'string' && value.startsWith('https://');
       }
 
-      function setLive(href) {
+      function setLive(status) {
+        const href = validHttpsUrl(status?.href)
+          ? status.href
+          : LIVE_FALLBACK_HREF;
+
+        const label = status?.label || 'LIVE NOW!';
+        const channel = status?.channel ? ` ${status.channel}` : '';
+
         liveLink.href = href;
+        liveLink.textContent = `${label}${channel}`;
         liveLink.classList.add('is-live');
         document.body.classList.add('has-live-banner');
-        liveLink.setAttribute('aria-label', 'Prime broadcast is live now');
+        liveLink.setAttribute('aria-label', `${label}${channel}`);
       }
 
       function setOffline() {
         liveLink.classList.remove('is-live');
         document.body.classList.remove('has-live-banner');
-        liveLink.setAttribute('aria-label', 'Prime broadcast is offline');
+        liveLink.setAttribute('aria-label', 'Primetv is off air');
       }
 
-      async function fetchJson(url) {
+      async function checkLive() {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 4500);
 
         try {
-          const response = await fetch(url, {
+          const response = await fetch(LIVE_STATUS_URL, {
             cache: 'no-store',
             signal: controller.signal
           });
 
-          if (!response.ok) return null;
-          return await response.json();
+          if (!response.ok) {
+            setOffline();
+            return;
+          }
+
+          const status = await response.json();
+
+          if (status?.live === true && validHttpsUrl(status.href)) {
+            setLive(status);
+            return;
+          }
+
+          setOffline();
         } catch (_error) {
-          return null;
+          setOffline();
         } finally {
           clearTimeout(timeout);
         }
-      }
-
-      async function checkStatusEndpoint(url) {
-        const status = await fetchJson(url);
-        if (!status || status.live !== true || !status.href) return null;
-        return status.href;
-      }
-
-      async function checkOrigin(origin) {
-        const channels = await fetchJson(absoluteUrl(origin, MANIFEST_PATH));
-        if (!channels) return null;
-
-        const firstChannel = Array.isArray(channels) ? channels[0] : null;
-        const channelPath = firstChannel?.path || DEFAULT_CHANNEL_PATH;
-
-        return absoluteUrl(origin, channelPath);
-      }
-
-      async function checkLive() {
-        for (const endpoint of LIVE_STATUS_ENDPOINTS) {
-          const href = await checkStatusEndpoint(endpoint);
-          if (href) {
-            setLive(href);
-            return;
-          }
-        }
-
-        for (const origin of STREAM_ORIGINS) {
-          const href = await checkOrigin(origin);
-          if (href) {
-            setLive(href);
-            return;
-          }
-        }
-
-        setOffline();
       }
 
       checkLive();
