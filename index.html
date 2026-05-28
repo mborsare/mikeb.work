@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8" />
-  <title>Mike Borsare</title>
+  <title>mikeb.work/</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
@@ -250,16 +250,58 @@
       outline: 1px solid var(--seal);
       outline-offset: 2px;
     }
+
+    .live-now {
+      display: none;
+      position: fixed;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 1001;
+      box-sizing: border-box;
+      width: 100%;
+      justify-content: center;
+      align-items: center;
+      background: #ff1616;
+      color: #ffffff;
+      border-top: 3px solid #ffffff;
+      padding: 0.9rem 1rem calc(0.9rem + env(safe-area-inset-bottom));
+      text-align: center;
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: 0.18rem;
+      box-shadow: 0 -0.75rem 2rem rgba(255, 0, 0, 0.35);
+    }
+
+    .live-now.is-live {
+      display: flex;
+    }
+
+    .live-now:active {
+      color: #ffffff;
+      filter: brightness(0.9);
+    }
+
+    .live-now:focus-visible {
+      outline: 3px solid #ffffff;
+      outline-offset: -6px;
+    }
+
+    body.has-live-banner {
+      padding-bottom: calc(3.4rem + env(safe-area-inset-bottom));
+    }
   </style>
 </head>
 
 <body>
   <div id="toast"></div>
   <div id="palette-disabled-overlay" aria-hidden="true"></div>
+  <a href="http://primebook.duckdns.org/Prime/index.m3u8" id="live-now" class="live-now" target="_blank"
+    rel="noopener">Primetv is on air!</a>
   <div class="container">
     <h1 style="font-size:0.275rem;">Mike Borsare</h1>
     <div
-      style="position: sticky; top: 0.5rem; background: var(--bg); display: flex; gap: 5rem; align-items: center; justify-content: center; z-index:999;">
+      style="position: sticky; top: 0.5rem; background: var(--bg); display: flex; flex-wrap: wrap; gap: 1rem 2rem; align-items: center; justify-content: center; z-index:999; padding: 0.5rem 0;">
       <span>Your score is:</span>
       <span id="palette-score">0</span>
       <a href="mailto:mb@mikeb.work" style="color: var(--seal);">💌 Email Mike</a>
@@ -345,7 +387,6 @@ your environment,
 your attention
 ---------------------------------------
 </pre>
-        </pre>
 
         <pre class="missive">
 14:05 Tu 17 FEB
@@ -359,7 +400,6 @@ your attention
 * Create chore list daily
 ---------------------------------------
 </pre>
-        </pre>
 
         <pre class="missive">
 23:43 Fr 13 FEB
@@ -529,6 +569,106 @@ your attention
 
     // Load doctrine items on page load
     loadDoctrineItems();
+
+    // ---- Prime broadcast live badge ----
+    (() => {
+      const liveLink = document.getElementById('live-now');
+      if (!liveLink) return;
+
+      // Best path for a Cloudflare-hosted index: create this Worker route.
+      // It avoids HTTPS pages trying to directly fetch an HTTP DuckDNS stream.
+      const LIVE_STATUS_ENDPOINTS = [
+        '/prime-live.json',
+        'https://primecast.mborsare.workers.dev/prime-live.json',
+        'https://primecast.mborsare.workers.dev/'
+      ];
+
+      // Direct fallback. Works when DuckDNS is HTTPS, or when this page is not HTTPS.
+      const STREAM_ORIGINS = [
+        'https://primebook.duckdns.org',
+        'http://primebook.duckdns.org',
+        'http://primebook.duckdns.org:8090'
+      ];
+
+      const MANIFEST_PATH = '/channels.json';
+      const DEFAULT_CHANNEL_PATH = '/Prime/index.m3u8';
+      const CHECK_INTERVAL_MS = 30000;
+
+      function absoluteUrl(origin, path) {
+        return `${origin}${path.startsWith('/') ? path : `/${path}`}`;
+      }
+
+      function setLive(href) {
+        liveLink.href = href;
+        liveLink.classList.add('is-live');
+        document.body.classList.add('has-live-banner');
+        liveLink.setAttribute('aria-label', 'Prime broadcast is live now');
+      }
+
+      function setOffline() {
+        liveLink.classList.remove('is-live');
+        document.body.classList.remove('has-live-banner');
+        liveLink.setAttribute('aria-label', 'Prime broadcast is offline');
+      }
+
+      async function fetchJson(url) {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 4500);
+
+        try {
+          const response = await fetch(url, {
+            cache: 'no-store',
+            signal: controller.signal
+          });
+
+          if (!response.ok) return null;
+          return await response.json();
+        } catch (_error) {
+          return null;
+        } finally {
+          clearTimeout(timeout);
+        }
+      }
+
+      async function checkStatusEndpoint(url) {
+        const status = await fetchJson(url);
+        if (!status || status.live !== true || !status.href) return null;
+        return status.href;
+      }
+
+      async function checkOrigin(origin) {
+        const channels = await fetchJson(absoluteUrl(origin, MANIFEST_PATH));
+        if (!channels) return null;
+
+        const firstChannel = Array.isArray(channels) ? channels[0] : null;
+        const channelPath = firstChannel?.path || DEFAULT_CHANNEL_PATH;
+
+        return absoluteUrl(origin, channelPath);
+      }
+
+      async function checkLive() {
+        for (const endpoint of LIVE_STATUS_ENDPOINTS) {
+          const href = await checkStatusEndpoint(endpoint);
+          if (href) {
+            setLive(href);
+            return;
+          }
+        }
+
+        for (const origin of STREAM_ORIGINS) {
+          const href = await checkOrigin(origin);
+          if (href) {
+            setLive(href);
+            return;
+          }
+        }
+
+        setOffline();
+      }
+
+      checkLive();
+      setInterval(checkLive, CHECK_INTERVAL_MS);
+    })();
 
     // ---- Random palette generator (with wild mode) ----
     function applyRandomPalette() {
