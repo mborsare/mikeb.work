@@ -1139,7 +1139,7 @@
 
       return items.map(item => ({
         title: item.title,
-        link: 'https://archive.ph/newest/' + encodeURIComponent(String(item.link || '').replace(/\?.*/, '')),
+        link: 'https://archive.ph/' + encodeURIComponent(String(item.link || '').replace(/\?.*/, '')),
         label: source.label,
       }))
     }
