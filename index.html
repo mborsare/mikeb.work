@@ -285,13 +285,12 @@
       width: 100%;
       max-width: 42rem;
       margin: 0 auto;
-      border: 1px solid var(--seal);
-      box-shadow: none;
+      border: 3px solid #ffffff;
+      box-shadow: 0 0 0 4px #ff1616, 0 1rem 3rem rgba(255, 0, 0, 0.45);
     }
 
     .prime-tv.is-inline .prime-tv__bar {
-      background: color-mix(in hsl, var(--bg), #ff1616 24%);
-      border-bottom: 1px solid var(--seal);
+      background: #ff1616;
       color: #ffffff;
     }
 
@@ -835,9 +834,11 @@ your attention
           }
 
           hls = new Hls({
-            backBufferLength: 30,
+            backBufferLength: 10,
             liveDurationInfinity: true,
-            lowLatencyMode: true
+            lowLatencyMode: true,
+            maxLiveSyncPlaybackRate: 1.5,
+            liveSyncDurationCount: 2,
           });
 
           hls.loadSource(src);
