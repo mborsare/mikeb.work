@@ -153,6 +153,70 @@
       cursor: default;
     }
 
+    .speed-control {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      color: var(--stamp);
+      font-size: 0.75rem;
+      letter-spacing: 0.05rem;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    .speed-control:hover {
+      color: var(--seal);
+    }
+
+    #speedSlider {
+      appearance: none;
+      -webkit-appearance: none;
+      width: clamp(5.5rem, 12vw, 9rem);
+      height: 1rem;
+      background: transparent;
+      cursor: pointer;
+      accent-color: var(--seal);
+    }
+
+    #speedSlider::-webkit-slider-runnable-track {
+      height: 1px;
+      background: var(--stamp);
+      opacity: 0.65;
+    }
+
+    #speedSlider::-webkit-slider-thumb {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 0.75rem;
+      height: 0.75rem;
+      margin-top: -0.35rem;
+      border: 1px solid var(--seal);
+      border-radius: 999px;
+      background: var(--bg);
+      box-shadow: 0 0 8px currentColor;
+    }
+
+    #speedSlider::-moz-range-track {
+      height: 1px;
+      background: var(--stamp);
+      opacity: 0.65;
+    }
+
+    #speedSlider::-moz-range-thumb {
+      width: 0.75rem;
+      height: 0.75rem;
+      border: 1px solid var(--seal);
+      border-radius: 999px;
+      background: var(--bg);
+      box-shadow: 0 0 8px currentColor;
+    }
+
+    #speedValue {
+      min-width: 4ch;
+      text-align: right;
+      opacity: 0.65;
+    }
+
     #colorSwatch {
       display: none;
       width: 2rem;
@@ -397,16 +461,21 @@
       color: var(--seal);
       text-shadow:
         0 0 4px currentColor,
-        0 0 16px currentColor,
-        0 0 40px currentColor,
-        0 0 80px currentColor;
-      animation: neon-hue 3s linear infinite;
+        0 0 14px currentColor;
       display: inline-block;
     }
 
     @keyframes neon-hue {
       to {
         filter: hue-rotate(360deg);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+      .marquee-row,
+      .header pre {
+        animation: none !important;
       }
     }
 
@@ -446,8 +515,23 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        flex-wrap: wrap;
         width: 100%;
-        gap: 2rem;
+        column-gap: 1rem;
+        row-gap: 0.45rem;
+      }
+
+      .speed-control {
+        flex-basis: 100%;
+        justify-content: center;
+        gap: 0.35rem;
+        font-size: 0.62rem;
+        letter-spacing: 0.035rem;
+        line-height: 1;
+      }
+
+      #speedSlider {
+        width: min(52vw, 10rem);
       }
 
       .control-button,
@@ -601,6 +685,11 @@
         </pre>
       <div class="header-controls">
         <button class="control-button" id="shakeButton" type="button">Randomize [z]</button>
+        <label class="speed-control">
+          speed
+          <input type="range" id="speedSlider" min="0" max="200" step="5" value="100" />
+          <span id="speedValue">100%</span>
+        </label>
         <label class="toggle-label">
           <input type="checkbox" id="hugeToggle" /> huge </label>
         <label class="toggle-label" style="position:relative;">
@@ -623,6 +712,38 @@
     // ── SCROLL STATE ──
     let allStates = []
     let currentItems = []
+    let speedMultiplier = 1
+
+    // ── SPEED CONTROL ──
+    const speedSlider = document.getElementById('speedSlider')
+    const speedValue = document.getElementById('speedValue')
+
+    function updateSpeedValue() {
+      if (!speedSlider || !speedValue) return
+      speedValue.textContent = `${speedSlider.value}%`
+    }
+
+    function applySpeed() {
+      if (!speedSlider) return
+      speedMultiplier = Number(speedSlider.value || 100) / 100
+      for (const s of allStates) {
+        if (typeof s.basePps === 'number') s.pps = s.basePps * speedMultiplier
+      }
+      if (allStates.length && speedMultiplier > 0) startRaf()
+    }
+
+    if (speedSlider) {
+      const savedSpeed = localStorage.getItem('paper:speed')
+      if (savedSpeed !== null) speedSlider.value = savedSpeed
+      updateSpeedValue()
+      applySpeed()
+
+      speedSlider.addEventListener('input', () => {
+        localStorage.setItem('paper:speed', speedSlider.value)
+        updateSpeedValue()
+        applySpeed()
+      })
+    }
 
     // ── HUGE MODE ──
     const hugeToggle = document.getElementById('hugeToggle')
@@ -729,7 +850,6 @@
       // ── CLOCK ──
       ; (() => {
         const clock = document.getElementById('clock')
-        let t = 0
         const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
@@ -743,15 +863,8 @@
             `${String(now.getMilliseconds()).padStart(3, '0')}`
         }
 
-        function pulse() {
-          t += 0.02
-          clock.style.opacity = 0.35 + (Math.sin(t) + 1) * 0.15
-          requestAnimationFrame(pulse)
-        }
-
         updateClock()
-        setInterval(updateClock, 50)
-        pulse()
+        setInterval(updateClock, 100)
       })()
 
     // ── FEEDS ──
@@ -911,6 +1024,7 @@
         down = true; moved = false; pointerId = e.pointerId
         s.dragging = false; s.dragStartX = e.clientX
         s.dragStartOffset = s.offset; s.dragDelta = 0
+        startRaf()
       })
 
       hitArea.addEventListener('pointermove', e => {
@@ -945,26 +1059,51 @@
       }, true)
     }
 
-    let rafStarted = false
+    let rafRunning = false
+    let rafLast = null
+    const FRAME_MS = 1000 / 30
+
+    function needsAnimation() {
+      return allStates.some(s => s.dragging || Math.abs(s.pps) > 0.001)
+    }
+
     function startRaf() {
-      if (rafStarted) return
-      rafStarted = true
-      let last = null
-      function frame(ts) {
-        if (last === null) last = ts
-        const dt = Math.min((ts - last) / 1000, 0.05)
-        last = ts
-        for (const s of allStates) {
-          if (!s.dragging) {
-            s.offset += s.pps * dt
-            s.offset = normalise(s.offset, s.halfWidth)
-          }
-          s.el.style.transform = `translateX(${s.offset}px)`
-        }
-        requestAnimationFrame(frame)
-      }
+      if (rafRunning || !allStates.length || document.hidden || !needsAnimation()) return
+      rafRunning = true
+      rafLast = null
       requestAnimationFrame(frame)
     }
+
+    function frame(ts) {
+      if (document.hidden || !needsAnimation()) {
+        rafRunning = false
+        rafLast = null
+        return
+      }
+
+      if (rafLast === null) rafLast = ts
+      if (ts - rafLast < FRAME_MS) {
+        requestAnimationFrame(frame)
+        return
+      }
+
+      const dt = Math.min((ts - rafLast) / 1000, 0.05)
+      rafLast = ts
+
+      for (const s of allStates) {
+        if (!s.dragging) {
+          s.offset += s.pps * dt
+          s.offset = normalise(s.offset, s.halfWidth)
+        }
+        s.el.style.transform = `translateX(${s.offset}px)`
+      }
+
+      requestAnimationFrame(frame)
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) startRaf()
+    })
 
     function shuffleItems(arr) {
       const out = [...arr]
@@ -982,9 +1121,11 @@
       el.appendChild(makeItems(items))
       el.appendChild(makeItems(items))
 
+      const basePps = cfg.dir === 'rtl' ? -cfg.speed : cfg.speed
       const s = {
         el, halfWidth: 1,
-        pps: cfg.dir === 'rtl' ? -cfg.speed : cfg.speed,
+        basePps,
+        pps: basePps * speedMultiplier,
         dir: cfg.dir, offset: 0,
         dragging: false, dragStartX: 0, dragStartOffset: 0, dragDelta: 0,
       }
