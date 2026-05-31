@@ -154,15 +154,15 @@
 
       <pre class="ascii">
 sdSS_SSSSSSbs   .S    S.     sSSs         .S_sSSs     .S_SSSs     .S_sSSs      sSSs   .S_sSSs    
-YSSS~S%SSSSSP  .SS    SS.   d%%SP        .SS~YS%%b   .SS~SSSSS   .SS~YS%%b    d%%SP  .SS~YS%%b   
-     S%S       S%S    S%S  d%S'          S%S   `S%b  S%S   SSSS  S%S   `S%b  d%S'    S%S   `S%b  
-     S%S       S%S    S%S  S%S           S%S    S%S  S%S    S%S  S%S    S%S  S%S     S%S    S%S  
-     S&S       S%S SSSS%S  S&S           S%S    d*S  S%S SSSS%S  S%S    d*S  S&S     S%S    d*S  
-     S&S       S&S  SSS&S  S&S_Ss        S&S   .S*S  S&S  SSS%S  S&S   .S*S  S&S_Ss  S&S   .S*S  
+YSSS~SSSSSSP  .SS    SS.   d%SP        .SS~YS%b   .SS~SSSSS   .SS~YS%b    d%SP  .SS~YS%b   
+     SS       SS    SS  dS'          SS   `Sb  SS   SSSS  SS   `Sb  dS'    SS   `Sb  
+     SS       SS    SS  SS           SS    SS  SS    SS  SS    SS  SS     SS    SS  
+     S&S       SS SSSSS  S&S           SS    d*S  SS SSSSS  SS    d*S  S&S     SS    d*S  
+     S&S       S&S  SSS&S  S&S_Ss        S&S   .S*S  S&S  SSSS  S&S   .S*S  S&S_Ss  S&S   .S*S  
      S&S       S&S    S&S  S&S~SP        S&S_sdSSS   S&S    S&S  S&S_sdSSS   S&S~SP  S&S_sdSSS   
-     S&S       S&S    S&S  S&S           S&S~YSSY    S&S    S&S  S&S~YSSY    S&S     S&S~YSY%b   
-     S*S       S*S    S*S  S*b           S*S         S*S    S&S  S*S         S*b     S*S   `S%b  
-     S*S       S*S    S*S  S*S.          S*S         S*S    S*S  S*S         S*S.    S*S    S%S  
+     S&S       S&S    S&S  S&S           S&S~YSSY    S&S    S&S  S&S~YSSY    S&S     S&S~YSYb   
+     S*S       S*S    S*S  S*b           S*S         S*S    S&S  S*S         S*b     S*S   `Sb  
+     S*S       S*S    S*S  S*S.          S*S         S*S    S*S  S*S         S*S.    S*S    SS  
      S*S       S*S    S*S   SSSbs        S*S         S*S    S*S  S*S          SSSbs  S*S    S&S  
      S*S       SSS    S*S    YSSP        S*S         SSS    S*S  S*S           YSSP  S*S    SSS  
      SP               SP                 SP                 SP   SP                  SP          
@@ -223,8 +223,8 @@ YSSS~S%SSSSSP  .SS    SS.   d%%SP        .SS~YS%%b   .SS~SSSSS   .SS~YS%%b    d%
 
     // FEED
     const SOURCES = [
-      { label: 'NEW YORK TIMES', rss: 'https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml' },
-      { label: 'WASHINGTON POST', rss: 'https://feeds.washingtonpost.com/rss/homepage' }
+      {label: 'NEW YORK TIMES', rss: 'https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml'},
+      {label: 'WASHINGTON POST', rss: 'https://feeds.washingtonpost.com/rss/homepage'}
     ]
 
     const RSS2JSON = 'https://api.rss2json.com/v1/api.json?rss_url='
@@ -243,7 +243,7 @@ YSSS~S%SSSSSP  .SS    SS.   d%%SP        .SS~YS%%b   .SS~SSSSS   .SS~YS%%b    d%
     }
 
     function setCache(key, data) {
-      localStorage.setItem(key, JSON.stringify({ time: Date.now(), data }))
+      localStorage.setItem(key, JSON.stringify({time: Date.now(), data}))
     }
 
     function fmt(dateStr) {
@@ -263,7 +263,7 @@ YSSS~S%SSSSSP  .SS    SS.   d%%SP        .SS~YS%%b   .SS~SSSSS   .SS~YS%%b    d%
 
       const article = document.createElement('a')
       article.className = 'article'
-      article.href = 'https://archive.ph/newest/' + encodeURIComponent(clean)
+      article.href = 'https://archive.ph/' + encodeURIComponent(clean)
       article.target = '_blank'
 
       const title = document.createElement('div')
