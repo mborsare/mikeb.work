@@ -267,35 +267,62 @@
     }
 
     .prime-tv.is-live,
-    .prime-tv.is-inline {
+    .prime-tv.is-alert {
       display: block;
     }
 
-    .prime-tv-inline-slot {
-      box-sizing: border-box;
+    .prime-tv.is-alert {
+      right: 0;
+      bottom: 0;
+      left: 0;
+      display: grid;
+      grid-template-columns: minmax(8rem, 26vh) minmax(0, 1fr);
+      grid-template-rows: minmax(0, 1fr) auto;
       width: 100%;
-      max-width: 46rem;
-      margin: 1rem auto 2rem;
-      padding: 0 1rem;
+      max-height: 15vh;
+      transform: none;
+      cursor: pointer;
+      border-right: 0;
+      border-bottom: 0;
+      border-left: 0;
+      border-width: 2px;
+      box-shadow: 0 0 0 3px #ff1616, 0 0.75rem 2rem rgba(255, 0, 0, 0.35);
     }
 
-    .prime-tv.is-inline {
-      position: static;
-      z-index: auto;
-      width: 100%;
-      max-width: 42rem;
-      margin: 0 auto;
-      border: 3px solid #ffffff;
-      box-shadow: 0 0 0 4px #ff1616, 0 1rem 3rem rgba(255, 0, 0, 0.45);
+    .prime-tv.is-alert .prime-tv__bar {
+      grid-column: 2;
+      grid-row: 1;
+      align-items: end;
+      min-height: 0;
+      padding: 0.55rem 0.75rem;
+      overflow: hidden;
+      font-size: clamp(0.85rem, 2.8vw, 1.35rem);
     }
 
-    .prime-tv.is-inline .prime-tv__bar {
-      background: #ff1616;
-      color: #ffffff;
-    }
-
-    .prime-tv.is-inline .prime-tv__close {
+    .prime-tv.is-alert .prime-tv__close {
       display: none;
+    }
+
+    .prime-tv.is-alert .prime-tv__video {
+      grid-column: 1;
+      grid-row: 1 / span 2;
+      height: 15vh;
+      max-height: 15vh;
+      aspect-ratio: 16 / 9;
+      object-fit: contain;
+    }
+
+    .prime-tv.is-alert .prime-tv__status {
+      grid-column: 2;
+      grid-row: 2;
+      min-height: 0;
+      padding-top: 0;
+      color: #c0c0c0;
+      font-size: 0.75rem;
+      text-align: left;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
     }
 
     .prime-tv__bar {
@@ -340,23 +367,28 @@
       padding-bottom: calc(21rem + env(safe-area-inset-bottom));
     }
 
+    body.has-prime-tv-alert {
+      padding-bottom: calc(15vh + env(safe-area-inset-bottom));
+    }
+
     @media (max-width: 40rem) {
-      .prime-tv:not(.is-inline) {
+      .prime-tv {
         right: 0;
         bottom: 0;
         left: 0;
         width: 100%;
+        transform: none;
         border-right: 0;
         border-bottom: 0;
         border-left: 0;
       }
 
-      .prime-tv-inline-slot {
-        padding: 0;
-      }
-
       body.has-prime-tv {
         padding-bottom: calc(72vw + 4rem + env(safe-area-inset-bottom));
+      }
+
+      body.has-prime-tv-alert {
+        padding-bottom: calc(15vh + env(safe-area-inset-bottom));
       }
     }
   </style>
@@ -382,7 +414,6 @@
       <a href="mailto:mb@mikeb.work" style="color: var(--seal);">💌 Email Mike</a>
 
     </div>
-    <div id="prime-tv-inline-slot" class="prime-tv-inline-slot" hidden></div>
     <div style="padding:1rem;">
       <h2>Workshop</h2>
       <nav>
@@ -424,6 +455,7 @@
         font-family:'ComicMono', monospace;
         cursor: pointer;
       ">
+          <!-- prettier-ignore -->
           <pre class="ascii" style="line-height: .7; padding: 0 8vw; font-size: .35rem;">
 
 ▗▄▄▖ ▗▄▖            
@@ -443,6 +475,7 @@
       <h2>Announcements</h2>
       <div class="missives">
 
+        <!-- prettier-ignore -->
         <pre class="missive">
 11:02 Fr 10 APR
 >> Morning activation
@@ -454,6 +487,7 @@ Work slowly with restraint
 </pre>
 
 
+        <!-- prettier-ignore -->
         <pre class="missive">
 14:05 Tu 17 FEB
 >> Discipline with prime
@@ -465,6 +499,7 @@ your attention
 ---------------------------------------
 </pre>
 
+        <!-- prettier-ignore -->
         <pre class="missive">
 14:05 Tu 17 FEB
 >> Daily schedule 
@@ -478,18 +513,21 @@ your attention
 ---------------------------------------
 </pre>
 
+        <!-- prettier-ignore -->
         <pre class="missive">
 23:43 Fr 13 FEB
 >> Enter at exhaustion then ride energy
 ---------------------------------------
 </pre>
 
+        <!-- prettier-ignore -->
         <pre class="missive">
 21:12 Fr 13 FEB
 >> Good work this week
 ---------------------------------------
 </pre>
 
+        <!-- prettier-ignore -->
         <pre class="missive">
 16:39 Fr 13 FEB
 >> Always iterate
@@ -511,6 +549,7 @@ your attention
     <a href="//www.washingtonpost.com/newsletters/the-7/" style="color: var(--stamp); display: block;">News from The
       Washington Post</a>
 
+    <!-- prettier-ignore -->
     <pre class="ascii" style="font-size:0.4rem; margin-top: 9rem;">
       ██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████ 
       ▓██░  ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█   ▀ 
@@ -648,23 +687,22 @@ your attention
     loadDoctrineItems();
 
     // ---- Prime broadcast live player ----
-    // Browser asks the HTTPS Worker for status and plays the HTTPS HLS proxy.
-    // Do not put the raw primebook HTTP stream into the page.
+    // Browser asks the Worker for status only. Video plays directly from Caddy.
     (() => {
       const tv = document.getElementById('prime-tv');
       const video = document.getElementById('prime-tv-video');
       const label = document.getElementById('prime-tv-label');
       const statusLine = document.getElementById('prime-tv-status');
       const closeBtn = document.getElementById('prime-tv-close');
-      const inlineSlot = document.getElementById('prime-tv-inline-slot');
       const floatingParent = tv.parentNode;
       const floatingNext = tv.nextSibling;
       const WORKER_BASE = 'https://primecast.mborsare.workers.dev/';
+      const STREAM_ORIGIN = 'https://primebook.duckdns.org';
+      const DEFAULT_STREAM_HREF = `${STREAM_ORIGIN}/Prime/index.m3u8`;
       const LIVE_STATUS_URLS = [
-        `${WORKER_BASE}prime-live.json`,
-        WORKER_BASE
+        `${WORKER_BASE}prime-live.json`
       ];
-      const HLS_JS_URL = 'https://cdn.jsdelivr.net/npm/hls.js@latest';
+      const HLS_JS_URL = 'https://cdn.jsdelivr.net/npm/hls.js@1.5.20/dist/hls.min.js';
       const CHECK_INTERVAL_MS = 30000;
       const REQUEST_TIMEOUT_MS = 4500;
       const MAX_STATUS_AGE_MS = 120000;
@@ -693,6 +731,22 @@ your attention
         }
       }
 
+      function directStreamUrl(value) {
+        const href = safeHttpsUrl(value);
+        if (!href) return '';
+
+        try {
+          const url = new URL(href);
+
+          if (url.origin !== STREAM_ORIGIN) return '';
+          if (!url.pathname.endsWith('.m3u8') && !url.pathname.endsWith('.m3u')) return '';
+
+          return url.href;
+        } catch (_error) {
+          return '';
+        }
+      }
+
       function statusIsFresh(status) {
         if (!status?.checkedAt) return true;
 
@@ -716,7 +770,11 @@ your attention
       }
 
       function getStreamHref(status) {
-        return safeHttpsUrl(status?.streamHref) || safeHttpsUrl(status?.privateStreamHref);
+        return (
+          directStreamUrl(status?.streamHref) ||
+          directStreamUrl(status?.privateStreamHref) ||
+          DEFAULT_STREAM_HREF
+        );
       }
 
       function setStatus(message) {
@@ -729,45 +787,31 @@ your attention
         }
       }
 
-      function mountInline() {
-        if (!inlineSlot) return;
-        inlineSlot.hidden = false;
-
-        if (tv.parentNode !== inlineSlot) {
-          inlineSlot.appendChild(tv);
-        }
-      }
-
       function setPrimeTvLayout(layout) {
         const isFloating = layout === 'floating';
-        const isInline = layout === 'inline';
+        const isAlert = layout === 'alert';
 
         tv.hidden = false;
         tv.classList.toggle('is-live', isFloating);
-        tv.classList.toggle('is-inline', isInline);
+        tv.classList.toggle('is-alert', isAlert);
         tv.dataset.layout = layout;
         document.body.classList.toggle('has-prime-tv', isFloating);
-
-        if (inlineSlot && !isInline) {
-          inlineSlot.hidden = true;
-        }
+        document.body.classList.toggle('has-prime-tv-alert', isAlert);
+        label.textContent = isAlert ? 'PICTURE IN PICTURE' : tv.dataset.liveLabel || label.textContent;
 
         if (closeBtn) {
           closeBtn.setAttribute(
             'aria-label',
-            isFloating ? 'Dock PrimeTV inline' : 'PrimeTV is docked inline'
+            isFloating ? 'Minimize PrimeTV' : 'PrimeTV is minimized'
           );
         }
       }
 
       function clearPrimeTvLayout() {
         tv.hidden = true;
-        tv.classList.remove('is-live', 'is-inline');
+        tv.classList.remove('is-live', 'is-alert');
         document.body.classList.remove('has-prime-tv');
-
-        if (inlineSlot) {
-          inlineSlot.hidden = true;
-        }
+        document.body.classList.remove('has-prime-tv-alert');
       }
 
       function loadHlsJs() {
@@ -801,7 +845,7 @@ your attention
 
       async function startPlayer(src) {
         if (!src) {
-          setStatus('live status is missing HTTPS streamHref');
+          setStatus('live status is missing direct streamHref');
           return;
         }
 
@@ -834,11 +878,16 @@ your attention
           }
 
           hls = new Hls({
-            backBufferLength: 10,
+            backBufferLength: 0,
+            capLevelToPlayerSize: true,
+            enableWorker: true,
             liveDurationInfinity: true,
-            lowLatencyMode: true,
+            liveMaxLatencyDurationCount: 3,
+            liveSyncDurationCount: 1,
+            lowLatencyMode: false,
+            maxBufferHole: 1,
+            maxBufferLength: 6,
             maxLiveSyncPlaybackRate: 1.5,
-            liveSyncDurationCount: 2,
           });
 
           hls.loadSource(src);
@@ -851,6 +900,12 @@ your attention
             });
           });
           hls.on(Hls.Events.ERROR, (_event, data) => {
+            if (data?.details === Hls.ErrorDetails.BUFFER_STALLED_ERROR) {
+              setStatus('buffering');
+              hls.startLoad();
+              return;
+            }
+
             if (!data?.fatal) return;
 
             if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
@@ -876,17 +931,18 @@ your attention
 
       function showLive(status) {
         const streamHref = getStreamHref(status);
-        const shouldDockInline = streamHref && dismissedStreamHref === streamHref;
+        const shouldShowAlert = streamHref && dismissedStreamHref === streamHref;
 
         state = 'live';
         misses = 0;
         lastStreamHref = streamHref;
-        label.textContent = buildLiveText(status);
+        tv.dataset.liveLabel = buildLiveText(status);
+        label.textContent = tv.dataset.liveLabel;
         tv.dataset.state = 'live';
 
-        if (shouldDockInline) {
-          mountInline();
-          setPrimeTvLayout('inline');
+        if (shouldShowAlert) {
+          mountFloating();
+          setPrimeTvLayout('alert');
           startPlayer(streamHref);
           return;
         }
@@ -984,11 +1040,19 @@ your attention
       if (closeBtn) {
         closeBtn.addEventListener('click', () => {
           dismissedStreamHref = currentStreamHref || lastStreamHref;
-          mountInline();
-          setPrimeTvLayout('inline');
-          setStatus('on air — docked inline');
+          mountFloating();
+          setPrimeTvLayout('alert');
         });
       }
+
+      tv.addEventListener('click', event => {
+        if (event.target === closeBtn || tv.dataset.layout !== 'alert') return;
+
+        dismissedStreamHref = '';
+        mountFloating();
+        setPrimeTvLayout('floating');
+        setStatus('on air');
+      });
 
       checkLive();
       timerId = setInterval(checkLive, CHECK_INTERVAL_MS);
@@ -1226,6 +1290,12 @@ your attention
     (() => {
       const clock = document.getElementById('clock');
       let t = 0;
+      let clockTimerId;
+
+      function primeTvIsPlaying() {
+        const video = document.getElementById('prime-tv-video');
+        return Boolean(video && !video.paused && !video.ended && video.readyState >= 3);
+      }
 
       function updateClock() {
         const now = new Date();
@@ -1238,16 +1308,24 @@ your attention
           `${String(now.getMinutes()).padStart(2, '0')}:` +
           `${String(now.getSeconds()).padStart(2, '0')}:` +
           `${String(now.getMilliseconds()).padStart(3, '0')}`;
+
+        clearTimeout(clockTimerId);
+        clockTimerId = setTimeout(updateClock, primeTvIsPlaying() ? 1000 : 50);
       }
 
       function pulse() {
+        if (primeTvIsPlaying()) {
+          clock.style.opacity = 0.45;
+          setTimeout(() => requestAnimationFrame(pulse), 1000);
+          return;
+        }
+
         t += 0.02;
         clock.style.opacity = 0.35 + (Math.sin(t) + 1) * 0.15;
         requestAnimationFrame(pulse);
       }
 
       updateClock();
-      setInterval(updateClock, 50);
       pulse();
     })();
 

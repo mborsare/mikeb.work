@@ -95,7 +95,8 @@
       transition: background 0.8s ease;
     }
 
-    video {
+    video,
+    #img {
       width: 100vw;
       max-width: 100vw;
       max-height: 90vh;
@@ -105,6 +106,10 @@
       object-fit: contain;
       cursor: pointer;
       transition: box-shadow 0.8s ease;
+    }
+
+    #img {
+      display: none;
     }
 
     #wave {
@@ -209,6 +214,7 @@
 </head>
 
 <body>
+  <!-- prettier-ignore -->
   <pre id="led">
       ██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████
       ▓██░  ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█   ▀
@@ -235,6 +241,7 @@
 
   <div id="player-unit">
     <video id="vid" playsinline controls crossorigin="anonymous"></video>
+    <img id="img" alt="" />
     <div id="pip-tap"></div>
     <canvas id="wave"></canvas>
   </div>
@@ -243,8 +250,11 @@
     let playlist = [], order = [], pos = -1, isShuffled = false;
     let aCtx, analyser, data;
     let frameCount = 0;
+    let currentUrl = '';
+    let activeType = '';
 
     const vid = document.getElementById('vid');
+    const img = document.getElementById('img');
     const wave = document.getElementById('wave');
     const wCtx = wave.getContext('2d', {alpha: true});
     const unit = document.getElementById('player-unit');
@@ -256,22 +266,35 @@
     sampler.width = sampler.height = 1;
     const sCtx = sampler.getContext('2d', {willReadFrequently: true});
 
+    const VIDEO_RE = /\.(mp4|webm|mkv|mov|avi|m4v)$/i;
+    const IMAGE_RE = /\.(jpe?g|png|gif|webp|avif|bmp|svg|ico)$/i;
+
+    function applyMediaPalette(source) {
+      if (document.body.classList.contains('lights')) return;
+
+      try {
+        sCtx.drawImage(source, 0, 0, 1, 1);
+        const [r, g, b] = sCtx.getImageData(0, 0, 1, 1).data;
+
+        const bg = `rgb(${Math.round(r * 0.2)}, ${Math.round(g * 0.2)}, ${Math.round(b * 0.2)})`;
+        const fg = `rgb(${r}, ${g}, ${b})`;
+        const glow = `0 0 120px 30px rgba(${r}, ${g}, ${b}, 0.4)`;
+        const textGlow = `0 0 8px ${fg}, 0 0 15px ${fg}66`;
+
+        root.style.setProperty('--bg', bg);
+        root.style.setProperty('--text', fg);
+        root.style.setProperty('--glow', glow);
+        led.style.color = fg;
+        led.style.textShadow = textGlow;
+        wCtx.strokeStyle = fg;
+      } catch (e) {
+        resetPalette();
+      }
+    }
+
     function applyFramePalette() {
-      if (vid.paused || vid.ended || document.body.classList.contains('lights')) return;
-      sCtx.drawImage(vid, 0, 0, 1, 1);
-      const [r, g, b] = sCtx.getImageData(0, 0, 1, 1).data;
-
-      const bg = `rgb(${Math.round(r * 0.2)}, ${Math.round(g * 0.2)}, ${Math.round(b * 0.2)})`;
-      const fg = `rgb(${r}, ${g}, ${b})`;
-      const glow = `0 0 120px 30px rgba(${r}, ${g}, ${b}, 0.4)`;
-      const textGlow = `0 0 8px ${fg}, 0 0 15px ${fg}66`;
-
-      root.style.setProperty('--bg', bg);
-      root.style.setProperty('--text', fg);
-      root.style.setProperty('--glow', glow);
-      led.style.color = fg;
-      led.style.textShadow = textGlow;
-      wCtx.strokeStyle = fg;
+      if (activeType !== 'video' || vid.paused || vid.ended) return;
+      applyMediaPalette(vid);
     }
 
     function resetPalette() {
@@ -285,19 +308,33 @@
 
     document.getElementById('lights-chk').onchange = function () {
       document.body.classList.toggle('lights', this.checked);
-      if (!this.checked && !vid.paused) applyFramePalette();
+      if (!this.checked && activeType === 'video' && !vid.paused) applyFramePalette();
+      else if (!this.checked && activeType === 'image' && img.complete) applyMediaPalette(img);
       else resetPalette();
     };
+
+    async function collectFiles(dir, prefix = '') {
+      const files = [];
+
+      for await (const entry of dir.values()) {
+        if (entry.kind === 'directory') {
+          files.push(...await collectFiles(entry, `${prefix}${entry.name}/`));
+        } else if (VIDEO_RE.test(entry.name) || IMAGE_RE.test(entry.name)) {
+          files.push({
+            name: `${prefix}${entry.name}`.toLowerCase(),
+            type: VIDEO_RE.test(entry.name) ? 'video' : 'image',
+            file: await entry.getFile()
+          });
+        }
+      }
+
+      return files;
+    }
 
     document.getElementById('pick-btn').onclick = async () => {
       try {
         const dir = await window.showDirectoryPicker();
-        playlist = [];
-        for await (const entry of dir.values()) {
-          if (entry.kind === 'file' && /\.(mp4|webm|mkv|mov|avi)$/i.test(entry.name)) {
-            playlist.push({name: entry.name.toLowerCase(), file: await entry.getFile()});
-          }
-        }
+        playlist = await collectFiles(dir);
         playlist.sort((a, b) => a.name.localeCompare(b.name, undefined, {numeric: true}));
         order = playlist.map((_, i) => i);
         render();
@@ -317,18 +354,40 @@
       pos = (p + order.length) % order.length;
       const index = order[pos];
       const activeEl = document.getElementById(`i${index}`);
+      const item = playlist[index];
 
       unit.style.display = 'flex';
       activeEl.after(unit);
 
-      setTimeout(() => vid.scrollIntoView({behavior: 'smooth', block: 'center'}), 50);
+      setTimeout(() => (item.type === 'video' ? vid : img).scrollIntoView({behavior: 'smooth', block: 'center'}), 50);
       document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
       activeEl.classList.add('active');
 
-      if (vid.src) URL.revokeObjectURL(vid.src);
-      vid.src = URL.createObjectURL(playlist[index].file);
-      vid.play();
-      if (!aCtx) initAudio();
+      if (currentUrl) URL.revokeObjectURL(currentUrl);
+      currentUrl = URL.createObjectURL(item.file);
+      activeType = item.type;
+      exitPip();
+
+      if (item.type === 'video') {
+        img.style.display = 'none';
+        img.removeAttribute('src');
+        vid.style.display = 'block';
+        wave.style.display = 'block';
+        vid.src = currentUrl;
+        vid.play();
+        if (!aCtx) initAudio();
+      } else {
+        vid.pause();
+        vid.removeAttribute('src');
+        vid.load();
+        vid.style.display = 'none';
+        wave.style.display = 'none';
+        wCtx.clearRect(0, 0, wave.width, wave.height);
+        img.style.display = 'block';
+        img.src = currentUrl;
+        led.classList.add('on');
+        document.body.classList.add('cinema-mode');
+      }
     }
 
     function initAudio() {
@@ -374,27 +433,33 @@
     function exitPip() {vid.classList.remove('pip'); pipTap.style.display = 'none';}
     pipTap.onclick = () => {exitPip(); vid.scrollIntoView({behavior: 'smooth', block: 'center'});};
     vid.onclick = () => {if (!vid.classList.contains('pip')) vid.scrollIntoView({behavior: 'smooth', block: 'center'});};
+    img.onclick = () => img.scrollIntoView({behavior: 'smooth', block: 'center'});
 
     const pipObserver = new IntersectionObserver((entries) => {
-      if (!entries[0].isIntersecting && !vid.paused && !vid.ended) enterPip();
+      if (activeType === 'video' && !entries[0].isIntersecting && !vid.paused && !vid.ended) enterPip();
       else exitPip();
     }, {threshold: 0.1});
     pipObserver.observe(unit);
 
     vid.onplay = () => {
+      if (activeType !== 'video') return;
       led.classList.add('on');
       document.body.classList.add('cinema-mode');
     };
     vid.onpause = () => {
+      if (activeType !== 'video') return;
       led.classList.remove('on');
       document.body.classList.remove('cinema-mode');
       exitPip();
       resetPalette();
     };
     vid.onended = () => {
+      if (activeType !== 'video') return;
       document.body.classList.remove('cinema-mode');
       play(pos + 1);
     };
+
+    img.onload = () => applyMediaPalette(img);
 
     document.getElementById('shuf-chk').onchange = function () {
       isShuffled = this.checked;
@@ -406,7 +471,7 @@
     window.onkeydown = (e) => {
       if (e.key === 'ArrowDown') {e.preventDefault(); play(pos + 1);}
       if (e.key === 'ArrowUp') {e.preventDefault(); play(pos - 1);}
-      if (e.key === ' ') {e.preventDefault(); vid.paused ? vid.play() : vid.pause();}
+      if (e.key === ' ' && activeType === 'video') {e.preventDefault(); vid.paused ? vid.play() : vid.pause();}
     };
 
     function resizer() {

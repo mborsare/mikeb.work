@@ -277,7 +277,7 @@
 
     .pay-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 1rem;
       max-width: 52rem;
       margin: 0 auto;
@@ -318,6 +318,7 @@
     }
 
     .pay-card--check {
+      grid-column: 1 / -1;
       background: color-mix(in hsl, var(--bg), var(--text) 6%);
       border: 2px dashed color-mix(in hsl, var(--text), transparent 60%);
       cursor: default;
@@ -457,6 +458,10 @@
       .pay-grid {
         grid-template-columns: 1fr;
         gap: 1rem;
+      }
+
+      .pay-card--check {
+        grid-column: auto;
       }
 
       .detail-value {
@@ -604,13 +609,16 @@
           <div class="pay-check-body">
             Pay to: <strong>Mike Borsare</strong>
             <ul>
-              <li>Put on the mail table by the front door</li>
-              <li>Deliver by 10:15:00am sharp on the 1st</li>
-              <li>Place in exact center of table, equidistant from all edges</li>
-              <li>Fold along no more than one crease, two creases will be returned</li>
-              <li>Include <code>6 Glenvale #2</code> in the Memo</li>
-              <li>Checks must be dry, wet checks will be returned.</li>
-              <li>Due by the 1st. Late after the 5th.</li>
+              <li>Place on the mail table by the front door, </li>
+              <li>deliver between 08:14:55am and 10:15:05am, </li>
+              <li>orient check, precisely</li>
+              <li>center of table, equidistant from all edges, use a ruler if necessary,</li>
+              <li>fold along no more than one crease, two creases will be returned, three will be composted,</li>
+              <li>pen must be blue or black, gel preferred, crayon unacceptable,</li>
+              <li>check must be dry, wet checks will be returned,</li>
+              <li>include <code>6 Glenvale #2</code> in the memo, write with a slant to distinguish it from the total
+              </li>
+              <li>due by the 1st, late after the 5th.</li>
             </ul>
           </div>
         </div>
