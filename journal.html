@@ -39,7 +39,7 @@
       --seal: #eaffea;
       --accent-dark: #1a2a22;
       --accent-mid: #2e4a3a;
-      --line-color: rgba(255, 255, 255, 0.1);
+      --line-color: rgba(210, 210, 210, 0.22);
       --border-color: rgba(255, 255, 255, 0.2);
     }
 
@@ -141,12 +141,12 @@
     .handwriting-paper {
       width: 100%;
       min-height: 22rem;
-      background: repeating-linear-gradient(to bottom,
-          transparent 0,
-          transparent 1.2rem,
-          var(--line-color) 1.2rem,
-          var(--line-color) 1.25rem,
-          transparent 1.25rem);
+      background-image: linear-gradient(to bottom,
+          transparent calc(100% - 1px),
+          var(--line-color) calc(100% - 1px));
+      background-position: top left;
+      background-repeat: repeat-y;
+      background-size: 100% 1.25rem;
     }
 
     .games-section {
@@ -434,12 +434,12 @@
 
       .handwriting-paper {
         min-height: 4.25in;
-        background: repeating-linear-gradient(to bottom,
-            transparent 0,
-            transparent 0.27in,
-            #d0d0d0 0.27in,
-            #d0d0d0 0.28in,
-            transparent 0.28in);
+        background-image: linear-gradient(to bottom,
+            transparent calc(100% - 1px),
+            #d8d8d8 calc(100% - 1px));
+        background-position: top left;
+        background-repeat: repeat-y;
+        background-size: 100% 0.28in;
       }
 
       /* Bottom section print layout */
