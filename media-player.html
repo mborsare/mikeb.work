@@ -76,6 +76,7 @@
     }
 
     video,
+    audio,
     #img {
       display: block;
       width: auto;
@@ -90,6 +91,14 @@
 
     #img {
       display: none;
+    }
+
+    audio {
+      display: none;
+      width: min(calc(100vw - 2rem), 42rem);
+      max-width: 100vw;
+      height: 3rem;
+      background: transparent;
     }
 
     #media-meta {
@@ -160,6 +169,7 @@
     nav {
       padding: 2rem 0;
       display: flex;
+      flex-wrap: wrap;
       gap: 1.5rem;
       justify-content: center;
     }
@@ -283,6 +293,7 @@
         <label><input type="radio" name="filter" value="all" checked /> all</label>
         <label><input type="radio" name="filter" value="video" /> video</label>
         <label><input type="radio" name="filter" value="image" /> photo</label>
+        <label><input type="radio" name="filter" value="audio" /> audio</label>
       </span>
     </nav>
     <button id="empty-state">load a directory</button>
@@ -298,6 +309,7 @@
     <button class="close-edge bottom" type="button" aria-label="Close media">close</button>
     <button class="close-edge left" type="button" aria-label="Close media">close</button>
     <video id="vid" playsinline controls crossorigin="anonymous"></video>
+    <audio id="aud" controls preload="metadata"></audio>
     <img id="img" alt="" decoding="async" />
   </div>
 
@@ -318,6 +330,7 @@
     let autoStarted = false;
 
     const vid = document.getElementById('vid');
+    const aud = document.getElementById('aud');
     const img = document.getElementById('img');
     const unit = document.getElementById('player-unit');
     const fileList = document.getElementById('file-list');
@@ -338,6 +351,7 @@
     const sCtx = sampler.getContext('2d', {willReadFrequently: true});
     const VIDEO_RE = /\.(mp4|webm|mkv|mov|avi|m4v)$/i;
     const IMAGE_RE = /\.(jpe?g|png|gif|webp|avif|bmp|svg|ico)$/i;
+    const AUDIO_RE = /\.(mp3|m4a|aac|wav|flac|ogg|oga|opus|weba|aif|aiff)$/i;
 
     function nextPaint() {
       return new Promise(resolve => requestAnimationFrame(resolve));
@@ -457,6 +471,7 @@
     function mediaType(name) {
       if (VIDEO_RE.test(name)) return 'video';
       if (IMAGE_RE.test(name)) return 'image';
+      if (AUDIO_RE.test(name)) return 'audio';
       return '';
     }
 
@@ -551,7 +566,7 @@
         return;
       }
 
-      const label = activeFilter === 'video' ? 'video' : 'photo';
+      const label = {video: 'video', image: 'photo', audio: 'audio'}[activeFilter] || activeFilter;
       const n = order.length;
       filterCount.textContent = `${n} ${label}${n === 1 ? '' : 's'}`;
     }
@@ -608,6 +623,10 @@
         vid.removeAttribute('src');
         vid.load();
         vid.style.display = 'none';
+        aud.pause();
+        aud.removeAttribute('src');
+        aud.load();
+        aud.style.display = 'none';
         img.removeAttribute('src');
         img.style.display = 'none';
         unit.style.display = 'none';
@@ -655,10 +674,15 @@
       if (!activeType && unit.style.display === 'none') return;
 
       if (activeType === 'video') vid.pause();
+      if (activeType === 'audio') aud.pause();
 
       vid.removeAttribute('src');
       vid.load();
       vid.style.display = 'none';
+
+      aud.removeAttribute('src');
+      aud.load();
+      aud.style.display = 'none';
 
       img.removeAttribute('src');
       img.style.display = 'none';
@@ -709,6 +733,10 @@
       if (item.type === 'video') {
         img.style.display = 'none';
         img.removeAttribute('src');
+        aud.pause();
+        aud.removeAttribute('src');
+        aud.load();
+        aud.style.display = 'none';
 
         vid.style.display = 'block';
         vid.src = currentUrl;
@@ -720,6 +748,22 @@
       vid.removeAttribute('src');
       vid.load();
       vid.style.display = 'none';
+
+      if (item.type === 'audio') {
+        img.style.display = 'none';
+        img.removeAttribute('src');
+
+        aud.style.display = 'block';
+        aud.src = currentUrl;
+        resetPalette();
+        aud.play();
+        return;
+      }
+
+      aud.pause();
+      aud.removeAttribute('src');
+      aud.load();
+      aud.style.display = 'none';
 
       img.style.display = 'block';
       img.src = currentUrl;
@@ -776,6 +820,28 @@
 
     vid.onended = () => {
       if (activeType !== 'video') return;
+      play(pos + 1);
+    };
+
+    aud.onplay = () => {
+      if (activeType !== 'audio') return;
+      led.classList.add('on');
+    };
+
+    aud.onloadedmetadata = () => {
+      if (activeType !== 'audio') return;
+
+      const duration = Number.isFinite(aud.duration) ? `${Math.round(aud.duration)}s` : '';
+      updateMediaMeta(duration);
+    };
+
+    aud.onpause = () => {
+      if (activeType !== 'audio') return;
+      led.classList.remove('on');
+    };
+
+    aud.onended = () => {
+      if (activeType !== 'audio') return;
       play(pos + 1);
     };
 
@@ -836,9 +902,10 @@
         return;
       }
 
-      if (e.key === ' ' && activeType === 'video') {
+      if (e.key === ' ' && (activeType === 'video' || activeType === 'audio')) {
         e.preventDefault();
-        vid.paused ? vid.play() : vid.pause();
+        const player = activeType === 'audio' ? aud : vid;
+        player.paused ? player.play() : player.pause();
       }
     }
 
