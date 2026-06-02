@@ -75,6 +75,16 @@
       z-index: 10;
     }
 
+    #media-shell {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      max-width: 100vw;
+      max-height: 90dvh;
+      pointer-events: none;
+    }
+
     video,
     #img {
       display: block;
@@ -90,6 +100,55 @@
 
     #img {
       display: none;
+    }
+
+    .close-edge {
+      position: absolute;
+      z-index: 2;
+      display: none;
+      appearance: none;
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      font: inherit;
+      font-weight: bold;
+      text-transform: lowercase;
+      cursor: pointer;
+      pointer-events: auto;
+      opacity: 0.7;
+      padding: 0.75rem;
+    }
+
+    .close-edge:hover {
+      opacity: 1;
+    }
+
+    #player-unit.open .close-edge {
+      display: block;
+    }
+
+    .close-edge.top {
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .close-edge.right {
+      top: 50%;
+      right: 0;
+      transform: translateY(-50%) rotate(90deg);
+    }
+
+    .close-edge.bottom {
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .close-edge.left {
+      top: 50%;
+      left: 0;
+      transform: translateY(-50%) rotate(-90deg);
     }
 
     nav {
@@ -198,9 +257,15 @@
   </div>
 
 
-  <div id="player-unit">
-    <video id="vid" playsinline controls crossorigin="anonymous"></video>
-    <img id="img" alt="" decoding="async" />
+  <div id="player-unit" aria-hidden="true">
+    <div id="media-shell">
+      <button class="close-edge top" type="button" aria-label="Close media">close</button>
+      <button class="close-edge right" type="button" aria-label="Close media">close</button>
+      <button class="close-edge bottom" type="button" aria-label="Close media">close</button>
+      <button class="close-edge left" type="button" aria-label="Close media">close</button>
+      <video id="vid" playsinline controls crossorigin="anonymous"></video>
+      <img id="img" alt="" decoding="async" />
+    </div>
   </div>
 
   <script>
@@ -229,6 +294,7 @@
     const filterCount = document.getElementById('filter-count');
     const shuffleToggle = document.getElementById('shuf-chk');
     const lightsToggle = document.getElementById('lights-chk');
+    const closeButtons = document.querySelectorAll('.close-edge');
 
     const sampler = document.createElement('canvas');
     sampler.width = 1;
@@ -418,6 +484,8 @@
         img.removeAttribute('src');
         img.style.display = 'none';
         unit.style.display = 'none';
+        unit.classList.remove('open');
+        unit.setAttribute('aria-hidden', 'true');
         led.classList.remove('on');
         resetPalette();
 
@@ -454,6 +522,29 @@
       itemEls[index]?.scrollIntoView({block: 'center', behavior: 'smooth'});
     }
 
+    function closeMediaView() {
+      if (!activeType && unit.style.display === 'none') return;
+
+      if (activeType === 'video') vid.pause();
+
+      vid.removeAttribute('src');
+      vid.load();
+      vid.style.display = 'none';
+
+      img.removeAttribute('src');
+      img.style.display = 'none';
+
+      if (currentUrl) URL.revokeObjectURL(currentUrl);
+      currentUrl = '';
+      activeType = '';
+
+      unit.style.display = 'none';
+      unit.classList.remove('open');
+      unit.setAttribute('aria-hidden', 'true');
+      led.classList.remove('on');
+      resetPalette();
+    }
+
     async function play(p, options = {}) {
       if (!order.length) return;
 
@@ -465,6 +556,8 @@
       const token = ++playToken;
 
       unit.style.display = 'flex';
+      unit.classList.add('open');
+      unit.setAttribute('aria-hidden', 'false');
       setPlaying(index);
 
       if (options.centerRow !== false) {
@@ -500,6 +593,12 @@
 
     document.getElementById('pick-btn').onclick = pickDirectory;
     emptyState.onclick = pickDirectory;
+
+    closeButtons.forEach(button => {
+      button.addEventListener('click', closeMediaView);
+    });
+
+    img.addEventListener('click', closeMediaView);
 
     fileList.onclick = (e) => {
       const item = e.target.closest('.file-item');
@@ -560,22 +659,42 @@
       };
     });
 
-    window.onkeydown = (e) => {
+    function handleKeydown(e) {
+      if (e.key === 'Escape' || e.key === 'Esc' || e.code === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        closeMediaView();
+        return;
+      }
+
       if (e.key === 'ArrowDown') {
         e.preventDefault();
         play(pos + 1);
+        return;
       }
 
       if (e.key === 'ArrowUp') {
         e.preventDefault();
         play(pos - 1);
+        return;
       }
 
       if (e.key === ' ' && activeType === 'video') {
         e.preventDefault();
         vid.paused ? vid.play() : vid.pause();
       }
-    };
+    }
+
+    function handleKeyup(e) {
+      if (e.key === 'Escape' || e.key === 'Esc' || e.code === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        closeMediaView();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeydown, true);
+    document.addEventListener('keyup', handleKeyup, true);
 
     resetPalette();
   </script>
