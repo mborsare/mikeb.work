@@ -92,6 +92,27 @@
       display: none;
     }
 
+    #media-meta {
+      position: fixed;
+      top: 0.5rem;
+      left: 0.5rem;
+      z-index: 12;
+      display: none;
+      max-width: min(70vw, 42rem);
+      color: var(--text);
+      font: inherit;
+      font-size: 0.75rem;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+      white-space: normal;
+      pointer-events: none;
+      opacity: 0.75;
+    }
+
+    #player-unit.open #media-meta {
+      display: block;
+    }
+
     .close-edge {
       position: fixed;
       z-index: 11;
@@ -117,11 +138,6 @@
       display: block;
     }
 
-    .close-edge.top {
-      top: 0;
-      left: 50%;
-      transform: translateX(-50%);
-    }
 
     .close-edge.right {
       top: 50%;
@@ -190,7 +206,7 @@
       width: 100%;
       height: 60vh;
       background: none;
-      border: none;
+      border: 1px solid red;
       color: var(--text);
       font-size: 1.5rem;
       opacity: 0.2;
@@ -206,9 +222,8 @@
       padding: 0.8rem 0;
       cursor: pointer;
       opacity: 0.2;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      overflow-wrap: anywhere;
+      white-space: normal;
       transition: opacity 0.15s ease;
     }
 
@@ -278,7 +293,7 @@
   <button id="top-btn" type="button" aria-label="Back to top">^ top</button>
 
   <div id="player-unit" aria-hidden="true">
-    <button class="close-edge top" type="button" aria-label="Close media">close</button>
+    <div id="media-meta" aria-live="polite"></div>
     <button class="close-edge right" type="button" aria-label="Close media">close</button>
     <button class="close-edge bottom" type="button" aria-label="Close media">close</button>
     <button class="close-edge left" type="button" aria-label="Close media">close</button>
@@ -314,6 +329,7 @@
     const lightsToggle = document.getElementById('lights-chk');
     const topBtn = document.getElementById('top-btn');
     const closeButtons = document.querySelectorAll('.close-edge');
+    const mediaMeta = document.getElementById('media-meta');
 
     const sampler = document.createElement('canvas');
     sampler.width = 1;
@@ -444,6 +460,37 @@
       return '';
     }
 
+    function formatBytes(bytes) {
+      if (!Number.isFinite(bytes) || bytes <= 0) return '';
+
+      const units = ['b', 'kb', 'mb', 'gb'];
+      let size = bytes;
+      let unit = 0;
+
+      while (size >= 1024 && unit < units.length - 1) {
+        size /= 1024;
+        unit++;
+      }
+
+      const rounded = unit === 0 ? Math.round(size) : size.toFixed(size >= 10 ? 0 : 1);
+      return `${rounded}${units[unit]}`;
+    }
+
+    function setMediaMeta(parts = []) {
+      mediaMeta.textContent = parts.filter(Boolean).join(' · ');
+    }
+
+    function updateMediaMeta(extra = '') {
+      if (activeIndex < 0 || !playlist[activeIndex]) {
+        setMediaMeta();
+        return;
+      }
+
+      const item = playlist[activeIndex];
+      const count = order.length ? `${pos + 1}/${order.length}` : '';
+      setMediaMeta([count, item.type, item.name, extra]);
+    }
+
     function createRow(file, index) {
       const item = document.createElement('div');
       item.className = 'file-item';
@@ -571,6 +618,7 @@
 
         emptyState.style.display = 'none';
         filterCount.textContent = 'loading…';
+        mediaMeta.textContent = '';
         fileList.textContent = '';
         updateTopButton();
 
@@ -618,6 +666,7 @@
       if (currentUrl) URL.revokeObjectURL(currentUrl);
       currentUrl = '';
       activeType = '';
+      mediaMeta.textContent = '';
 
       unit.style.display = 'none';
       unit.classList.remove('open');
@@ -643,6 +692,7 @@
       unit.setAttribute('aria-hidden', 'false');
       updateTopButton();
       setPlaying(index);
+      updateMediaMeta();
 
       if (options.centerRow !== false) {
         requestAnimationFrame(() => centerActiveRow(index));
@@ -654,6 +704,7 @@
       if (currentUrl) URL.revokeObjectURL(currentUrl);
       currentUrl = URL.createObjectURL(file);
       activeType = item.type;
+      updateMediaMeta(formatBytes(file.size));
 
       if (item.type === 'video') {
         img.style.display = 'none';
@@ -705,6 +756,14 @@
       led.classList.add('on');
     };
 
+    vid.onloadedmetadata = () => {
+      if (activeType !== 'video') return;
+
+      const dims = vid.videoWidth && vid.videoHeight ? `${vid.videoWidth}×${vid.videoHeight}` : '';
+      const duration = Number.isFinite(vid.duration) ? `${Math.round(vid.duration)}s` : '';
+      updateMediaMeta([dims, duration].filter(Boolean).join(' · '));
+    };
+
     vid.onloadeddata = () => {
       if (activeType === 'video') applyMediaPalette(vid);
     };
@@ -720,7 +779,13 @@
       play(pos + 1);
     };
 
-    img.onload = () => applyMediaPalette(img);
+    img.onload = () => {
+      if (activeType !== 'image') return;
+
+      const dims = img.naturalWidth && img.naturalHeight ? `${img.naturalWidth}×${img.naturalHeight}` : '';
+      updateMediaMeta(dims);
+      applyMediaPalette(img);
+    };
 
     shuffleToggle.onchange = function () {
       isShuffled = this.checked;
