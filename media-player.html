@@ -75,16 +75,6 @@
       z-index: 10;
     }
 
-    #media-shell {
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      max-width: 100vw;
-      max-height: 90dvh;
-      pointer-events: none;
-    }
-
     video,
     #img {
       display: block;
@@ -103,8 +93,8 @@
     }
 
     .close-edge {
-      position: absolute;
-      z-index: 2;
+      position: fixed;
+      z-index: 11;
       display: none;
       appearance: none;
       border: 0;
@@ -162,6 +152,35 @@
     label {
       font: inherit;
       cursor: pointer;
+    }
+
+
+    #top-btn {
+      position: fixed;
+      left: 50%;
+      bottom: 1rem;
+      z-index: 8;
+      display: none;
+      width: min(calc(100vw - 2rem), 52rem);
+      min-height: 6rem;
+      transform: translateX(-50%);
+      appearance: none;
+      border: 2px solid currentColor;
+      background: var(--bg);
+      color: var(--text);
+      font: inherit;
+      font-size: clamp(1rem, 5vw, 3rem);
+      line-height: 1;
+      text-transform: lowercase;
+      cursor: pointer;
+    }
+
+    #top-btn.show {
+      display: block;
+    }
+
+    #top-btn:hover {
+      opacity: 1;
     }
 
     #empty-state {
@@ -256,16 +275,15 @@
     <div id="file-list"></div>
   </div>
 
+  <button id="top-btn" type="button" aria-label="Back to top">^ top</button>
 
   <div id="player-unit" aria-hidden="true">
-    <div id="media-shell">
-      <button class="close-edge top" type="button" aria-label="Close media">close</button>
-      <button class="close-edge right" type="button" aria-label="Close media">close</button>
-      <button class="close-edge bottom" type="button" aria-label="Close media">close</button>
-      <button class="close-edge left" type="button" aria-label="Close media">close</button>
-      <video id="vid" playsinline controls crossorigin="anonymous"></video>
-      <img id="img" alt="" decoding="async" />
-    </div>
+    <button class="close-edge top" type="button" aria-label="Close media">close</button>
+    <button class="close-edge right" type="button" aria-label="Close media">close</button>
+    <button class="close-edge bottom" type="button" aria-label="Close media">close</button>
+    <button class="close-edge left" type="button" aria-label="Close media">close</button>
+    <video id="vid" playsinline controls crossorigin="anonymous"></video>
+    <img id="img" alt="" decoding="async" />
   </div>
 
   <script>
@@ -294,6 +312,7 @@
     const filterCount = document.getElementById('filter-count');
     const shuffleToggle = document.getElementById('shuf-chk');
     const lightsToggle = document.getElementById('lights-chk');
+    const topBtn = document.getElementById('top-btn');
     const closeButtons = document.querySelectorAll('.close-edge');
 
     const sampler = document.createElement('canvas');
@@ -344,6 +363,67 @@
       root.style.setProperty('--bg', '#000000');
       root.style.setProperty('--text', '#c0c0c0');
       led.style.color = '#110000';
+    }
+
+    let topButtonTicking = false;
+
+    let wheelCarry = 0;
+    let wheelLocked = false;
+    let wheelResetTimer = 0;
+    const WHEEL_THRESHOLD = 24;
+    const WHEEL_COOLDOWN_MS = 180;
+
+    function mediaIsOpen() {
+      return unit.classList.contains('open') && !!activeType;
+    }
+
+    function resetWheelState() {
+      wheelCarry = 0;
+      wheelLocked = false;
+      clearTimeout(wheelResetTimer);
+    }
+
+    function handleMediaWheel(e) {
+      if (!mediaIsOpen() || !order.length) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      const delta = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+      if (!delta) return;
+
+      wheelCarry += delta;
+      clearTimeout(wheelResetTimer);
+      wheelResetTimer = setTimeout(() => {
+        wheelCarry = 0;
+      }, 120);
+
+      if (wheelLocked || Math.abs(wheelCarry) < WHEEL_THRESHOLD) return;
+
+      const direction = wheelCarry > 0 ? 1 : -1;
+      wheelCarry = 0;
+      wheelLocked = true;
+
+      play(pos + direction);
+
+      setTimeout(() => {
+        wheelLocked = false;
+      }, WHEEL_COOLDOWN_MS);
+    }
+
+    function updateTopButton() {
+      const mediaOpen = unit.classList.contains('open');
+      topBtn.classList.toggle('show', window.scrollY > 320 && !mediaOpen);
+    }
+
+    function requestTopButtonUpdate() {
+      if (topButtonTicking) return;
+
+      topButtonTicking = true;
+      requestAnimationFrame(() => {
+        topButtonTicking = false;
+        updateTopButton();
+      });
     }
 
     lightsToggle.onchange = function () {
@@ -492,6 +572,7 @@
         emptyState.style.display = 'none';
         filterCount.textContent = 'loading…';
         fileList.textContent = '';
+        updateTopButton();
 
         await nextPaint();
         await scanDirectory(dir, '', token);
@@ -543,6 +624,8 @@
       unit.setAttribute('aria-hidden', 'true');
       led.classList.remove('on');
       resetPalette();
+      resetWheelState();
+      updateTopButton();
     }
 
     async function play(p, options = {}) {
@@ -558,6 +641,7 @@
       unit.style.display = 'flex';
       unit.classList.add('open');
       unit.setAttribute('aria-hidden', 'false');
+      updateTopButton();
       setPlaying(index);
 
       if (options.centerRow !== false) {
@@ -597,6 +681,14 @@
     closeButtons.forEach(button => {
       button.addEventListener('click', closeMediaView);
     });
+
+    topBtn.addEventListener('click', () => {
+      window.scrollTo(0, 0);
+      updateTopButton();
+    });
+
+    window.addEventListener('scroll', requestTopButtonUpdate, {passive: true});
+    document.addEventListener('wheel', handleMediaWheel, {capture: true, passive: false});
 
     img.addEventListener('click', closeMediaView);
 
@@ -697,6 +789,7 @@
     document.addEventListener('keyup', handleKeyup, true);
 
     resetPalette();
+    updateTopButton();
   </script>
 </body>
 
