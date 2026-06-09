@@ -141,12 +141,26 @@
     .handwriting-paper {
       width: 100%;
       min-height: 22rem;
-      background-image: linear-gradient(to bottom,
-          transparent calc(100% - 1px),
-          var(--line-color) calc(100% - 1px));
-      background-position: top left;
-      background-repeat: repeat-y;
-      background-size: 100% 1.25rem;
+      position: relative;
+      background: transparent;
+      background-image: none;
+      --paper-line-gap: 1.25rem;
+      --paper-line-color: var(--line-color);
+    }
+
+    .paper-lines {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      pointer-events: none;
+    }
+
+    .paper-lines line {
+      stroke: var(--paper-line-color);
+      stroke-width: 1;
+      vector-effect: non-scaling-stroke;
     }
 
     .games-section {
@@ -374,14 +388,9 @@
     }
 
     @media print {
-      * {
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-      }
-
       body {
-        background: white;
-        color: #000;
+        background: white !important;
+        color: #000 !important;
       }
 
       .container {
@@ -434,12 +443,10 @@
 
       .handwriting-paper {
         min-height: 4.25in;
-        background-image: linear-gradient(to bottom,
-            transparent calc(100% - 1px),
-            #d8d8d8 calc(100% - 1px));
-        background-position: top left;
-        background-repeat: repeat-y;
-        background-size: 100% 0.28in;
+        background: white !important;
+        background-image: none !important;
+        --paper-line-gap: 0.28in;
+        --paper-line-color: #d8d8d8;
       }
 
       /* Bottom section print layout */
@@ -495,9 +502,9 @@
       }
 
       .draw-grid li {
-        background-color: #ededed;
-        border: none;
-        color: var(--stamp);
+        background-color: transparent !important;
+        border: 1px solid #bbb;
+        color: #000;
         font-size: 0.5rem;
       }
 
@@ -582,7 +589,6 @@
             <p class="cursive-teacher">Emotions are state</p>
             <p class="cursive-teacher">Same canvas</p>
             <p class="cursive-teacher">Always cycling</p>
-
           </div>
         </section>
       </div>
@@ -646,7 +652,6 @@
 
     </div>
 
-
     <!-- jumble and color -->
     <div class="games-section">
       <section class="upload-section" data-store="jumble">
@@ -664,7 +669,6 @@
           <span>Upload</span>
         </label>
       </section>
-
     </div>
 
     <!-- prettier-ignore -->
@@ -692,7 +696,68 @@
                                                                                                               
       </pre>
   </div>
+
   <script>
+    /* ============================
+       PAPER LINES
+       Uses real SVG strokes instead of a repeating background image.
+    ============================ */
+    (() => {
+      const SVG_NS = 'http://www.w3.org/2000/svg';
+
+      function cssLengthToPx(value, parent) {
+        const probe = document.createElement('div');
+        probe.style.position = 'absolute';
+        probe.style.visibility = 'hidden';
+        probe.style.pointerEvents = 'none';
+        probe.style.height = value.trim();
+        parent.appendChild(probe);
+        const px = probe.getBoundingClientRect().height;
+        probe.remove();
+        return px || 20;
+      }
+
+      function renderPaper(el) {
+        el.querySelector('.paper-lines')?.remove();
+
+        const style = getComputedStyle(el);
+        const gapValue = style.getPropertyValue('--paper-line-gap') || '1.25rem';
+        const gap = cssLengthToPx(gapValue, el);
+        const height = Math.ceil(el.getBoundingClientRect().height);
+
+        if (!height || !gap) return;
+
+        const svg = document.createElementNS(SVG_NS, 'svg');
+        svg.classList.add('paper-lines');
+        svg.setAttribute('viewBox', `0 0 100 ${height}`);
+        svg.setAttribute('preserveAspectRatio', 'none');
+        svg.setAttribute('aria-hidden', 'true');
+        svg.setAttribute('focusable', 'false');
+
+        for (let y = gap; y < height; y += gap) {
+          const line = document.createElementNS(SVG_NS, 'line');
+          line.setAttribute('x1', '0');
+          line.setAttribute('x2', '100');
+          line.setAttribute('y1', y);
+          line.setAttribute('y2', y);
+          svg.appendChild(line);
+        }
+
+        el.prepend(svg);
+      }
+
+      function renderAllPaper() {
+        document.querySelectorAll('.handwriting-paper').forEach(renderPaper);
+      }
+
+      window.addEventListener('load', renderAllPaper);
+      window.addEventListener('resize', renderAllPaper);
+      window.addEventListener('beforeprint', renderAllPaper);
+      window.addEventListener('afterprint', renderAllPaper);
+
+      const mq = window.matchMedia('print');
+      mq.addEventListener?.('change', renderAllPaper);
+    })();
 
     /* ============================
        CLOCK & CALENDAR
@@ -814,7 +879,6 @@
 
       // Attempt live fetch (worker first, then direct Finnhub), fall back to hardcoded.
       let events = FALLBACK_EVENTS;
-      const calendarSource = document.getElementById('calendar-title'); // reuse to show source badge
 
       try {
         const from = `${y}-${String(m + 1).padStart(2, '0')}-01`;
@@ -882,7 +946,7 @@
               expand.dataset.day = d;
               expand.innerHTML = events[d].map(ev =>
                 `<div><span class="time">${ev.time}</span> ${ev.name}<br>${ev.desc}</div>`
-              ).join('') + '<button onclick="this.parentElement.remove(); currentExpand = null;">close</button>';
+              ).join('') + '<button onclick="this.parentElement.remove();">close</button>';
 
               const idx = cells.indexOf(el);
               const rowEnd = Math.ceil((idx + 1) / 5) * 5;
@@ -896,8 +960,6 @@
           grid.appendChild(el);
         }
       }
-
-      window.currentExpand = currentExpand;
     })();
 
     // Image upload/restore
@@ -970,7 +1032,6 @@
         });
       }
     })();
-
   </script>
 </body>
 
