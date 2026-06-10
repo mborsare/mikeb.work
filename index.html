@@ -5,6 +5,7 @@
   <meta charset="utf-8" />
   <title>mikeb.work/</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preload" href="/backoffice/covers/too-big-to-fail.jpg" as="image" />
 
   <style>
     :root {
@@ -276,8 +277,7 @@
 
     .reading-cover {
       width: min(10rem, 100%);
-      aspect-ratio: 2 / 3;
-      object-fit: cover;
+      height: auto;
       border: 1px solid var(--stamp);
       background: var(--bg);
       margin-bottom: 1rem;
@@ -535,8 +535,8 @@
       <h2>Currently reading</h2>
       <div class="missives">
         <section class="currently-reading" aria-label="Currently reading">
-          <img class="reading-cover" src="https://covers.openlibrary.org/b/isbn/9780143118244-L.jpg"
-            alt="Too Big to Fail book cover" />
+          <img class="reading-cover" src="/backoffice/covers/too-big-to-fail.jpg" width="183" height="280"
+            alt="Too Big to Fail book cover" decoding="async" />
           <div>
             <div class="reading-title">Too Big to Fail</div>
             <div class="reading-author">Andrew Ross Sorkin</div>
