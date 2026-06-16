@@ -3,10 +3,9 @@
 
 <head>
   <meta charset="utf-8" />
-  <title>mikeb.work/</title>
+  <title>Mike Borsare</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="Mike Borsare is a discretionary futures trader and maker." />
-
   <link rel="preload" href="/backoffice/covers/too-big-to-fail.jpg" as="image" />
 
   <style>
@@ -59,6 +58,25 @@
       text-align: center;
       white-space: pre-line;
       line-height: 1.5;
+    }
+
+    .site-intro {
+      margin: 0 auto 3rem;
+      text-align: center;
+      white-space: normal;
+    }
+
+    .site-intro h1 {
+      color: var(--seal);
+      font-size: 1rem;
+      letter-spacing: 0.2rem;
+      margin: 0 0 0.5rem;
+      text-transform: uppercase;
+    }
+
+    .site-intro p {
+      color: var(--text);
+      margin: 0;
     }
 
     h1 {
@@ -527,7 +545,7 @@
 <body>
   <div id="toast"></div>
   <div id="palette-disabled-overlay" aria-hidden="true"></div>
-  <section id="prime-tv" class="prime-tv" aria-label="PrimeTV broadcast" hidden>
+  <section id="prime-tv" class="prime-tv" aria-label="PrimeTV broadcast" hidden data-nosnippet>
     <div class="prime-tv__bar">
       <span id="prime-tv-label">LIVE NOW!</span>
       <button id="prime-tv-close" class="prime-tv__close" type="button" aria-label="Hide PrimeTV">×</button>
@@ -536,7 +554,14 @@
     <div id="prime-tv-status" class="prime-tv__status">checking broadcast…</div>
   </section>
   <div class="container">
-    <h1 style="font-size:0.275rem; color: transparent">Mike Borsare</h1>
+    <header class="site-intro">
+      <h1>Mike Borsare</h1>
+      <p>
+        Operator &gt; Trader &gt; Gambler &gt; Lost &gt; Product designer &gt; Graphic designer &gt; Urban planner &gt;
+        UPS &gt; UTK &gt; UA &gt;
+        Farragut &gt; Chelsea HS &gt; Oak Mt. MS &gt; Riverchase MS &gt; Inverness &gt; Cahawba Valley PRE &gt; Kid
+      </p>
+    </header>
     <div
       style="position: sticky; top: 0.5rem; background: var(--bg); display: flex; flex-wrap: wrap; gap: 1rem 2rem; align-items: center; justify-content: center; z-index: 999; padding: 0.5rem 0px;">
       <span id="palette-score" role="button" tabindex="0">Keep score</span>
@@ -589,7 +614,7 @@
                                                   
 </pre>
       <div class="missives">
-        <section class="currently-reading" aria-label="Currently reading">
+        <section class="currently-reading" aria-label="Currently reading" data-nosnippet>
           <img class="reading-cover" src="/backoffice/covers/too-big-to-fail.jpg" width="183" height="280"
             alt="Too Big to Fail book cover" decoding="async" />
           <div class="reading-meta">
@@ -609,7 +634,7 @@
             </label>
           </div>
         </section>
-        <details class="old-missives">
+        <details class="old-missives" data-nosnippet>
           <summary>Field notes</summary>
 
           <pre class="missive">
@@ -707,7 +732,7 @@ your attention
       ░░         ░░   ░  ▒ ░░      ░      ░   
                   ░      ░         ░      ░  ░
     </pre>
-    <time id="clock" class="glitch-clock"></time>
+    <time id="clock" class="glitch-clock" data-nosnippet></time>
     <div>
       <a href="https://hotlinewebring.club/mikeb/previous" style="color: var(--seal); font-size: 0.8rem;">
         < Previous</a>
