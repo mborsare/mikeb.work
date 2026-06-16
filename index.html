@@ -327,6 +327,33 @@
       padding: 0.35rem;
     }
 
+    @media (min-width: 40rem) {
+      .currently-reading {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 1.25rem;
+        align-items: center;
+        text-align: left;
+      }
+
+      .reading-cover {
+        margin-bottom: 0;
+      }
+
+      .reading-meta {
+        min-width: 0;
+      }
+
+      .reading-stats {
+        margin-left: 0;
+        margin-right: 0;
+      }
+
+      .reading-start {
+        justify-content: flex-start;
+      }
+    }
+
     a {
       color: var(--seal);
     }
@@ -537,7 +564,7 @@
         <section class="currently-reading" aria-label="Currently reading">
           <img class="reading-cover" src="/backoffice/covers/too-big-to-fail.jpg" width="183" height="280"
             alt="Too Big to Fail book cover" decoding="async" />
-          <div>
+          <div class="reading-meta">
             <div class="reading-title">Too Big to Fail</div>
             <div class="reading-author">Andrew Ross Sorkin</div>
             <div class="reading-time">
