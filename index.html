@@ -507,6 +507,18 @@
         padding-bottom: calc(15vh + env(safe-area-inset-bottom));
       }
     }
+
+    .sr-only {
+      position: absolute;
+      left: -9999px;
+    }
+
+    .ascii-heading {
+      display: block;
+      white-space: pre;
+      line-height: 1;
+      color: var(--seal);
+    }
   </style>
 </head>
 
@@ -533,7 +545,14 @@
       </label>
     </div>
     <div style="padding:1rem;">
-      <h2>Workshop</h2>
+      <h2 class="sr-only">Workshop</h2>
+      <!-- prettier-ignore -->
+      <pre class="ascii-heading" aria-hidden="true">
+      __   __        __        __   __  
+|  | /  \ |__) |__/ /__` |__| /  \ |__) 
+|/\| \__/ |  \ |  \ .__/ |  | \__/ |    
+                                        
+</pre>
       <nav>
         <a href="#" id="sortNav">[ S O R T ] </a>
         <a href="#" id="randomNav">[ M I X - U P ]</a>
@@ -559,7 +578,14 @@
         <a href="mailto:mb@mikeb.work" style="color: var(--seal);">💌 Email Mike</a>
       </nav>
 
-      <h2>Currently reading</h2>
+      <h2 class="sr-only">Now reading</h2>
+      <!-- prettier-ignore -->
+      <pre class="ascii-heading" aria-hidden="true">
+      __           __   ___       __          __  
+|\ | /  \ |  |    |__) |__   /\  |  \ | |\ | / _` 
+| \| \__/ |/\|    |  \ |___ /~~\ |__/ | | \| \__> 
+                                                  
+</pre>
       <div class="missives">
         <section class="currently-reading" aria-label="Currently reading">
           <img class="reading-cover" src="/backoffice/covers/too-big-to-fail.jpg" width="183" height="280"
@@ -645,7 +671,14 @@ your attention
 
 
     </div>
-    <h2>Doctrine</h2>
+    <h2 class="sr-only">Doctrine</h2>
+    <!-- prettier-ignore -->
+    <pre class="ascii-heading" aria-hidden="true">
+ __   __   __  ___  __          ___ 
+|  \ /  \ /  `  |  |__) | |\ | |__  
+|__/ \__/ \__,  |  |  \ | | \| |___ 
+                                    
+</pre>
     <div id="doctrine"></div>
     <h2 style="text-transform: uppercase; letter-spacing: .2rem; font-size: 1rem;">Parts and pieces</h2>
     <a href="/backoffice/doctrine.json" style="color: var(--stamp); display: block;">Raw doctrine:
