@@ -1,0 +1,835 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>mikeb.work/block — live</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Live World Cup scores and recent results in a running feed." />
+
+  <style>
+    :root {
+      --bg: #000000;
+      --text: #c0c0c0;
+      --stamp: #888888;
+      --seal: #eaffea;
+      --err: #ff8c8c;
+      --live: #ff1a1a;
+    }
+
+    @font-face {
+      font-family: 'ComicMono';
+      src: url('/fonts/ComicMono-Regular.woff') format('woff');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      font-size: 15px;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+      overflow-y: auto;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'ComicMono', monospace;
+      font-size: 15px;
+      font-weight: 400;
+      line-height: 1.5;
+    }
+
+    .container {
+      min-width: 20rem;
+      max-width: 60rem;
+      width: 100%;
+      padding: clamp(0.75rem, 2vw, 1.25rem);
+      margin: 0 auto;
+      text-align: left;
+    }
+
+    h1,
+    h2,
+    p,
+    ul,
+    li,
+    time,
+    strong,
+    small,
+    span,
+    a {
+      font: inherit;
+    }
+
+    strong {
+      font-weight: 400;
+    }
+
+    h1 {
+      color: var(--bg);
+      margin: 0;
+      font-size: 1px;
+    }
+
+    h2 {
+      margin: 0;
+      color: var(--stamp);
+      font-size: 18px;
+      line-height: 1.35;
+      text-transform: none;
+    }
+
+    header {
+      padding-top: 0.25rem;
+    }
+
+    nav {
+      margin: 0 0 1.4rem;
+    }
+
+    nav a {
+      color: var(--stamp);
+      text-decoration: none;
+    }
+
+    nav a:hover {
+      color: var(--seal);
+    }
+
+    .topline {
+      margin: 0 0 1rem;
+    }
+
+    .status-line {
+      margin: 0.25rem 0 0;
+      min-height: 1em;
+      color: var(--stamp);
+      font-size: 15px;
+    }
+
+    .status-line.err {
+      color: var(--err);
+    }
+
+    .status-line.live-ok {
+      color: var(--live);
+      text-shadow: 0 0 8px rgba(255, 26, 26, 0.35);
+    }
+
+    .feed {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .feed-block {
+      margin: 0 0 1.4rem;
+    }
+
+    .feed-row {
+      display: block;
+      min-height: 0;
+      padding: 0.45rem 0;
+      color: var(--text);
+    }
+
+    .feed-row.section-row {
+      padding: 0.2rem 0 0.25rem;
+      margin-top: 0.5rem;
+    }
+
+    .feed-label,
+    .feed-main,
+    .feed-detail,
+    .feed-summary {
+      display: block;
+      font-size: 15px;
+      line-height: 1.5;
+      letter-spacing: normal;
+      text-transform: none;
+    }
+
+    .feed-label {
+      color: var(--stamp);
+    }
+
+    .section-row .feed-label {
+      font-size: 18px;
+      line-height: 1.35;
+    }
+
+    .feed-main {
+      color: var(--text);
+    }
+
+    .feed-detail,
+    .feed-summary {
+      color: var(--stamp);
+    }
+
+    .feed-row.live-row,
+    .feed-row.live-section-row {
+      color: var(--live);
+      text-shadow: 0 0 8px rgba(255, 26, 26, 0.42);
+    }
+
+    .feed-row.live-row .feed-label,
+    .feed-row.live-row .feed-main,
+    .feed-row.live-row .feed-detail,
+    .feed-row.live-row .feed-summary,
+    .feed-row.live-section-row .feed-label,
+    .feed-row.live-section-row .feed-main,
+    .feed-row.live-section-row .feed-detail,
+    .feed-row.live-section-row .feed-summary,
+    .feed-row.live-section-row h2 {
+      color: var(--live);
+    }
+
+    .feed-row.live-section-row .feed-label::before {
+      content: "●";
+      display: inline-block;
+      margin-right: 0.4rem;
+      animation: live-pulse 1.4s ease-in-out infinite;
+    }
+
+    .live-clock {
+      min-width: 4.75rem;
+    }
+
+    .ascii {
+      font-family: 'Courier New', Courier, monospace;
+      white-space: pre;
+      color: var(--seal);
+    }
+
+    .field-art {
+      margin: 0 0 1.4rem;
+      color: var(--seal);
+      font-size: 15px;
+      line-height: 1.15;
+      opacity: 0.85;
+      overflow-x: auto;
+    }
+
+    .skeleton {
+      color: var(--stamp);
+    }
+
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+
+    @keyframes live-pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.35;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .feed-row.live-section-row .feed-label::before {
+        animation: none;
+      }
+    }
+
+    @media (max-width: 640px) {
+      body {
+        min-height: 100svh;
+      }
+
+      .container {
+        min-width: 0;
+        max-width: none;
+        width: auto;
+        margin: 0;
+        padding: 0.75rem;
+      }
+
+      .ascii {
+        max-width: 100%;
+        overflow-x: auto;
+        white-space: pre;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <h1>Mike Borsare</h1>
+      <nav>
+        <a href="/index.html">mikeb.work</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <ul class="feed" aria-label="World Cup feed">
+        <li class="feed-row section-row live-section-row" aria-labelledby="live-heading">
+          <h2 id="live-heading" class="feed-label">World Cup Today!</h2>
+        </li>
+      </ul>
+
+      <ul class="feed feed-block" id="liveList" aria-live="off">
+        <li class="feed-row skeleton">
+          <span class="feed-label">live</span>
+          <span class="feed-main">pulling scores…</span>
+        </li>
+      </ul>
+
+      <pre class="ascii field-art" aria-hidden="true">                                
+                                   ___
+               o__        o__     |   |\
+              /|          /\      |   |X\
+              / > o        <\     |   |XX\
+      </pre>
+
+      <ul class="feed feed-block">
+        <li class="feed-row section-row" aria-labelledby="recent-heading">
+          <h2 id="recent-heading" class="feed-label">recent</h2>
+        </li>
+      </ul>
+
+      <ul class="feed feed-block" id="tensionList">
+        <li class="feed-row skeleton">
+          <span class="feed-label">recent</span>
+          <span class="feed-main">checking margins…</span>
+        </li>
+      </ul>
+
+      <ul class="feed feed-block">
+        <li class="feed-row section-row" aria-labelledby="older-heading">
+          <h2 id="older-heading" class="feed-label">older</h2>
+        </li>
+      </ul>
+
+      <ul class="feed feed-block" id="completedList">
+        <li class="feed-row skeleton">
+          <span class="feed-label">older</span>
+          <span class="feed-main">loading results…</span>
+        </li>
+      </ul>
+    </main>
+  </div>
+
+  <script>
+    // ---- live data fetch (ESPN scores + optional odds layer) ----
+    const statusLine = document.getElementById('statusLine');
+    const liveList = document.getElementById('liveList');
+    const tensionList = document.getElementById('tensionList');
+    const completedList = document.getElementById('completedList');
+
+    // Odds stays optional so the page still works as a dead-simple score wire.
+    // Safer public setup: put your key behind a proxy and set window.ODDS_PROXY_URL.
+    // Static/local setup: localStorage.setItem('oddsApiKey', 'YOUR_KEY')
+    const params = new URLSearchParams(location.search);
+    const safeLocal = (name) => {
+      try {return localStorage.getItem(name) || '';}
+      catch {return '';}
+    };
+    const ODDS_PROXY_URL = window.ODDS_PROXY_URL || params.get('oddsProxy') || '';
+    const ODDS_API_KEY = params.get('oddsKey') || safeLocal('oddsApiKey') || '';
+    const ODDS_SPORT_KEY = params.get('oddsSport') || 'soccer_fifa_world_cup';
+    const ODDS_REGIONS = params.get('oddsRegions') || 'us';
+    const ODDS_BOOKMAKERS = params.get('oddsBooks') || 'draftkings,fanduel,betmgm,caesars';
+    const ODDS_MARKETS = params.get('oddsMarkets') || 'h2h';
+
+    let lastOddsError = '';
+
+    function setStatus(msg, isErr, isLive) {
+      if (!statusLine) return;
+      statusLine.textContent = msg;
+      statusLine.classList.toggle('err', !!isErr);
+      statusLine.classList.toggle('live-ok', !!isLive && !isErr);
+    }
+
+    function esc(s) {
+      return String(s ?? '').replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[c]));
+    }
+
+    function pad(n) {return String(n).padStart(2, '0');}
+    function ymd(d) {return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}`;}
+
+    function kickoffText(date) {
+      return date.toLocaleString('en-US', {
+        weekday: 'short', month: 'short', day: 'numeric',
+        hour: 'numeric', minute: '2-digit'
+      });
+    }
+
+    function feedRow(label, title, detail = '', isLive = false, summary = '', clockId = '') {
+      const clockClass = clockId ? ' live-clock' : '';
+      const clockAttr = clockId ? ` data-clock-id="${esc(clockId)}"` : '';
+      return `
+        <li class="feed-row${isLive ? ' live-row' : ''}">
+          <span class="feed-label${clockClass}"${clockAttr}>${esc(label)}</span>
+          <span class="feed-main">${esc(title)}</span>
+          ${detail ? `<span class="feed-detail">${esc(detail)}</span>` : ''}
+          ${summary ? `<span class="feed-summary">${esc(summary)}</span>` : ''}
+        </li>`;
+    }
+
+    const liveClockStore = new Map();
+    let liveClockTimer = null;
+
+    function parseClockText(s) {
+      const raw = String(s || '').trim();
+      if (!raw || /^(ht|ft|final|halftime|full time)$/i.test(raw)) return null;
+
+      const withSeconds = raw.match(/(\d{1,3})\s*:\s*(\d{2})/);
+      if (withSeconds) {
+        return {
+          seconds: Number(withSeconds[1]) * 60 + Number(withSeconds[2])
+        };
+      }
+
+      const added = raw.match(/(\d{1,3})\s*\+\s*(\d{1,2})/);
+      if (added) {
+        return {
+          seconds: (Number(added[1]) + Number(added[2])) * 60
+        };
+      }
+
+      const minuteOnly = raw.match(/(\d{1,3})\s*['’]?/);
+      if (minuteOnly) {
+        return {
+          seconds: Number(minuteOnly[1]) * 60
+        };
+      }
+
+      return null;
+    }
+
+    function periodCapSeconds(period) {
+      const p = Number(period);
+      if (p === 1) return 45 * 60;
+      if (p === 2) return 90 * 60;
+      if (p === 3) return 105 * 60;
+      if (p === 4) return 120 * 60;
+      return null;
+    }
+
+    function formatClockSeconds(totalSeconds, period) {
+      const cleanSeconds = Math.max(0, Math.floor(totalSeconds));
+      const cap = periodCapSeconds(period);
+
+      if (cap && cleanSeconds > cap) {
+        const extra = cleanSeconds - cap;
+        return `${Math.floor(cap / 60)}+${pad(Math.floor(extra / 60))}:${pad(extra % 60)}`;
+      }
+
+      return `${Math.floor(cleanSeconds / 60)}:${pad(cleanSeconds % 60)}`;
+    }
+
+    function liveClockLabel(event) {
+      if (!event || event.state !== 'in') return event?.statusDetail || 'live';
+      const parsed = parseClockText(event.statusClock || event.statusDetail);
+      if (!parsed) return event.statusDetail || 'live';
+
+      const elapsed = Math.floor((Date.now() - event.clockFetchedAt) / 1000);
+      return formatClockSeconds(parsed.seconds + elapsed, event.statusPeriod);
+    }
+
+    function tickLiveClocks() {
+      document.querySelectorAll('[data-clock-id]').forEach(el => {
+        const event = liveClockStore.get(el.dataset.clockId);
+        if (event) el.textContent = liveClockLabel(event);
+      });
+    }
+
+    function startLiveClockTicker() {
+      if (liveClockTimer) return;
+      liveClockTimer = setInterval(tickLiveClocks, 1000);
+    }
+
+    function normalizeName(s) {
+      return String(s || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/\b(fc|cf|sc|club|team|national|men|women)\b/g, '')
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim();
+    }
+
+    function shortTeam(s) {
+      const words = String(s || '').split(/\s+/).filter(Boolean);
+      return words.length > 2 ? words.slice(-2).join(' ') : String(s || '');
+    }
+
+    function teamScore(a, b) {
+      const x = normalizeName(a);
+      const y = normalizeName(b);
+      if (!x || !y) return 0;
+      if (x === y) return 12;
+      if (x.includes(y) || y.includes(x)) return 8;
+      const xt = new Set(x.split(' ').filter(t => t.length > 2));
+      const yt = y.split(' ').filter(t => t.length > 2);
+      return yt.reduce((n, t) => n + (xt.has(t) ? 2 : 0), 0);
+    }
+
+    function impliedProbability(v) {
+      if (v === undefined || v === null || v === '') return null;
+      const n = Number(String(v).replace(/^\+/, ''));
+      if (!Number.isFinite(n)) return null;
+
+      // American odds: +140 => 100 / (140 + 100), -110 => 110 / (110 + 100)
+      if (n >= 100) return 100 / (n + 100);
+      if (n <= -100) return Math.abs(n) / (Math.abs(n) + 100);
+
+      // Decimal odds fallback: 2.40 => 1 / 2.40
+      if (n > 1) return 1 / n;
+
+      // Already a probability fallback: 0.42 => 42%
+      if (n > 0 && n < 1) return n;
+
+      return null;
+    }
+
+    function percent(v) {
+      const p = impliedProbability(v);
+      return p === null ? '' : `${Math.round(p * 100)}%`;
+    }
+
+    function detailsAsPercent(s) {
+      return String(s || '').replace(/(^|\s)([+-]\d{3,4})\b/g, (_, lead, odd) => {
+        const pct = percent(odd);
+        return pct ? `${lead}${pct}` : `${lead}${odd}`;
+      });
+    }
+
+    function firstDefined(...vals) {
+      return vals.find(v => v !== undefined && v !== null && v !== '');
+    }
+
+    function moneyLineValue(obj) {
+      return firstDefined(
+        obj?.moneyLine,
+        obj?.moneyline,
+        obj?.american,
+        obj?.price,
+        obj?.current?.moneyLine,
+        obj?.current?.moneyline,
+        obj?.current?.american,
+        obj?.current?.price
+      );
+    }
+
+    function extractEspnOdds(comp) {
+      const raw = Array.isArray(comp.odds) ? comp.odds[0] : comp.odds;
+      if (!raw) return '';
+
+      const provider = raw.provider?.name || raw.provider?.displayName || raw.provider || 'market';
+      if (raw.details) return `${provider}: ${detailsAsPercent(raw.details)}`;
+
+      const home = comp.competitors.find(c => c.homeAway === 'home') || comp.competitors[0];
+      const away = comp.competitors.find(c => c.homeAway === 'away') || comp.competitors[1];
+      const homeMl = moneyLineValue(raw.homeTeamOdds);
+      const awayMl = moneyLineValue(raw.awayTeamOdds);
+      const drawMl = moneyLineValue(raw.drawOdds);
+      const bits = [];
+
+      if (away && awayMl !== undefined) bits.push(`${shortTeam(away.team.displayName)} ${percent(awayMl)}`);
+      if (drawMl !== undefined) bits.push(`draw ${percent(drawMl)}`);
+      if (home && homeMl !== undefined) bits.push(`${shortTeam(home.team.displayName)} ${percent(homeMl)}`);
+
+      return bits.length ? `${provider}: ${bits.join(' · ')}` : '';
+    }
+
+    function pickBookmaker(bookmakers = []) {
+      if (!bookmakers.length) return null;
+      const order = ODDS_BOOKMAKERS.split(',').map(s => s.trim()).filter(Boolean);
+      for (const key of order) {
+        const found = bookmakers.find(b => b.key === key);
+        if (found) return found;
+      }
+      return bookmakers[0];
+    }
+
+    function priceForOutcome(outcomes, teamName) {
+      let best = null;
+      let bestScore = 0;
+      for (const o of outcomes || []) {
+        const s = teamScore(teamName, o.name);
+        if (s > bestScore) {
+          best = o;
+          bestScore = s;
+        }
+      }
+      return bestScore >= 4 ? best.price : null;
+    }
+
+    function drawPrice(outcomes) {
+      const draw = (outcomes || []).find(o => /^draw$/i.test(String(o.name || '')));
+      return draw ? draw.price : null;
+    }
+
+    function formatOdds(event, oddsEvent) {
+      if (!oddsEvent) return event.oddsText || '';
+      const book = pickBookmaker(oddsEvent.bookmakers);
+      const market = book?.markets?.find(m => m.key === 'h2h') || book?.markets?.[0];
+      if (!book || !market) return event.oddsText || '';
+
+      const [a, b] = event.competitors;
+      const aPrice = priceForOutcome(market.outcomes, a.team.displayName);
+      const bPrice = priceForOutcome(market.outcomes, b.team.displayName);
+      const dPrice = drawPrice(market.outcomes);
+      const bits = [];
+
+      if (aPrice !== null) bits.push(`${shortTeam(a.team.displayName)} ${percent(aPrice)}`);
+      if (dPrice !== null) bits.push(`draw ${percent(dPrice)}`);
+      if (bPrice !== null) bits.push(`${shortTeam(b.team.displayName)} ${percent(bPrice)}`);
+
+      return bits.length ? `${book.title || book.key}: ${bits.join(' · ')}` : event.oddsText || '';
+    }
+
+    function matchOddsEvent(event, oddsEvents) {
+      let best = null;
+      let bestScore = 0;
+      const [a, b] = event.competitors;
+
+      for (const o of oddsEvents || []) {
+        const dateGapHours = Math.abs(new Date(o.commence_time) - event.date) / 36e5;
+        if (Number.isFinite(dateGapHours) && dateGapHours > 48) continue;
+
+        const direct = teamScore(a.team.displayName, o.home_team) + teamScore(b.team.displayName, o.away_team);
+        const flipped = teamScore(a.team.displayName, o.away_team) + teamScore(b.team.displayName, o.home_team);
+        const score = Math.max(direct, flipped);
+        if (score > bestScore) {
+          best = o;
+          bestScore = score;
+        }
+      }
+
+      return bestScore >= 8 ? best : null;
+    }
+
+    async function fetchOddsData() {
+      lastOddsError = '';
+      const hasProxy = !!ODDS_PROXY_URL;
+      const hasDirectKey = !!ODDS_API_KEY;
+      if (!hasProxy && !hasDirectKey) return [];
+
+      try {
+        const url = hasProxy
+          ? ODDS_PROXY_URL
+          : `https://api.the-odds-api.com/v4/sports/${encodeURIComponent(ODDS_SPORT_KEY)}/odds/?` +
+          new URLSearchParams({
+            apiKey: ODDS_API_KEY,
+            regions: ODDS_REGIONS,
+            bookmakers: ODDS_BOOKMAKERS,
+            markets: ODDS_MARKETS,
+            oddsFormat: 'american',
+            dateFormat: 'iso'
+          }).toString();
+
+        const response = await fetch(url, {cache: 'no-store'});
+        if (!response.ok) throw new Error('odds ' + response.status);
+        const json = await response.json();
+        return Array.isArray(json) ? json : (json.events || json.odds || []);
+      } catch (err) {
+        console.warn(err);
+        lastOddsError = err.message || 'odds unavailable';
+        return [];
+      }
+    }
+
+    function applyOdds(events, oddsEvents) {
+      for (const event of events) {
+        const match = matchOddsEvent(event, oddsEvents);
+        event.oddsText = formatOdds(event, match);
+      }
+      return events;
+    }
+
+    function buildLiveItems(liveEvents, upcomingEvents) {
+      const items = [];
+      for (const e of liveEvents.slice(0, 3)) {
+        const [a, b] = e.competitors;
+        items.push({
+          label: liveClockLabel(e),
+          title: `${a.team.displayName} ${a.score}–${b.score} ${b.team.displayName}`,
+          detail: e.venueCity || '',
+          summary: e.oddsText ? `market: ${e.oddsText}` : '',
+          clockId: String(e.id)
+        });
+      }
+      if (!items.length) {
+        for (const e of upcomingEvents.slice(0, 3)) {
+          const [a, b] = e.competitors;
+          items.push({
+            label: 'next',
+            title: `${a.team.displayName} vs. ${b.team.displayName}`,
+            detail: `${kickoffText(e.date)}${e.venueCity ? ' · ' + e.venueCity : ''}`,
+            summary: e.oddsText ? `market: ${e.oddsText}` : ''
+          });
+        }
+      }
+      return items;
+    }
+
+    function buildTension(completedEvents) {
+      if (completedEvents.length < 1) return [];
+      const withMargin = completedEvents.map(e => {
+        const [a, b] = e.competitors;
+        return {e, a, b, margin: Math.abs(a.score - b.score)};
+      });
+      const items = [];
+      const closest = withMargin.slice().sort((x, y) => x.margin - y.margin)[0];
+      if (closest) {
+        const {e, a, b, margin} = closest;
+        items.push({
+          label: margin === 0 ? 'draw' : 'tight',
+          title: `${a.team.displayName} ${a.score}–${b.score} ${b.team.displayName}`,
+          detail: e.venueCity || '',
+          summary: margin === 0
+            ? 'Finished level. No margin to price.'
+            : `Decided by ${margin} ${margin === 1 ? 'goal' : 'goals'}. Tight enough to stay live late.`
+        });
+      }
+      const widest = withMargin.slice().sort((x, y) => y.margin - x.margin)[0];
+      if (widest && widest.margin >= 2 && widest !== closest) {
+        const {e, a, b, margin} = widest;
+        items.push({
+          label: 'wide',
+          title: `${a.team.displayName} ${a.score}–${b.score} ${b.team.displayName}`,
+          detail: e.venueCity || '',
+          summary: `${margin}-goal spread. The board moved early and stayed moved.`
+        });
+      }
+      return items;
+    }
+
+    function renderData({liveEvents, upcomingEvents, completedEvents, asOf, oddsSeen}) {
+      liveClockStore.clear();
+      liveEvents.forEach(e => liveClockStore.set(String(e.id), e));
+
+      const liveItems = buildLiveItems(liveEvents, upcomingEvents);
+      liveList.innerHTML = liveItems.length
+        ? liveItems.map(m => feedRow(m.label, m.title, m.detail, true, m.summary, m.clockId || '')).join('')
+        : feedRow('live', 'nothing in the current window', 'check back soon', true);
+
+      const tension = buildTension(completedEvents);
+      tensionList.innerHTML = tension.length
+        ? tension.map(t => feedRow(t.label, t.title, t.detail, false, t.summary)).join('')
+        : feedRow('recent', 'not enough finished matches yet', 'margins will print here');
+
+      completedList.innerHTML = completedEvents.length
+        ? completedEvents.slice(0, 8).map(e => {
+          const [a, b] = e.competitors;
+          const label = e.statusDetail || 'final';
+          const margin = Math.abs(a.score - b.score);
+          const detail = e.venueCity || '';
+          const summary = margin === 0
+            ? 'Finished level.'
+            : margin >= 3
+              ? 'A lopsided result from start to finish.'
+              : 'Close enough to swing either way until the final whistle.';
+          return feedRow(label, `${a.team.displayName} ${a.score}–${b.score} ${b.team.displayName}`, detail, false, summary);
+        }).join('')
+        : feedRow('older', 'no finished matches in this window yet');
+
+      const oddsState = oddsSeen
+        ? ' · odds'
+        : lastOddsError
+          ? ' · odds quiet'
+          : '';
+      setStatus(`espn${oddsState} · ${asOf} · refresh 30s`, false, true);
+      tickLiveClocks();
+      startLiveClockTicker();
+    }
+
+    let inFlight = false;
+    let firstLoadDone = false;
+
+    async function fetchLiveData() {
+      if (inFlight) return;
+      inFlight = true;
+      if (!firstLoadDone) setStatus('connecting…');
+      else setStatus('refreshing…');
+
+      try {
+        const today = new Date();
+        const start = new Date(today); start.setDate(start.getDate() - 1);
+        const end = new Date(today); end.setDate(end.getDate() + 1);
+        const url = `https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=${ymd(start)}-${ymd(end)}&limit=100`;
+
+        const [scoreResponse, oddsEvents] = await Promise.all([
+          fetch(url),
+          fetchOddsData()
+        ]);
+
+        if (!scoreResponse.ok) throw new Error('ESPN API error ' + scoreResponse.status);
+        const result = await scoreResponse.json();
+
+        let events = (result.events || []).map(ev => {
+          const comp = ev.competitions?.[0];
+          if (!comp || !Array.isArray(comp.competitors)) return null;
+
+          const competitors = comp.competitors
+            .slice()
+            .sort((x, y) => (x.homeAway === 'home' ? -1 : 1))
+            .map(c => ({team: c.team, score: Number(c.score || 0)}))
+            .filter(c => c.team?.displayName);
+
+          return {
+            id: ev.id,
+            date: new Date(ev.date),
+            state: comp.status?.type?.state || 'pre', // 'pre' | 'in' | 'post'
+            statusDetail: comp.status?.type?.shortDetail || comp.status?.type?.detail || '',
+            statusClock: comp.status?.displayClock || comp.status?.type?.shortDetail || comp.status?.type?.detail || '',
+            statusPeriod: comp.status?.period || 0,
+            clockFetchedAt: Date.now(),
+            venueCity: comp.venue?.address?.city || '',
+            competitors,
+            oddsText: extractEspnOdds(comp)
+          };
+        }).filter(e => e && e.competitors.length === 2);
+
+        events = applyOdds(events, oddsEvents);
+
+        const liveEvents = events.filter(e => e.state === 'in').sort((a, b) => a.date - b.date);
+        const upcomingEvents = events.filter(e => e.state === 'pre' && e.date >= today).sort((a, b) => a.date - b.date);
+        const completedEvents = events.filter(e => e.state === 'post').sort((a, b) => b.date - a.date);
+        const oddsSeen = events.some(e => e.oddsText);
+
+        renderData({
+          liveEvents, upcomingEvents, completedEvents, oddsSeen,
+          asOf: today.toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'})
+        });
+        firstLoadDone = true;
+      } catch (err) {
+        console.error(err);
+        setStatus(firstLoadDone
+          ? 'refresh failed · showing last good print · ' + err.message
+          : 'could not load live data · ' + err.message, true);
+      } finally {
+        inFlight = false;
+      }
+    }
+
+    fetchLiveData();
+    setInterval(fetchLiveData, 30 * 1000);
+  </script>
+</body>
+
+</html>
