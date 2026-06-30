@@ -147,6 +147,8 @@
 
     .feed-label,
     .feed-main,
+    .feed-score,
+    .feed-penalties,
     .feed-detail,
     .feed-summary {
       display: block;
@@ -165,7 +167,9 @@
       line-height: 1.35;
     }
 
-    .feed-main {
+    .feed-main,
+    .feed-score,
+    .feed-penalties {
       color: var(--text);
     }
 
@@ -182,10 +186,14 @@
 
     .feed-row.live-row .feed-label,
     .feed-row.live-row .feed-main,
+    .feed-row.live-row .feed-score,
+    .feed-row.live-row .feed-penalties,
     .feed-row.live-row .feed-detail,
     .feed-row.live-row .feed-summary,
     .feed-row.live-section-row .feed-label,
     .feed-row.live-section-row .feed-main,
+    .feed-row.live-section-row .feed-score,
+    .feed-row.live-section-row .feed-penalties,
     .feed-row.live-section-row .feed-detail,
     .feed-row.live-section-row .feed-summary,
     .feed-row.live-section-row h2 {
@@ -376,13 +384,15 @@
       });
     }
 
-    function feedRow(label, title, detail = '', isLive = false, summary = '', clockId = '') {
+    function feedRow(label, title, detail = '', isLive = false, summary = '', clockId = '', penalties = '', scoreline = '') {
       const clockClass = clockId ? ' live-clock' : '';
       const clockAttr = clockId ? ` data-clock-id="${esc(clockId)}"` : '';
       return `
         <li class="feed-row${isLive ? ' live-row' : ''}">
           <span class="feed-label${clockClass}"${clockAttr}>${esc(label)}</span>
           <span class="feed-main">${esc(title)}</span>
+          ${scoreline ? `<span class="feed-score">${esc(scoreline)}</span>` : ''}
+          ${penalties ? `<span class="feed-penalties">${esc(penalties)}</span>` : ''}
           ${detail ? `<span class="feed-detail">${esc(detail)}</span>` : ''}
           ${summary ? `<span class="feed-summary">${esc(summary)}</span>` : ''}
         </li>`;
@@ -474,6 +484,109 @@
     function shortTeam(s) {
       const words = String(s || '').split(/\s+/).filter(Boolean);
       return words.length > 2 ? words.slice(-2).join(' ') : String(s || '');
+    }
+
+    function numberOrNull(v) {
+      if (v === undefined || v === null || v === '') return null;
+      const n = Number(v);
+      return Number.isFinite(n) ? n : null;
+    }
+
+    function shootoutValue(c) {
+      const direct = numberOrNull(firstDefined(
+        c?.shootoutScore,
+        c?.penaltyScore,
+        c?.penaltyKickScore,
+        c?.penalties,
+        c?.shootout?.score,
+        c?.shootout?.value
+      ));
+      if (direct !== null) return direct;
+
+      const linescore = (c?.linescores || []).find(line => {
+        const hay = `${line?.periodName || ''} ${line?.displayName || ''} ${line?.name || ''} ${line?.abbreviation || ''}`;
+        return /pen|shootout|pk/i.test(hay);
+      });
+
+      return numberOrNull(firstDefined(
+        linescore?.value,
+        linescore?.displayValue,
+        linescore?.score
+      ));
+    }
+
+    function hasShootout(event) {
+      return !!event?.competitors?.some(c => c.shootoutScore !== null && c.shootoutScore !== undefined);
+    }
+
+    function competitorScoreText(c, includePens = true) {
+      const pens = includePens && c.shootoutScore !== null && c.shootoutScore !== undefined
+        ? ` (${c.shootoutScore} pens)`
+        : '';
+      return `${c.score}${pens}`;
+    }
+
+    function matchTitle(event, includePens = false) {
+      const [a, b] = event.competitors;
+      return `${a.team.displayName} ${competitorScoreText(a, includePens)}–${competitorScoreText(b, includePens)} ${b.team.displayName}`;
+    }
+
+    function penaltyLine(event) {
+      if (!hasShootout(event)) return '';
+      const [a, b] = event.competitors;
+      return `penalties ${a.team.displayName} ${a.shootoutScore}–${b.shootoutScore} ${b.team.displayName}`;
+    }
+
+    function resultWinner(event) {
+      const marked = event?.competitors?.find(c => c.winner === true);
+      if (marked) return marked;
+
+      if (hasShootout(event)) {
+        return event.competitors.slice().sort((a, b) => (b.shootoutScore ?? -1) - (a.shootoutScore ?? -1))[0];
+      }
+
+      const [a, b] = event.competitors;
+      if (a.score === b.score) return null;
+      return a.score > b.score ? a : b;
+    }
+
+    function resultLabel(event) {
+      if (hasShootout(event)) return 'Penalties';
+      return event.statusDetail || 'final';
+    }
+
+    function outcomeTitle(event) {
+      const winner = resultWinner(event);
+      if (!winner) return hasShootout(event) ? 'Decided on penalties' : matchTitle(event);
+
+      const other = event.competitors.find(c => c !== winner);
+      if (hasShootout(event)) return `${winner.team.displayName} advanced on penalties`;
+      if (other) return `${winner.team.displayName} beat ${other.team.displayName}`;
+      return `${winner.team.displayName} won`;
+    }
+
+    function scoreLine(event) {
+      const score = matchTitle(event);
+      return outcomeTitle(event) === score ? '' : score;
+    }
+
+    function postRegulationSummary(event) {
+      const [a, b] = event.competitors;
+      const winner = resultWinner(event);
+
+      if (hasShootout(event)) {
+        const base = a.score === b.score
+          ? `after finishing ${a.score}–${b.score}`
+          : `after regulation/extra time ended ${a.score}–${b.score}`;
+        return winner
+          ? `${shortTeam(winner.team.displayName)} advanced on penalties ${base}.`
+          : `Decided on penalties ${base}.`;
+      }
+
+      const margin = Math.abs(a.score - b.score);
+      if (margin === 0) return 'Finished level.';
+      if (margin >= 3) return 'A lopsided result from start to finish.';
+      return 'Close enough to swing either way until the final whistle.';
     }
 
     function teamScore(a, b) {
@@ -667,7 +780,7 @@
         const [a, b] = e.competitors;
         items.push({
           label: liveClockLabel(e),
-          title: `${a.team.displayName} ${a.score}–${b.score} ${b.team.displayName}`,
+          title: matchTitle(e),
           detail: e.venueCity || '',
           summary: e.oddsText ? `market: ${e.oddsText}` : '',
           clockId: String(e.id)
@@ -698,12 +811,16 @@
       if (closest) {
         const {e, a, b, margin} = closest;
         items.push({
-          label: margin === 0 ? 'draw' : 'tight',
-          title: `${a.team.displayName} ${a.score}–${b.score} ${b.team.displayName}`,
+          label: hasShootout(e) ? 'Penalties' : margin === 0 ? 'draw' : 'tight',
+          title: outcomeTitle(e),
+          scoreline: scoreLine(e),
+          penalties: penaltyLine(e),
           detail: e.venueCity || '',
-          summary: margin === 0
-            ? 'Finished level. No margin to price.'
-            : `Decided by ${margin} ${margin === 1 ? 'goal' : 'goals'}. Tight enough to stay live late.`
+          summary: hasShootout(e)
+            ? postRegulationSummary(e)
+            : margin === 0
+              ? 'Finished level. No margin to price.'
+              : `Decided by ${margin} ${margin === 1 ? 'goal' : 'goals'}. Tight enough to stay live late.`
         });
       }
       const widest = withMargin.slice().sort((x, y) => y.margin - x.margin)[0];
@@ -711,7 +828,7 @@
         const {e, a, b, margin} = widest;
         items.push({
           label: 'wide',
-          title: `${a.team.displayName} ${a.score}–${b.score} ${b.team.displayName}`,
+          title: matchTitle(e),
           detail: e.venueCity || '',
           summary: `${margin}-goal spread. The board moved early and stayed moved.`
         });
@@ -730,21 +847,16 @@
 
       const tension = buildTension(completedEvents);
       tensionList.innerHTML = tension.length
-        ? tension.map(t => feedRow(t.label, t.title, t.detail, false, t.summary)).join('')
+        ? tension.map(t => feedRow(t.label, t.title, t.detail, false, t.summary, '', t.penalties || '', t.scoreline || '')).join('')
         : feedRow('recent', 'not enough finished matches yet', 'margins will print here');
 
       completedList.innerHTML = completedEvents.length
         ? completedEvents.slice(0, 8).map(e => {
           const [a, b] = e.competitors;
-          const label = e.statusDetail || 'final';
-          const margin = Math.abs(a.score - b.score);
+          const label = resultLabel(e);
           const detail = e.venueCity || '';
-          const summary = margin === 0
-            ? 'Finished level.'
-            : margin >= 3
-              ? 'A lopsided result from start to finish.'
-              : 'Close enough to swing either way until the final whistle.';
-          return feedRow(label, `${a.team.displayName} ${a.score}–${b.score} ${b.team.displayName}`, detail, false, summary);
+          const summary = postRegulationSummary(e);
+          return feedRow(label, outcomeTitle(e), detail, false, summary, '', penaltyLine(e), scoreLine(e));
         }).join('')
         : feedRow('older', 'no finished matches in this window yet');
 
@@ -788,7 +900,13 @@
           const competitors = comp.competitors
             .slice()
             .sort((x, y) => (x.homeAway === 'home' ? -1 : 1))
-            .map(c => ({team: c.team, score: Number(c.score || 0)}))
+            .map(c => ({
+              team: c.team,
+              score: Number(c.score || 0),
+              shootoutScore: shootoutValue(c),
+              winner: c.winner === true,
+              homeAway: c.homeAway || ''
+            }))
             .filter(c => c.team?.displayName);
 
           return {
@@ -832,4 +950,4 @@
   </script>
 </body>
 
-</html>
+<
