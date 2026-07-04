@@ -224,7 +224,7 @@
       display: grid;
       grid-template-columns: 4rem minmax(0, 1fr) auto;
       align-items: center;
-      gap: 1rem;
+      gap: 1.25rem;
       background: transparent;
       color: #fff;
       min-height: 4.35rem;
@@ -254,6 +254,11 @@
       line-height: 1.3;
     }
 
+    .soldier-cue {
+      font-size: 125%;
+      opacity: 75%;
+    }
+
     .soldier-name {
       color: #fff;
       overflow: visible;
@@ -264,6 +269,8 @@
 
     .soldier-outcomes {
       gap: 2rem;
+      padding: 0 1rem;
+      letter-spacing: .25rem;
       display: grid;
       grid-template-columns: repeat(3, 1.28rem);
     }
@@ -413,10 +420,10 @@
       }
 
       .handwriting-paper {
-        min-height: 5rem;
+        min-height: 10rem;
         background: white !important;
         background-image: none !important;
-        --paper-line-gap: 0.28in;
+        --paper-line-gap: 0.3in;
         --paper-line-color: #d8d8d8;
       }
 
@@ -427,7 +434,7 @@
       }
 
       .mission-lines-section .handwriting-paper {
-        min-height: 5in;
+        min-height: 6in;
       }
 
       /* Page-one mission zone: cursive + five soldiers */
@@ -496,7 +503,7 @@
 
       .soldier-copy {
         min-width: 0;
-        line-height: 1;
+        line-height: 1.33;
       }
 
       .soldier-name {
@@ -1170,7 +1177,10 @@
         `).join('');
       }
 
-      renderSquad(new Date());
+      const params = new URLSearchParams(window.location.search);
+      const testDate = params.get('date');
+
+      renderSquad(testDate ? new Date(`${testDate}T12:00:00`) : new Date());
     })();
 
     // Image upload/restore
