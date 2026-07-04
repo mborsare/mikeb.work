@@ -37,10 +37,7 @@
       --text: #c0c0c0;
       --stamp: #888888;
       --seal: #eaffea;
-      --accent-dark: #1a2a22;
-      --accent-mid: #2e4a3a;
       --line-color: rgba(210, 210, 210, 0.22);
-      --border-color: rgba(255, 255, 255, 0.2);
     }
 
     /* ===============================================
@@ -64,7 +61,7 @@
 
     .cursive-teacher {
       font-family: 'CursiveWorksheet';
-      font-size: 2.2rem;
+      font-size: 3rem;
       letter-spacing: 0.1rem;
       line-height: 3rem;
       margin: 0;
@@ -173,11 +170,11 @@
     }
 
     /* ===============================================
-     BOTTOM SECTION - 3 columns
+     BOTTOM SECTION - 2 columns
      =============================================== */
     .bottom-section {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-columns: 1fr 1fr;
       gap: 2rem;
       font-size: 0.85rem;
     }
@@ -200,22 +197,9 @@
       font-size: 0.8rem;
     }
 
-    /* ===============================================
-     LEFT COLUMN - Emotions
-     =============================================== */
-    .emotion-section em {
-      display: block;
-      margin-top: 1rem;
-      text-decoration: underline;
-      font-style: normal;
-    }
-
-    .emotion-section li {
-      opacity: 0.5;
-    }
 
     /* ===============================================
-     MIDDLE COLUMN - Cursive
+     LEFT COLUMN - Cursive
      =============================================== */
     .cursive-area {
       display: flex;
@@ -224,72 +208,77 @@
     }
 
     /* ===============================================
-     RIGHT COLUMN - Trade Tickets
+     SOLDIER SQUAD CARDS
+     Avatars are individual portrait files hosted at
+     /backoffice/the-stacks/soldiers/soldier_NN.jpg (NN = zero-padded
+     id, e.g. soldier_05.jpg). See avatarUrl() in the script below.
      =============================================== */
-    .tickets-section {
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .tickets-section p {
-      margin: 0 0 1rem 0;
-      text-align: center;
-      color: var(--seal);
-      opacity: 0.92;
-      font-size: 0.86rem;
-      letter-spacing: 0.03em;
-    }
-
-    .ticket-stack {
+    .squad-stack {
       flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 0.45rem;
     }
 
-    .trade-ticket {
+    .soldier-card {
       flex: 1;
-      display: flex;
+      display: grid;
+      grid-template-columns: 2.85rem minmax(0, 1fr) auto;
       align-items: center;
-      justify-content: center;
-      border: 1px solid rgba(234, 255, 234, 0.38);
+      gap: 0.55rem;
       background: transparent;
       color: #fff;
-      padding: 0.55rem 0.65rem;
+      break-inside: avoid;
+      min-height: 4.35rem;
+      padding: 0.35rem 0.5rem;
     }
 
-    .ticket-line {
+    .soldier-avatar {
+      width: 2.65rem;
+      height: 4.15rem;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      font-size: 0.5rem;
+      background-color: transparent;
+      overflow: visible;
+      position: relative;
+    }
+
+    .soldier-avatar .avatar-img {
+      position: absolute;
+      inset: 0;
       width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .soldier-copy {
+      min-width: 0;
+      line-height: 1.1;
+    }
+
+    .soldier-name {
+      color: #fff;
+      font-size: 0.78rem;
+      white-space: nowrap;
+      overflow: visible;
+      text-overflow: ellipsis;
+    }
+
+    .soldier-outcomes {
+      gap: 3rem;
+      display: grid;
+      grid-template-columns: repeat(3, 1.28rem);
+    }
+
+    .soldier-outcome {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 0.65rem;
-      white-space: nowrap;
-      text-transform: uppercase;
-    }
-
-    .ticket-number,
-    .ticket-mark,
-    .ticket-risk {
-      font-family: Menlo, Consolas, 'Courier New', monospace;
+      min-height: 1.15rem;
+      color: #fff;
       line-height: 1;
-    }
-
-    .ticket-number {
-      font-size: 0.92rem;
-      letter-spacing: 0.15rem;
-      text-align: center;
-    }
-
-    .ticket-mark {
-      font-size: 0.8rem;
-      opacity: 0.95;
-    }
-
-    .ticket-risk {
-      font-size: 0.88rem;
-      letter-spacing: 0.13rem;
     }
 
     /* ===============================================
@@ -333,11 +322,6 @@
         padding: 3rem;
       }
 
-      .cursive-teacher {
-        font-size: 1.5rem;
-        line-height: 2rem;
-      }
-
       .bottom-section {
         grid-template-columns: 1fr;
       }
@@ -356,16 +340,24 @@
      =============================================== */
     @page {
       size: letter;
-      margin: 0.5in;
+      margin: 0.42in;
     }
 
     @media print {
+      html {
+        font-size: 16px;
+      }
+
       body {
+        display: block;
+        min-height: auto;
         background: white !important;
         color: #000 !important;
+        line-height: 1.2;
       }
 
       .container {
+        width: 100%;
         max-width: none;
         padding: 0;
       }
@@ -376,18 +368,26 @@
         display: none !important;
       }
 
-      /* Header adjustments */
+      /* Header: keep the seal, but stop it from eating the sheet */
       header {
-        margin-bottom: 0.3in;
+        margin-bottom: 0.08in;
+        break-after: avoid;
+        page-break-after: avoid;
+      }
+
+      header pre {
+        margin: 0;
       }
 
       .ascii-prime {
-        font-size: 0.175rem;
+        font-size: 0.135rem;
+        line-height: 0.9;
         color: #000;
       }
 
       .ascii-journal {
-        font-size: 0.3rem;
+        font-size: 0.215rem;
+        line-height: 0.9;
         color: #000;
         opacity: 1;
       }
@@ -395,99 +395,164 @@
       .sign-here {
         color: #999;
         opacity: 1;
+        margin-top: 0.03in;
         margin-right: 0;
-        font-size: 0.65rem;
+        font-size: 0.5rem;
+        line-height: 1;
       }
 
-      /* Timestamp on print */
       #clock {
         display: block;
         color: #000;
         opacity: 1;
-        font-size: 0.7rem;
-        margin-top: 0.25in;
+        font-size: 0.55rem;
+        line-height: 1;
+        margin-top: 0.03in;
       }
 
-      /* Handwriting paper for print */
+      /* Page-one journal lines */
       .rules-section {
-        margin: 0 0 0.4in 0;
+        margin: 0 0 0.18in 0;
       }
 
       .handwriting-paper {
-        min-height: 4.25in;
+        min-height: 5rem;
         background: white !important;
         background-image: none !important;
         --paper-line-gap: 0.28in;
         --paper-line-color: #d8d8d8;
       }
 
-      /* Bottom section print layout */
+      .mission-lines-section {
+        margin-bottom: 0.16in;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      .mission-lines-section .handwriting-paper {
+        min-height: 5in;
+      }
+
+      /* Page-one mission zone: cursive + five soldiers */
       .bottom-section {
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: 0.3in;
+        display: grid;
+        grid-template-columns: 0.9fr 1.35fr;
+        gap: 0.25in;
+        align-items: start;
         font-size: 0.55rem;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      .column {
+        min-width: 0;
       }
 
       h2 {
-        font-size: 0.6rem;
-        letter-spacing: 0.25rem;
-        margin-bottom: 0.15in;
-      }
-
-      /* Emotions print */
-      .emotion-section {
-        font-size: 0.6rem;
-      }
-
-      .emotion-section em {
-        font-size: 0.6rem;
+        font-size: 0.54rem;
+        letter-spacing: 0.18rem;
         margin-bottom: 0.08in;
       }
 
-      ul {
-        gap: 0.08in 0.12in;
-        font-size: 0.6rem;
+      .cursive-area {
+        gap: 0;
       }
 
-      /* Trade ticket print */
-      .tickets-section p {
-        color: #000;
-        opacity: 1;
-        font-size: 0.52rem;
-        margin-bottom: 0.1in;
+      .cursive-teacher {
+        font-size: 2rem;
+        letter-spacing: 0.04rem;
+        line-height: 0.43in;
+        margin: 0;
       }
 
-      .ticket-stack {
-        gap: 0.04in;
+      /* Soldier squad print: compact enough for page one, wide enough to read */
+      .squad-stack {
+        flex: 0 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 0.035in;
       }
 
-      .trade-ticket {
-        background: white !important;
+      .soldier-card {
+        flex: 0 0 auto;
+        height: 0.5in;
+        min-height: 0;
+        display: grid;
+        grid-template-columns: 0.43in minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 0.08in;
+        background: transparent !important;
         color: #000 !important;
-        border: 1px solid #000;
-        padding: 0.045in 0.06in;
+        border: 1px solid #ddd;
         break-inside: avoid;
+        page-break-inside: avoid;
+        padding: 0.025in 0.045in;
       }
 
-      .ticket-line {
-        gap: 0.12in;
-      }
-
-      .ticket-number {
-        font-size: 0.54rem;
-        letter-spacing: 0.07rem;
-      }
-
-      .ticket-mark {
+      .soldier-avatar {
+        width: 0.41in;
+        height: 0.47in;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         font-size: 0.5rem;
+        background-color: transparent !important;
+        overflow: visible;
+        position: relative;
       }
 
-      .ticket-risk {
-        font-size: 0.53rem;
-        letter-spacing: 0.06rem;
+      .soldier-avatar .avatar-img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
       }
 
-      /* Draw grid print */
+      .soldier-copy {
+        min-width: 0;
+        line-height: 1;
+      }
+
+      .soldier-name {
+        color: #000;
+        font-size: 0.62rem;
+        line-height: 1;
+        white-space: nowrap;
+        overflow: visible;
+        text-overflow: clip;
+      }
+
+      .soldier-outcomes {
+        display: grid;
+        grid-template-columns: repeat(3, 0.48in);
+        gap: 0.08in;
+      }
+
+      .soldier-outcome {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 0;
+        color: #000;
+        line-height: 1;
+        font-size: 0.5rem;
+        border-right: 0;
+      }
+
+      /* Everything below the daily mission starts after page one */
+      .secondary-pages {
+        break-before: page;
+        page-break-before: always;
+      }
+
+      .footer-ascii {
+        break-before: page;
+        page-break-before: always;
+      }
+
+      /* Write/draw pages */
       .draw-grid {
         gap: 0.12in;
         grid-template-columns: 3fr 3fr 3fr;
@@ -551,27 +616,13 @@
     </header>
 
     <!-- RULES -->
-    <section class="rules-section">
+    <section class="rules-section mission-lines-section">
       <div class="handwriting-paper" aria-hidden="true"></div>
     </section>
 
-    <!-- THREE COLUMN ZONE -->
+    <!-- TWO COLUMN ZONE -->
     <section class="bottom-section">
-
-      <!-- LEFT: Today emotions -->
-      <div class="column">
-        <section class="emotion-section">
-          <h2>Today</h2>
-          <div> I felt</div>
-          <div class="handwriting-paper" aria-hidden="true" style="min-height: 3rem; margin-bottom: 2rem"></div>
-          <div> I noticed</div>
-          <div class="handwriting-paper" aria-hidden="true" style="min-height: 3rem; margin-bottom: 2rem"></div>
-          <div> I learned</div>
-          <div class="handwriting-paper" aria-hidden="true" style="min-height: 3rem;"></div>
-        </section>
-      </div>
-
-      <!-- MIDDLE: Cursive -->
+      <!-- LEFT: Cursive -->
       <div class="column">
         <section class="cursive-area">
           <div>
@@ -585,34 +636,17 @@
         </section>
       </div>
 
-      <!-- RIGHT: Trade tickets -->
+      <!-- RIGHT: Today's squad -->
       <div class="column">
-        <section class="tickets-section" aria-label="trade tickets">
+        <section aria-label="today's squad">
           <h2 id="ticket-date">Thu Jul 2</h2>
-          <p>Mark thru ticket when used</p>
-          <div class="ticket-stack">
-            <article class="trade-ticket">
-              <div class="ticket-number"></div>
-            </article>
-            <article class="trade-ticket">
-              <div class="ticket-number"></div>
-            </article>
-            <article class="trade-ticket">
-              <div class="ticket-number"></div>
-            </article>
-            <article class="trade-ticket">
-              <div class="ticket-number"></div>
-            </article>
-            <article class="trade-ticket">
-              <div class="ticket-number"></div>
-            </article>
-          </div>
+          <div class="squad-stack" id="squad-stack"></div>
         </section>
       </div>
     </section>
 
     <!-- write and draw -->
-    <div>
+    <div class="secondary-pages">
       <section style="margin: 3rem 2rem 0;">
         <h2>Write</h2>
         <section class="rules-section">
@@ -649,7 +683,7 @@
 
     <!-- jumble and color -->
     <div class="games-section">
-      <section class="upload-section" data-store="jumble">
+      <section data-store="jumble">
         <img class="upload-preview" alt="place Jumble image here" hidden />
         <label class="upload-box">
           <input type="file" accept="image/*" hidden />
@@ -657,7 +691,7 @@
         </label>
       </section>
 
-      <section class="color-section" data-store="color">
+      <section data-store="color">
         <img class="upload-preview" alt="coloring page goes here" hidden />
         <label class="upload-box">
           <input type="file" accept="image/*" hidden />
@@ -667,7 +701,7 @@
     </div>
 
     <!-- prettier-ignore -->
-    <pre class="ascii-journal" style="padding-top: 2rem;">
+    <pre class="ascii-journal footer-ascii" style="padding-top: 2rem;">
 
      ***** **                                                           *                                     
   ******  ***                                                         **                                *     
@@ -755,7 +789,7 @@
     })();
 
     /* ============================
-       CLOCK & TICKET DATE
+       CLOCK & DAILY SQUAD
     ============================ */
     (() => {
       const clock = document.getElementById('clock');
@@ -770,48 +804,141 @@
 
     (() => {
       const title = document.getElementById('ticket-date');
-      const now = new Date();
+      const stack = document.getElementById('squad-stack');
+      const MISSION_START = new Date('2026-07-03T00:00:00');
+      const SOLDIERS_PER_DAY = 5;
 
-      if (title) {
-        title.textContent = now
-          .toLocaleDateString('en-US', {weekday: 'short', month: 'short', day: 'numeric'})
-          .replace(',', '');
+      // Avatars: individual portrait files, one per soldier id.
+      const AVATAR_BASE = '/backoffice/the-stacks/soldiers';
+
+      const soldiers = [
+        {id: 1, first: 'Victor', last: 'Alvarez', cue: 'Longs caught'},
+        {id: 2, first: 'Maya', last: 'Lopez', cue: 'Failed push'},
+        {id: 3, first: 'Tyler', last: 'Brooks', cue: 'Slow tape'},
+        {id: 4, first: 'Sophia', last: 'Nguyen', cue: 'Breakout holds'},
+        {id: 5, first: 'James', last: "O'Connor", cue: 'Shorts trapped'},
+        {id: 6, first: 'Nora', last: 'Kim', cue: 'Rotation up'},
+        {id: 7, first: 'Lucas', last: 'Reed', cue: 'Rotation down'},
+        {id: 8, first: 'Malik', last: 'Johnson', cue: 'Range edge'},
+        {id: 9, first: 'Priya', last: 'Patel', cue: 'Reclaim'},
+        {id: 10, first: 'Noah', last: 'Hale', cue: 'Rejects high'},
+        {id: 11, first: 'Ethan', last: 'Shaw', cue: 'Rejects low'},
+        {id: 12, first: 'Claire', last: 'Dubois', cue: 'Pullback holds'},
+        {id: 13, first: 'Marco', last: 'Rossi', cue: 'Opening drive'},
+        {id: 14, first: 'Isaac', last: 'Bennett', cue: 'Late reversal'},
+        {id: 15, first: 'Elena', last: 'Cruz', cue: 'HVN hold'},
+        {id: 16, first: 'Devon', last: 'Price', cue: 'LVN reject'},
+        {id: 17, first: 'Hannah', last: 'Cole', cue: 'Break and fail'},
+        {id: 18, first: 'Colin', last: 'Murphy', cue: 'Test and go'},
+        {id: 19, first: 'Leo', last: 'Morales', cue: 'Trap and reverse'},
+        {id: 20, first: 'Grace', last: 'Foster', cue: 'Trend continuation'},
+        {id: 21, first: 'Tessa', last: 'Quinn', cue: 'Trend day'},
+        {id: 22, first: 'Carter', last: 'Wells', cue: 'Balance break'},
+        {id: 23, first: 'Benji', last: 'Cohen', cue: 'Compression'},
+        {id: 24, first: 'Keira', last: 'Walsh', cue: 'Expansion day'},
+        {id: 25, first: 'Ravi', last: 'Desai', cue: 'Value reclaim'},
+        {id: 26, first: 'Jonah', last: 'Reed', cue: 'Value reject'},
+        {id: 27, first: 'Chloe', last: 'Martin', cue: 'Acceptance above'},
+        {id: 28, first: 'Trent', last: 'Walker', cue: 'Acceptance below'},
+        {id: 29, first: 'Farah', last: 'Nasser', cue: 'Failed breakout'},
+        {id: 30, first: 'Mei', last: 'Tan', cue: 'Failed breakdown'},
+        {id: 31, first: 'Gabriel', last: 'Ortiz', cue: 'One-time up'},
+        {id: 32, first: 'Ana', last: 'Silva', cue: 'One-time down'},
+        {id: 33, first: 'Andre', last: 'Lewis', cue: 'Sweep high'},
+        {id: 34, first: 'Ivy', last: 'Chen', cue: 'Sweep low'},
+        {id: 35, first: 'Pavel', last: 'Novak', cue: 'Gap fill'},
+        {id: 36, first: 'Aisha', last: 'Bello', cue: 'Inside day'},
+        {id: 37, first: 'Eli', last: 'Foster', cue: 'Bid dries'},
+        {id: 38, first: 'Naomi', last: 'Sato', cue: 'Offer dries'},
+        {id: 39, first: 'Owen', last: 'Murphy', cue: 'Breakout retest'},
+        {id: 40, first: 'Sienna', last: 'Blake', cue: 'Breakdown retest'},
+        {id: 41, first: 'Mia', last: 'Santos', cue: 'Squeeze release'},
+        {id: 42, first: 'Harold', last: 'Cole', cue: 'Stop run'},
+        {id: 43, first: 'Derek', last: 'Patel', cue: 'Counterparty stuck'},
+        {id: 44, first: 'Lina', last: 'Rahman', cue: 'Clean rotation'},
+        {id: 45, first: 'Wyatt', last: 'Quinn', cue: 'Failed auction'},
+        {id: 46, first: 'Ruby', last: 'Ellis', cue: 'Exhaustion'},
+        {id: 47, first: 'Omar', last: 'Haddad', cue: 'Pullback entry'},
+        {id: 48, first: 'Zoe', last: 'Turner', cue: 'Range hold'},
+        {id: 49, first: 'Adrian', last: 'Brooks', cue: 'Value hold'},
+        {id: 50, first: 'Selma', last: 'Ibrahim', cue: 'News whipsaw'}
+      ];
+
+      function isTradingDay(date) {
+        const day = date.getDay();
+        return day !== 0 && day !== 6;
       }
 
-      // Ticket IDs:
-      // Still exactly 5 tickets.
-      // Format: DD MMM 00N, where N is the ticket number for that day.
-      const TICKETS_PER_DAY = 5;
-
-      function ticketDateCode(date) {
-        return date
-          .toLocaleDateString('en-GB', {day: '2-digit', month: 'short'})
-          .replace(',', '')
-          .toUpperCase();
+      function startOfDay(date) {
+        return new Date(date.getFullYear(), date.getMonth(), date.getDate());
       }
 
-      function ticketData(date, slot) {
-        return {
-          id: `${ticketDateCode(date)} ${String(slot + 1).padStart(3, '0')}`,
-          mark: '⑆',
-          risk: '$25'
-        };
+      function tradingDayIndex(date) {
+        const start = startOfDay(MISSION_START);
+        const target = startOfDay(date);
+
+        if (target <= start) return 0;
+
+        let index = 0;
+        const cursor = new Date(start);
+
+        while (cursor < target) {
+          cursor.setDate(cursor.getDate() + 1);
+          if (isTradingDay(cursor)) index += 1;
+        }
+
+        return index;
       }
 
-      document.querySelectorAll('.trade-ticket').forEach((ticket, i) => {
-        if (i >= TICKETS_PER_DAY) return;
+      function displayName(soldier) {
+        return `${soldier.first} ${soldier.last[0]}.`;
+      }
 
-        const data = ticketData(now, i);
+      function avatarUrl(soldier) {
+        return `${AVATAR_BASE}/soldier_${String(soldier.id).padStart(2, '0')}.jpg`;
+      }
 
-        ticket.innerHTML = `
-          <div class="ticket-line">
-            <span class="ticket-number">${data.id}</span>
-            <span class="ticket-mark">${data.mark}</span>
-            <span class="ticket-risk">${data.risk}</span>
-          </div>`;
+      function escapeHtml(value) {
+        return String(value).replace(/[&<>'"]/g, char => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          "'": '&#39;',
+          '"': '&quot;'
+        }[char]));
+      }
 
-        ticket.setAttribute('aria-label', `Trade ticket ${data.id}, ${data.risk}`);
-      });
+      function renderSquad(date) {
+        const day = tradingDayIndex(date);
+        const startIndex = (day * SOLDIERS_PER_DAY) % soldiers.length;
+        const squad = soldiers.slice(startIndex, startIndex + SOLDIERS_PER_DAY);
+
+        if (title) {
+          title.textContent = date
+            .toLocaleDateString('en-US', {weekday: 'short', month: 'short', day: 'numeric'})
+            .replace(',', '');
+        }
+
+        if (!stack) return;
+
+        stack.innerHTML = squad.map(soldier => `
+          <article class="soldier-card" aria-label="${escapeHtml(displayName(soldier))}, ${escapeHtml(soldier.cue)}">
+            <div class="soldier-avatar">
+              <img class="avatar-img" alt="" loading="lazy" src="${avatarUrl(soldier)}" onerror="this.remove()" />
+            </div>
+            <div class="soldier-copy">
+              <div class="soldier-name">${escapeHtml(displayName(soldier))}</div>
+            </div>
+            <div class="soldier-outcomes" aria-label="Outcome marks">
+              <span class="soldier-outcome">Scratch</span>
+              <span class="soldier-outcome">KIA</span>
+              <span class="soldier-outcome">Add</span>
+            </div>
+          </article>
+        `).join('');
+      }
+
+      renderSquad(new Date());
     })();
 
     // Image upload/restore
