@@ -202,6 +202,17 @@
       min-height: 4.35rem;
       padding: 0.35rem 0.5rem;
       line-height: 1.5;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .soldier-card:hover .soldier-name {
+      color: var(--seal);
+    }
+
+    .soldier-card:focus-visible {
+      outline: 1px solid var(--seal);
+      outline-offset: 0.25rem;
     }
 
     .soldier-avatar {
@@ -738,6 +749,7 @@
       const stack = document.getElementById('squad-stack');
       const MISSION_START = new Date('2026-07-03T00:00:00');
       const SOLDIERS_PER_DAY = 2;
+      const ARMY_PAGE_URL = '/capital-army.html';
 
       const army = window.CapitalArmy || window.PrimeArmy;
 
@@ -787,6 +799,10 @@
         return shortName(soldier);
       }
 
+      function soldierHref(soldier) {
+        return `${ARMY_PAGE_URL}#soldier-${String(soldier.id).padStart(2, '0')}`;
+      }
+
       function renderSquad(date) {
         if (!soldiers.length) return;
 
@@ -807,7 +823,7 @@
         if (!stack) return;
 
         stack.innerHTML = squad.map(soldier => `
-          <article class="soldier-card" aria-label="${escapeHtml(displayName(soldier))}, ${escapeHtml(soldier.cue)}">
+          <a class="soldier-card" href="${soldierHref(soldier)}" aria-label="${escapeHtml(displayName(soldier))}, ${escapeHtml(soldier.cue)}">
             <div class="soldier-avatar">
               <img class="avatar-img" alt="" loading="lazy" src="${avatarUrl(soldier)}" onerror="this.remove()" />
             </div>
@@ -819,7 +835,7 @@
               <span class="soldier-outcome">RTB</span>
               <span class="soldier-outcome">KIA</span>
             </div>
-          </article>
+          </a>
         `).join('');
       }
 
