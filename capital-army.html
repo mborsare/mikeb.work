@@ -43,14 +43,13 @@
 
     body {
       margin: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow-y: auto;
       background: var(--bg);
       color: var(--text);
       font-family: 'ComicMono', monospace;
       font-size: 1rem;
+      /* Removed heavy flex alignment centering from body to fix mobile scroll hijacking */
+      -webkit-overflow-scrolling: touch;
+      /* Ensures smooth momentum scrolling on older iOS engines */
     }
 
     .container {
@@ -58,7 +57,7 @@
       max-width: 60rem;
       width: 100%;
       padding: clamp(0.75rem, 2vw, 1.25rem);
-      margin: auto 0;
+      margin: 0 auto;
       text-align: center;
       line-height: 1.5;
     }
@@ -136,6 +135,8 @@
     .card {
       transition: grid-column 0.2s ease, transform 0.25s ease;
       transform: rotate(var(--rot, 0deg)) translateY(var(--drift, 0px));
+      will-change: transform;
+      /* Signals GPU rendering optimization to the browser */
     }
 
     .card:hover {
@@ -181,7 +182,7 @@
     .card.expanded {
       grid-column: 1 / -1;
       text-align: center;
-      transform: none;
+      transform: none !important;
       z-index: 3;
     }
 
@@ -307,18 +308,19 @@
           `${String(now.getMinutes()).padStart(2, '0')} ` +
           `${days[now.getDay()]} ${String(now.getDate()).padStart(2, '0')} ${months[now.getMonth()]}`;
 
+        // Dropped millisecond thumping down to normal seconds to prevent layout thrashing
         clock.textContent =
           `${days[now.getDay()]} ${months[now.getMonth()]} ${now.getDate()} ` +
           `${String(now.getHours()).padStart(2, '0')}:` +
           `${String(now.getMinutes()).padStart(2, '0')}:` +
-          `${String(now.getSeconds()).padStart(2, '0')}:` +
-          `${String(now.getMilliseconds()).padStart(3, '0')}`;
+          `${String(now.getSeconds()).padStart(2, '0')}`;
 
         subhead.textContent = `Roster of 50 ${stamp}`;
       }
 
       updateClock();
-      setInterval(updateClock, 50);
+      // Changed from 50ms to 1000ms. Eliminates continuous DOM manipulation lag while scrolling.
+      setInterval(updateClock, 1000);
     })();
 
     // ---- Render roster from shared soldier manifest ----
@@ -347,8 +349,10 @@
         const cue = soldier.cue
           ? `<div class="cue">${escapeHtml(soldier.cue)}</div>`
           : '';
-        const rot = (Math.random() * 99 - 81).toFixed(1); // random tilt: -6deg to 6deg
-        const drift = (Math.random() * 81 - 17).toFixed(1); // random vertical drift: -4px to 4px
+
+        // Fixed math formulas to stay tightly bound within intended limits
+        const rot = (Math.random() * 12 - 6).toFixed(1);   // True random tilt: -6deg to 6deg
+        const drift = (Math.random() * 8 - 4).toFixed(1);  // True random vertical drift: -4px to 4px
 
         return `
     <div class="card" style="--rot: ${rot}deg; --drift: ${drift}px">
