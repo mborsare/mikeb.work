@@ -144,6 +144,23 @@
       text-align: center;
     }
 
+    .name {
+      color: inherit;
+    }
+
+    .cue {
+      display: none;
+      margin: 0.35rem auto 0;
+      max-width: 22rem;
+      color: var(--text);
+      font-size: 0.8rem;
+      line-height: 1.35;
+    }
+
+    .card.expanded .cue {
+      display: block;
+    }
+
     .card.expanded {
       grid-column: 1 / -1;
       text-align: center;
@@ -175,6 +192,10 @@
       .container {
         max-width: none;
         padding: 0;
+      }
+
+      .cue {
+        display: none !important;
       }
 
       nav,
@@ -301,18 +322,24 @@
 
       gallery.innerHTML = soldiers.map(soldier => {
         const name = fullName(soldier);
+        const cue = soldier.cue
+          ? `<div class="cue">${escapeHtml(soldier.cue)}</div>`
+          : '';
 
         return `
-          <div class="card">
-            <img
-              src="${avatarUrl(soldier)}"
-              alt="${escapeHtml(name)}"
-              loading="lazy"
-              onerror="this.closest('.card').remove()"
-            >
-            <div class="meta">${escapeHtml(name)}</div>
-          </div>
-        `;
+    <div class="card">
+      <img
+        src="${avatarUrl(soldier)}"
+        alt="${escapeHtml(name)}"
+        loading="lazy"
+        onerror="this.closest('.card').remove()"
+      >
+      <div class="meta">
+        <div class="name">${escapeHtml(name)}</div>
+        ${cue}
+      </div>
+    </div>
+  `;
       }).join('');
     })();
 

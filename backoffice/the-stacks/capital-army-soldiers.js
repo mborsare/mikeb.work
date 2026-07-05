@@ -1,114 +1,114 @@
-window.PrimeArmy = (() => {
+window.CapitalArmy = (() => {
   const AVATAR_BASE = '/backoffice/the-stacks/soldiers';
 
   const soldiers = [
     {
       id: 1,
-      first: 'Victor',
-      last: 'Alvarez',
-      cue: 'Victor is a very dedicated and old soldier.\nHe misses his brother but does not say it first.'
+      first: 'J.T. aka Joker',
+      last: 'Davis',
+      cue: 'Joker came to Capital army after time in the U.S. Marines. His sarcasm is a benefit to CA.'
     },
     {
       id: 2,
-      first: 'Maya',
-      last: 'Lopez',
-      cue: 'Maya keeps a photograph in wax paper.\nWhen things get loud, she speaks softly and people listen.'
+      first: 'Cowboy',
+      last: 'Evans',
+      cue: 'Cowboy served with Joker. He sees reality when others do not.'
     },
     {
       id: 3,
-      first: 'Tyler',
-      last: 'Brooks',
-      cue: 'Tyler can fix a motor with cold hands.\nHe trusts work because work does not lie.'
+      first: 'Sergeant',
+      last: 'Hartman',
+      cue: 'Sergeant Hartman was drilling recruits. He moved to CA after deep personal reflection on his role in the world.'
     },
     {
       id: 4,
-      first: 'Sophia',
-      last: 'Nguyen',
-      cue: 'Sophia writes home on thin blue paper.\nShe never knows what to leave out.'
+      first: 'Private',
+      last: 'Ryan',
+      cue: 'Ryan was saved in the public eye. His survival story was a hollywood blockbuster. He came to CA seeking solace and meaning in work.'
     },
     {
       id: 5,
-      first: 'James',
-      last: "O'Connor",
-      cue: 'James makes jokes when the room goes still.\nHe is afraid too, but he carries it clean.'
+      first: 'John',
+      last: 'Winger',
+      cue: 'Winger leads in a way that CA accepts.'
     },
     {
       id: 6,
-      first: 'Nora',
-      last: 'Kim',
-      cue: 'Nora remembers everyone’s coffee order.\nIt is her way of saying she expects them back.'
+      first: 'Dewey aka Ox',
+      last: 'Oxburger',
+      cue: "I thought to myself, 'Join the army'! It's free. So I figured while I'm here I'll lose a few pounds. And you got what, a 6 to 8 week training program here? A real tough one. Which is perfect for me."
     },
     {
       id: 7,
-      first: 'Lucas',
-      last: 'Reed',
-      cue: 'Lucas cleans his boots every night.\nThe mud comes back, but he cleans them anyway.'
+      first: 'Russel',
+      last: 'Ziskey',
+      cue: 'Ziskey helps CA Winger stay within bounds.'
     },
     {
       id: 8,
-      first: 'Malik',
-      last: 'Johnson',
-      cue: 'Malik hums old songs under his breath.\nNo one asks him to stop.'
+      first: 'Novak',
+      last: 'Djokovic',
+      cue: "Novak stays present. That's why he wins."
     },
     {
       id: 9,
-      first: 'Priya',
-      last: 'Patel',
-      cue: 'Priya notices who has not eaten.\nShe gives food like it is orders.'
+      first: 'Jay',
+      last: 'Williams',
+      cue: 'Jay left ESPN to join CA. He operates in reality.'
     },
     {
       id: 10,
-      first: 'Noah',
-      last: 'Hale',
-      cue: 'Noah packs extra socks and dry matches.\nHe believes small comforts keep men alive.'
+      first: 'Iga',
+      last: 'Świątek',
+      cue: 'Iga left WTA for CA.'
     },
     {
       id: 11,
-      first: 'Ethan',
-      last: 'Shaw',
-      cue: 'Ethan does not waste words.\nWhen he speaks, nobody looks away.'
+      first: 'Nick aka Goose',
+      last: 'Bradshaw',
+      cue: 'Goose woke up on a beach and found his way to CA.'
     },
     {
       id: 12,
-      first: 'Claire',
-      last: 'Dubois',
-      cue: 'Claire draws birds in the margins of maps.\nShe says the sky belongs to no army.'
+      first: 'Andre',
+      last: 'Agessi',
+      cue: 'Andre came to CA for the tigerstripes.'
     },
     {
       id: 13,
-      first: 'Marco',
-      last: 'Rossi',
-      cue: 'Marco cooks whenever there is time.\nIt makes the place feel less temporary.'
+      first: 'Carmen',
+      last: 'Ibanez',
+      cue: 'Carmen left aviation for CA Infantry.'
     },
     {
       id: 14,
-      first: 'Isaac',
-      last: 'Bennett',
-      cue: 'Isaac carries a button from an old coat.\nHe says it is not luck, only memory.'
+      first: 'Johnny',
+      last: 'Rico',
+      cue: "Johnny seems to have emotions tug him at just the wrong times. He's working on it."
     },
     {
       id: 15,
-      first: 'Elena',
-      last: 'Cruz',
-      cue: 'Elena checks on the new ones first.\nShe remembers how lonely courage can be.'
+      first: 'Dizzy',
+      last: 'Florez',
+      cue: 'Dizzy chased Johnny here (again). She just saw it!'
     },
     {
       id: 16,
-      first: 'Devon',
-      last: 'Price',
-      cue: 'Devon laughs with his whole chest.\nIt is not softness. It is defiance.'
+      first: 'Sergeant',
+      last: 'Elias',
+      cue: "I love this place at night, the stars. There's no right or wrong in them. They're just there."
     },
     {
       id: 17,
-      first: 'Hannah',
-      last: 'Cole',
-      cue: 'Hannah keeps her promises small.\nThat is why people trust them.'
+      first: 'Chris',
+      last: 'Taylor',
+      cue: 'I think now, looking back, we did not fight the enemy; we fought ourselves.'
     },
     {
       id: 18,
-      first: 'Colin',
-      last: 'Murphy',
-      cue: 'Colin writes down his mistakes.\nHe does not forgive them, but he learns from them.'
+      first: 'Sergeant',
+      last: 'Barnes',
+      cue: 'Barnes retreated to New Mexico. His newfound patience led him to CA.'
     },
     {
       id: 19,
