@@ -33,6 +33,14 @@
       box-sizing: border-box;
     }
 
+    html,
+    body {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: clip;
+      overscroll-behavior-x: none;
+    }
+
     body {
       margin: 0;
       display: flex;
@@ -43,6 +51,13 @@
       color: var(--text);
       font-family: 'ComicMono', monospace;
       font-size: 1rem;
+      touch-action: pan-y;
+    }
+
+    .gallery,
+    .card,
+    .card img {
+      touch-action: pan-y;
     }
 
     .container {
