@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>mikeb.work/prime-army</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    :root {
+      --bg: #f7f7f2;
+      --text: #222222;
+      --stamp: #777777;
+      --seal: #1d4f45;
+      --line: #d4d4cc;
+      --soft: #eeeeea;
+      --blue: #315f9a;
+    }
+
+    html {
+      font-size: 14px;
+    }
+
+    @font-face {
+      font-family: 'ComicMono';
+      src: url('/fonts/ComicMono-Regular.woff') format('woff');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow-y: auto;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'ComicMono', monospace;
+      font-size: 1rem;
+    }
+
+    .container {
+      min-width: 20rem;
+      max-width: 60rem;
+      width: 100%;
+      padding: clamp(0.75rem, 2vw, 1.25rem);
+      margin: auto 0;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    a {
+      color: var(--blue);
+      text-decoration: none;
+      border-bottom: 1px solid var(--line);
+    }
+
+    a:hover {
+      color: var(--seal);
+      border-bottom-color: var(--seal);
+    }
+
+    h1 {
+      color: var(--text);
+      font-weight: normal;
+      margin-bottom: 0;
+    }
+
+    .subhead {
+      margin-top: 0.4rem;
+      color: var(--stamp);
+      font-size: 0.75rem;
+      letter-spacing: 0.04rem;
+    }
+
+    #clock {
+      color: var(--stamp);
+      display: inline-block;
+      margin-top: 0.75rem;
+      font-size: 0.78rem;
+      animation: clockPulse 5.2s ease-in-out infinite;
+    }
+
+    @keyframes clockPulse {
+
+      0%,
+      100% {
+        opacity: 0.74;
+      }
+
+      50% {
+        opacity: 0.90;
+      }
+    }
+
+    nav {
+      padding: 1rem 0;
+      font-size: 0.85rem;
+    }
+
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+      margin: 2rem 0;
+    }
+
+    @media (min-width: 28rem) {
+      .gallery {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (min-width: 40rem) {
+      .gallery {
+        grid-template-columns: repeat(6, 1fr);
+        gap: 1rem;
+      }
+    }
+
+    .card {
+      transition: grid-column 0.2s ease;
+    }
+
+    .card img {
+      width: 100%;
+      height: 7rem;
+      object-fit: contain;
+      display: block;
+      cursor: zoom-in;
+    }
+
+    .meta {
+      margin-top: 0.5rem;
+      font-size: 0.75rem;
+      color: var(--stamp);
+      word-break: break-word;
+      text-align: center;
+    }
+
+    .card.expanded {
+      grid-column: 1 / -1;
+      text-align: center;
+    }
+
+    .card.expanded img {
+      width: auto;
+      height: auto;
+      max-width: 100%;
+      max-height: 45vh;
+      object-fit: contain;
+      cursor: zoom-out;
+      margin: 0 auto;
+      background: #ffffff;
+    }
+
+    .card.expanded .meta {
+      color: var(--text);
+    }
+
+    @media print {
+      body {
+        display: block;
+        min-height: auto;
+        background: white !important;
+        color: #000 !important;
+      }
+
+      .container {
+        max-width: none;
+        padding: 0;
+      }
+
+      nav,
+      #clock {
+        display: none !important;
+      }
+
+      h1,
+      .subhead {
+        color: #000;
+      }
+
+      header {
+        border: 0;
+        background: transparent;
+        padding: 0;
+      }
+
+      .gallery {
+        grid-template-columns: repeat(5, 1fr);
+        gap: 0.2in;
+        margin: 0.25in 0 0;
+      }
+
+      .card {
+        border: none;
+        background: transparent;
+        padding: 0;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      .card img,
+      .card.expanded img {
+        width: 100%;
+        height: 0.9in;
+        max-width: none;
+        max-height: none;
+        object-fit: contain;
+        filter: grayscale(100%);
+        border: 0;
+        background: transparent;
+      }
+
+      .meta {
+        color: #000;
+        font-size: 0.5rem;
+        margin-top: 0.04in;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <nav>
+      <a href="index.html">mikeb.work</a>
+    </nav>
+
+    <time id="clock"></time>
+
+    <header>
+      <h1>Capital army</h1>
+      <div class="subhead" id="subhead">50 soldiers</div>
+    </header>
+
+    <main>
+      <section class="gallery" id="gallery" aria-label="Capital Army roster"></section>
+    </main>
+  </div>
+
+  <script src="/backoffice/the-stacks/capital-army-soldiers.js"></script>
+
+  <script>
+    // ---- Clock ----
+    (() => {
+      const clock = document.getElementById('clock');
+      const subhead = document.getElementById('subhead');
+
+      function updateClock() {
+        const now = new Date();
+        const days = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        const stamp =
+          `${String(now.getHours()).padStart(2, '0')}:` +
+          `${String(now.getMinutes()).padStart(2, '0')} ` +
+          `${days[now.getDay()]} ${String(now.getDate()).padStart(2, '0')} ${months[now.getMonth()]}`;
+
+        clock.textContent =
+          `${days[now.getDay()]} ${months[now.getMonth()]} ${now.getDate()} ` +
+          `${String(now.getHours()).padStart(2, '0')}:` +
+          `${String(now.getMinutes()).padStart(2, '0')}:` +
+          `${String(now.getSeconds()).padStart(2, '0')}:` +
+          `${String(now.getMilliseconds()).padStart(3, '0')}`;
+
+        subhead.textContent = `Roster of 50 ${stamp}`;
+      }
+
+      updateClock();
+      setInterval(updateClock, 50);
+    })();
+
+    // ---- Render roster from shared soldier manifest ----
+    (() => {
+      const gallery = document.getElementById('gallery');
+      const army = window.CapitalArmy || window.PrimeArmy;
+
+      if (!gallery || !army) {
+        console.warn('Capital Army soldier manifest unavailable.');
+        return;
+      }
+
+      const soldiers = army.soldiers || [];
+      const fullName = army.fullName || (soldier => `${soldier.first} ${soldier.last}`);
+      const avatarUrl = army.avatarUrl || (soldier => `/backoffice/the-stacks/soldiers/soldier_${String(soldier.id).padStart(2, '0')}.jpg`);
+      const escapeHtml = army.escapeHtml || (value => String(value).replace(/[&<>'"]/g, char => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;'
+      }[char])));
+
+      gallery.innerHTML = soldiers.map(soldier => {
+        const name = fullName(soldier);
+
+        return `
+          <div class="card">
+            <img
+              src="${avatarUrl(soldier)}"
+              alt="${escapeHtml(name)}"
+              loading="lazy"
+              onerror="this.closest('.card').remove()"
+            >
+            <div class="meta">${escapeHtml(name)}</div>
+          </div>
+        `;
+      }).join('');
+    })();
+
+    // ---- Gallery interaction ----
+    (() => {
+      const gallery = document.getElementById('gallery');
+
+      if (!gallery) return;
+
+      function closeOpenCards(exceptCard = null) {
+        gallery.querySelectorAll('.card.expanded').forEach(card => {
+          if (card !== exceptCard) card.classList.remove('expanded');
+        });
+      }
+
+      gallery.addEventListener('click', (e) => {
+        const img = e.target.closest('img');
+        if (!img) return;
+
+        const card = img.closest('.card');
+        const wasOpen = card.classList.contains('expanded');
+
+        closeOpenCards(card);
+        card.classList.toggle('expanded', !wasOpen);
+
+        if (!wasOpen) {
+          requestAnimationFrame(() => {
+            card.scrollIntoView({
+              behavior: 'smooth',
+              block: 'center'
+            });
+          });
+        }
+      });
+    })();
+  </script>
+</body>
+
+</html>

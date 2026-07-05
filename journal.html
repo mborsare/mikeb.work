@@ -29,9 +29,6 @@
       border-color: var(--stamp);
     }
 
-    /* ===============================================
-     CUSTOM PROPERTIES (CSS Variables)
-     =============================================== */
     :root {
       --bg: #000000;
       --text: #c0c0c0;
@@ -40,9 +37,6 @@
       --line-color: rgba(210, 210, 210, 0.22);
     }
 
-    /* ===============================================
-     FONTS
-     =============================================== */
     html {
       font-size: 16px;
     }
@@ -67,9 +61,6 @@
       margin: 0;
     }
 
-    /* ===============================================
-     LAYOUT - Base structure
-     =============================================== */
     body {
       margin: 0;
       min-height: 100vh;
@@ -87,9 +78,6 @@
       padding: 1rem;
     }
 
-    /* ===============================================
-     HEADER
-     =============================================== */
     header {
       display: flex;
       flex-direction: column;
@@ -128,9 +116,6 @@
       font-size: 0.9rem;
     }
 
-    /* ===============================================
-     HANDWRITING SECTION
-     =============================================== */
     .rules-section {
       margin: 0rem 0 2rem 0;
     }
@@ -169,9 +154,6 @@
       margin-top: 2rem;
     }
 
-    /* ===============================================
-     BOTTOM SECTION - 2 columns
-     =============================================== */
     .bottom-section {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -197,22 +179,12 @@
       font-size: 0.8rem;
     }
 
-
-    /* ===============================================
-     LEFT COLUMN - Cursive
-     =============================================== */
     .cursive-area {
       display: flex;
       flex-direction: column;
       gap: 1.5rem;
     }
 
-    /* ===============================================
-     SOLDIER SQUAD CARDS
-     Avatars are individual portrait files hosted at
-     /backoffice/the-stacks/soldiers/soldier_NN.jpg (NN = zero-padded
-     id, e.g. soldier_05.jpg). See avatarUrl() in the script below.
-     =============================================== */
     .squad-stack {
       flex: 1;
       display: flex;
@@ -257,6 +229,7 @@
     .soldier-cue {
       font-size: 125%;
       opacity: 75%;
+      white-space: pre-line;
     }
 
     .soldier-name {
@@ -272,7 +245,7 @@
       padding: 0 1rem;
       letter-spacing: .25rem;
       display: grid;
-      grid-template-columns: repeat(3, 1.28rem);
+      grid-template-columns: repeat(2, auto);
     }
 
     .soldier-outcome {
@@ -285,9 +258,6 @@
       opacity: 50%;
     }
 
-    /* ===============================================
-     DRAW GRID (emotions/behaviors)
-     =============================================== */
     .draw-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -310,9 +280,6 @@
       color: var(--seal);
     }
 
-    /* ===============================================
-     RESPONSIVE - Mobile
-     =============================================== */
     @media (max-width: 900px) {
       .ascii-prime {
         font-size: 0.2rem;
@@ -339,9 +306,6 @@
       }
     }
 
-    /* ===============================================
-     PRINT STYLES
-     =============================================== */
     @page {
       size: letter;
       margin: 0.42in;
@@ -366,13 +330,11 @@
         padding: 0;
       }
 
-      /* Hide screen-only elements */
       .upload-box,
       nav {
         display: none !important;
       }
 
-      /* Header: keep the seal, but stop it from eating the sheet */
       header {
         margin-bottom: 0.08in;
         break-after: avoid;
@@ -414,7 +376,6 @@
         margin-top: 0.03in;
       }
 
-      /* Page-one journal lines */
       .rules-section {
         margin: 0 0 0.18in 0;
       }
@@ -437,7 +398,6 @@
         min-height: 6in;
       }
 
-      /* Page-one mission zone: cursive + five soldiers */
       .bottom-section {
         display: grid;
         grid-template-columns: 0.9fr 1.35fr;
@@ -469,7 +429,6 @@
         margin: 0;
       }
 
-      /* Soldier squad print: compact enough for page one, wide enough to read */
       .squad-stack {
         flex: 0 0 auto;
         display: flex;
@@ -490,7 +449,6 @@
         page-break-inside: avoid;
         padding: 0.025in 0.045in;
       }
-
 
       .soldier-avatar .avatar-img {
         position: absolute;
@@ -514,9 +472,13 @@
         text-overflow: clip;
       }
 
+      .soldier-cue {
+        white-space: pre-line;
+      }
+
       .soldier-outcomes {
         display: grid;
-        grid-template-columns: repeat(3, 0.48in);
+        grid-template-columns: repeat(2, 0.48in);
         gap: 0.08in;
       }
 
@@ -530,7 +492,6 @@
         border-right: 0;
       }
 
-      /* Everything below the daily mission starts after page one */
       .secondary-pages {
         break-before: page;
         page-break-before: always;
@@ -541,7 +502,6 @@
         page-break-before: always;
       }
 
-      /* Write/draw pages */
       .draw-grid {
         gap: 0.12in;
         grid-template-columns: 3fr 3fr 3fr;
@@ -563,13 +523,11 @@
 
 <body>
   <div class="container">
-    <nav style=" padding: 2em 0; text-align: center;">
+    <nav style="padding: 2em 0; text-align: center;">
       <a href="/" style="color: var(--seal)">Back</a>
     </nav>
 
-    <!-- HEADER -->
     <header>
-      <!-- prettier-ignore -->
       <pre class="ascii-prime">
 ██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████ 
 ▓██░  ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█   ▀ 
@@ -582,7 +540,6 @@
             ░      ░         ░      ░  ░
       </pre>
 
-      <!-- prettier-ignore -->
       <pre class="ascii-journal">
 
         ____         _____     ____   ____      _____  _____   ______          ____    ____        
@@ -604,14 +561,11 @@
       <time id="clock"></time>
     </header>
 
-    <!-- RULES -->
     <section class="rules-section mission-lines-section">
       <div class="handwriting-paper" aria-hidden="true"></div>
     </section>
 
-    <!-- TWO COLUMN ZONE -->
     <section class="bottom-section">
-      <!-- LEFT: Cursive -->
       <div class="column">
         <section class="cursive-area">
           <div>
@@ -625,7 +579,6 @@
         </section>
       </div>
 
-      <!-- RIGHT: Today's squad -->
       <div class="column">
         <section aria-label="today's squad">
           <h2 id="ticket-date">Thu Jul 2</h2>
@@ -634,7 +587,6 @@
       </div>
     </section>
 
-    <!-- write and draw -->
     <div class="secondary-pages">
       <section style="margin: 3rem 2rem 0;">
         <h2>Write</h2>
@@ -659,18 +611,14 @@
         <ul class="draw-grid">
           <li>Variance</li>
           <li>The campaign</li>
-
           <li>I traded myself</li>
           <li>I chased</li>
-
           <li>The day stop hit and I kept going</li>
           <li>I accepted the risk</li>
         </ul>
       </section>
-
     </div>
 
-    <!-- jumble and color -->
     <div class="games-section">
       <section data-store="jumble">
         <img class="upload-preview" alt="place Jumble image here" hidden />
@@ -689,7 +637,6 @@
       </section>
     </div>
 
-    <!-- prettier-ignore -->
     <pre class="ascii-journal footer-ascii" style="padding-top: 2rem;">
 
      ***** **                                                           *                                     
@@ -715,11 +662,9 @@
       </pre>
   </div>
 
+  <script src="/backoffice/the-stacks/capital-army-soldiers.js"></script>
+
   <script>
-    /* ============================
-       PAPER LINES
-       Uses real SVG strokes instead of a repeating background image.
-    ============================ */
     (() => {
       const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -777,9 +722,6 @@
       mq.addEventListener?.('change', renderAllPaper);
     })();
 
-    /* ============================
-       CLOCK & DAILY SQUAD
-    ============================ */
     (() => {
       const clock = document.getElementById('clock');
 
@@ -797,311 +739,23 @@
       const MISSION_START = new Date('2026-07-03T00:00:00');
       const SOLDIERS_PER_DAY = 2;
 
-      // Avatars: individual portrait files, one per soldier id.
-      const AVATAR_BASE = '/backoffice/the-stacks/soldiers';
+      const army = window.CapitalArmy || window.PrimeArmy;
 
-      const soldiers = [
-        {
-          id: 1,
-          first: 'Victor',
-          last: 'Alvarez',
-          cue: 'Victor is a very dedicated and old soldier.\nHe misses his brother but does not say it first.'
-        },
-        {
-          id: 2,
-          first: 'Maya',
-          last: 'Lopez',
-          cue: 'Maya keeps a photograph in wax paper.\nWhen things get loud, she speaks softly and people listen.'
-        },
-        {
-          id: 3,
-          first: 'Tyler',
-          last: 'Brooks',
-          cue: 'Tyler can fix a motor with cold hands.\nHe trusts work because work does not lie.'
-        },
-        {
-          id: 4,
-          first: 'Sophia',
-          last: 'Nguyen',
-          cue: 'Sophia writes home on thin blue paper.\nShe never knows what to leave out.'
-        },
-        {
-          id: 5,
-          first: 'James',
-          last: "O'Connor",
-          cue: 'James makes jokes when the room goes still.\nHe is afraid too, but he carries it clean.'
-        },
-        {
-          id: 6,
-          first: 'Nora',
-          last: 'Kim',
-          cue: 'Nora remembers everyone’s coffee order.\nIt is her way of saying she expects them back.'
-        },
-        {
-          id: 7,
-          first: 'Lucas',
-          last: 'Reed',
-          cue: 'Lucas cleans his boots every night.\nThe mud comes back, but he cleans them anyway.'
-        },
-        {
-          id: 8,
-          first: 'Malik',
-          last: 'Johnson',
-          cue: 'Malik hums old songs under his breath.\nNo one asks him to stop.'
-        },
-        {
-          id: 9,
-          first: 'Priya',
-          last: 'Patel',
-          cue: 'Priya notices who has not eaten.\nShe gives food like it is orders.'
-        },
-        {
-          id: 10,
-          first: 'Noah',
-          last: 'Hale',
-          cue: 'Noah packs extra socks and dry matches.\nHe believes small comforts keep men alive.'
-        },
-        {
-          id: 11,
-          first: 'Ethan',
-          last: 'Shaw',
-          cue: 'Ethan does not waste words.\nWhen he speaks, nobody looks away.'
-        },
-        {
-          id: 12,
-          first: 'Claire',
-          last: 'Dubois',
-          cue: 'Claire draws birds in the margins of maps.\nShe says the sky belongs to no army.'
-        },
-        {
-          id: 13,
-          first: 'Marco',
-          last: 'Rossi',
-          cue: 'Marco cooks whenever there is time.\nIt makes the place feel less temporary.'
-        },
-        {
-          id: 14,
-          first: 'Isaac',
-          last: 'Bennett',
-          cue: 'Isaac carries a button from an old coat.\nHe says it is not luck, only memory.'
-        },
-        {
-          id: 15,
-          first: 'Elena',
-          last: 'Cruz',
-          cue: 'Elena checks on the new ones first.\nShe remembers how lonely courage can be.'
-        },
-        {
-          id: 16,
-          first: 'Devon',
-          last: 'Price',
-          cue: 'Devon laughs with his whole chest.\nIt is not softness. It is defiance.'
-        },
-        {
-          id: 17,
-          first: 'Hannah',
-          last: 'Cole',
-          cue: 'Hannah keeps her promises small.\nThat is why people trust them.'
-        },
-        {
-          id: 18,
-          first: 'Colin',
-          last: 'Murphy',
-          cue: 'Colin writes down his mistakes.\nHe does not forgive them, but he learns from them.'
-        },
-        {
-          id: 19,
-          first: 'Leo',
-          last: 'Morales',
-          cue: 'Leo carries grief like a folded letter.\nHe keeps it dry and does not open it on duty.'
-        },
-        {
-          id: 20,
-          first: 'Grace',
-          last: 'Foster',
-          cue: 'Grace ties her hair back before hard things.\nIt tells her body the time has come.'
-        },
-        {
-          id: 21,
-          first: 'Tessa',
-          last: 'Quinn',
-          cue: 'Tessa talks to machines like animals.\nShe says they work better when respected.'
-        },
-        {
-          id: 22,
-          first: 'Carter',
-          last: 'Wells',
-          cue: 'Carter counts everything twice.\nHe knows fear makes arithmetic poor.'
-        },
-        {
-          id: 23,
-          first: 'Benji',
-          last: 'Cohen',
-          cue: 'Benji smiles too fast when nervous.\nHe is learning not to hide so quickly.'
-        },
-        {
-          id: 24,
-          first: 'Keira',
-          last: 'Walsh',
-          cue: 'Keira reads the same book every night.\nThe ending stays where it is.'
-        },
-        {
-          id: 25,
-          first: 'Ravi',
-          last: 'Desai',
-          cue: 'Ravi folds his blanket square.\nHe says dignity lives in small corners.'
-        },
-        {
-          id: 26,
-          first: 'Jonah',
-          last: 'Reed',
-          cue: 'Jonah carries a stone from home.\nIt grows smooth from his thumb by winter.'
-        },
-        {
-          id: 27,
-          first: 'Chloe',
-          last: 'Martin',
-          cue: 'Chloe remembers birthdays and bad dreams.\nShe thinks both matter.'
-        },
-        {
-          id: 28,
-          first: 'Trent',
-          last: 'Walker',
-          cue: 'Trent is a poor student and a careful learner.\nRepetition makes him careful, and care makes him good.'
-        },
-        {
-          id: 29,
-          first: 'Farah',
-          last: 'Nasser',
-          cue: 'Farah prays with her eyes open.\nShe believes faith should keep watch.'
-        },
-        {
-          id: 30,
-          first: 'Mei',
-          last: 'Tan',
-          cue: 'Mei keeps a list of things to mend.\nIt is long, and she is patient.'
-        },
-        {
-          id: 31,
-          first: 'Gabriel',
-          last: 'Ortiz',
-          cue: 'Gabriel sends money home each month.\nHe signs the notes like nothing is hard.'
-        },
-        {
-          id: 32,
-          first: 'Ana',
-          last: 'Silva',
-          cue: 'Ana can sleep anywhere.\nShe never sleeps like someone who is safe.'
-        },
-        {
-          id: 33,
-          first: 'Andre',
-          last: 'Lewis',
-          cue: 'Andre keeps his fear private.\nNot hidden. Private.'
-        },
-        {
-          id: 34,
-          first: 'Ivy',
-          last: 'Chen',
-          cue: 'Ivy listens longer than most people can.\nThat is how she hears the truth arrive.'
-        },
-        {
-          id: 35,
-          first: 'Pavel',
-          last: 'Novak',
-          cue: 'Pavel misses the cold country.\nHe says winter makes men honest.'
-        },
-        {
-          id: 36,
-          first: 'Aisha',
-          last: 'Bello',
-          cue: 'Aisha carries tea in a dry pouch.\nWhen she shares it, the day becomes smaller.'
-        },
-        {
-          id: 37,
-          first: 'Eli',
-          last: 'Foster',
-          cue: 'Eli checks the radio like a pulse.\nHe is calmer when he knows someone can answer.'
-        },
-        {
-          id: 38,
-          first: 'Naomi',
-          last: 'Sato',
-          cue: 'Naomi bows her head before leaving.\nNot for drama. To arrive fully.'
-        },
-        {
-          id: 39,
-          first: 'Owen',
-          last: 'Murphy',
-          cue: 'Owen writes his sister’s jokes in a notebook.\nHe reads them when the world gets sharp.'
-        },
-        {
-          id: 40,
-          first: 'Sienna',
-          last: 'Blake',
-          cue: 'Sienna is gentle with broken gear.\nShe knows broken things still have work in them.'
-        },
-        {
-          id: 41,
-          first: 'Mia',
-          last: 'Santos',
-          cue: 'Mia braids her hair before dawn.\nShe likes to feel ready before she feels brave.'
-        },
-        {
-          id: 42,
-          first: 'Harold',
-          last: 'Cole',
-          cue: 'Harold carries old guilt without display.\nHe tries to make each day useful.'
-        },
-        {
-          id: 43,
-          first: 'Derek',
-          last: 'Patel',
-          cue: 'Derek notices when people go quiet.\nHe has been quiet himself for years.'
-        },
-        {
-          id: 44,
-          first: 'Lina',
-          last: 'Rahman',
-          cue: 'Lina patches her gloves instead of replacing them.\nShe trusts things that have survived use.'
-        },
-        {
-          id: 45,
-          first: 'Wyatt',
-          last: 'Quinn',
-          cue: 'Wyatt pretends praise does not matter.\nStill, he stands straighter when it comes.'
-        },
-        {
-          id: 46,
-          first: 'Ruby',
-          last: 'Ellis',
-          cue: 'Ruby carries candy for the waiting.\nA little sweetness can hold back a dark hour.'
-        },
-        {
-          id: 47,
-          first: 'Omar',
-          last: 'Haddad',
-          cue: 'Omar remembers his mother laughing.\nIt gives him a clean place to return to.'
-        },
-        {
-          id: 48,
-          first: 'Zoe',
-          last: 'Turner',
-          cue: 'Zoe watches the horizon more than the clock.\nShe needs to know where the open space is.'
-        },
-        {
-          id: 49,
-          first: 'Adrian',
-          last: 'Brooks',
-          cue: 'Adrian sharpens pencils with a field knife.\nHe likes a tool that has more than one life.'
-        },
-        {
-          id: 50,
-          first: 'Selma',
-          last: 'Ibrahim',
-          cue: 'Selma breathes slowly when the noise rises.\nShe knows panic is weather, not command.'
-        }
-      ];
+      if (!army) {
+        console.warn('Capital Army soldier manifest unavailable.');
+        return;
+      }
+
+      const soldiers = army.soldiers || [];
+      const shortName = army.shortName || (soldier => `${soldier.first} ${soldier.last[0]}.`);
+      const avatarUrl = army.avatarUrl || (soldier => `/backoffice/the-stacks/soldiers/soldier_${String(soldier.id).padStart(2, '0')}.jpg`);
+      const escapeHtml = army.escapeHtml || (value => String(value).replace(/[&<>'"]/g, char => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;'
+      }[char])));
 
       function isTradingDay(date) {
         const day = date.getDay();
@@ -1130,27 +784,19 @@
       }
 
       function displayName(soldier) {
-        return `${soldier.first} ${soldier.last[0]}.`;
-      }
-
-      function avatarUrl(soldier) {
-        return `${AVATAR_BASE}/soldier_${String(soldier.id).padStart(2, '0')}.jpg`;
-      }
-
-      function escapeHtml(value) {
-        return String(value).replace(/[&<>'"]/g, char => ({
-          '&': '&amp;',
-          '<': '&lt;',
-          '>': '&gt;',
-          "'": '&#39;',
-          '"': '&quot;'
-        }[char]));
+        return shortName(soldier);
       }
 
       function renderSquad(date) {
+        if (!soldiers.length) return;
+
         const day = tradingDayIndex(date);
         const startIndex = (day * SOLDIERS_PER_DAY) % soldiers.length;
         const squad = soldiers.slice(startIndex, startIndex + SOLDIERS_PER_DAY);
+
+        if (squad.length < SOLDIERS_PER_DAY) {
+          squad.push(...soldiers.slice(0, SOLDIERS_PER_DAY - squad.length));
+        }
 
         if (title) {
           title.textContent = date
@@ -1183,7 +829,6 @@
       renderSquad(testDate ? new Date(`${testDate}T12:00:00`) : new Date());
     })();
 
-    // Image upload/restore
     (() => {
       const today = new Date().toISOString().slice(0, 10);
 
@@ -1194,7 +839,6 @@
         const input = section.querySelector('input[type="file"]');
         const img = section.querySelector('.upload-preview');
 
-        // restore
         const saved = localStorage.getItem(storageKey);
         if (saved) {
           img.src = saved;
@@ -1220,13 +864,11 @@
       });
     })();
 
-    // Daily Questions
     (async () => {
       try {
         const res = await fetch('/backoffice/reflect-prompts.json');
         const prompts = await res.json();
 
-        // randomize + take 3
         const selected = [...prompts]
           .sort(() => Math.random() - 0.5)
           .slice(0, 3);
