@@ -107,8 +107,9 @@
     .gallery {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 0.75rem;
+      gap: 1.25rem;
       margin: 2rem 0;
+      padding: 0.5rem;
     }
 
     @media (min-width: 28rem) {
@@ -120,20 +121,27 @@
     @media (min-width: 40rem) {
       .gallery {
         grid-template-columns: repeat(6, 1fr);
-        gap: 1rem;
+        gap: 1.5rem;
       }
     }
 
     .card {
-      transition: grid-column 0.2s ease;
+      transition: grid-column 0.2s ease, transform 0.25s ease;
+      transform: rotate(var(--rot, 0deg)) translateY(var(--drift, 0px));
+    }
+
+    .card:hover {
+      transform: rotate(0deg) translateY(0px) scale(1.06);
+      z-index: 2;
+      position: relative;
     }
 
     .card img {
       width: 100%;
-      height: 7rem;
       object-fit: contain;
       display: block;
       cursor: zoom-in;
+      padding: 0.25rem;
     }
 
     .meta {
@@ -145,7 +153,8 @@
     }
 
     .name {
-      color: inherit;
+      color: var(--blue);
+      font-size: 125%;
     }
 
     .cue {
@@ -164,6 +173,8 @@
     .card.expanded {
       grid-column: 1 / -1;
       text-align: center;
+      transform: none;
+      z-index: 3;
     }
 
     .card.expanded img {
@@ -218,6 +229,7 @@
         grid-template-columns: repeat(5, 1fr);
         gap: 0.2in;
         margin: 0.25in 0 0;
+        padding: 0;
       }
 
       .card {
@@ -226,6 +238,7 @@
         padding: 0;
         break-inside: avoid;
         page-break-inside: avoid;
+        transform: none !important;
       }
 
       .card img,
@@ -238,6 +251,7 @@
         filter: grayscale(100%);
         border: 0;
         background: transparent;
+        padding: 0;
       }
 
       .meta {
@@ -325,9 +339,11 @@
         const cue = soldier.cue
           ? `<div class="cue">${escapeHtml(soldier.cue)}</div>`
           : '';
+        const rot = (Math.random() * 99 - 81).toFixed(1); // random tilt: -6deg to 6deg
+        const drift = (Math.random() * 81 - 17).toFixed(1); // random vertical drift: -4px to 4px
 
         return `
-    <div class="card">
+    <div class="card" style="--rot: ${rot}deg; --drift: ${drift}px">
       <img
         src="${avatarUrl(soldier)}"
         alt="${escapeHtml(name)}"
