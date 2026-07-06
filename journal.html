@@ -169,6 +169,35 @@
       font-weight: normal;
     }
 
+    .ticket-date-row {
+      display: flex;
+      align-items: baseline;
+      gap: 0.75rem;
+      margin: 0 0 0.75rem 0;
+    }
+
+    .ticket-date-row h2 {
+      margin: 0;
+    }
+
+    .field-report {
+      color: var(--seal);
+      text-decoration: none;
+      font-size: 0.7rem;
+      letter-spacing: 0.08rem;
+      white-space: nowrap;
+    }
+
+    .field-report:hover,
+    .field-report:focus-visible {
+      text-decoration: underline;
+    }
+
+    .field-report:focus-visible {
+      outline: 1px solid var(--seal);
+      outline-offset: 0.2rem;
+    }
+
     ul {
       list-style: none;
       margin-top: 0.3rem;
@@ -535,7 +564,7 @@
 <body>
   <div class="container">
     <nav style="padding: 2em 0; text-align: center;">
-      <a href="/" style="color: var(--seal)">Back</a>
+      <a href="/" style="color: var(--seal)">mikeb.work</a>
     </nav>
 
     <header>
@@ -592,7 +621,11 @@
 
       <div class="column">
         <section aria-label="today's squad">
-          <h2 id="ticket-date">Thu Jul 2</h2>
+          <div class="ticket-date-row">
+            <h2 id="ticket-date">Thu Jul 2</h2>
+            <a class="field-report" href="/field.html">1. View the field</a>
+            <p>2. Deploy capital soldiers 1 at a time</p>
+          </div>
           <div class="squad-stack" id="squad-stack"></div>
         </section>
       </div>
