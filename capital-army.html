@@ -281,8 +281,10 @@
     <time id="clock">--</time>
 
     <header>
-      <h1>Capital army</h1>
-      <div class="subhead" id="subhead">Roster of 50</div>
+      <h1>Capital Army</h1>
+      <div class="subhead">Roster strength 30</div>
+      <div class="subhead">Mission strength 20</div>
+      <div class="subhead">Patrol strength 2</div>
     </header>
 
     <main>
@@ -307,7 +309,6 @@
     // ---- Clock ----
     (() => {
       const clock = document.getElementById('clock');
-      const subhead = document.getElementById('subhead');
 
       function updateClock() {
         const now = new Date();
@@ -325,7 +326,6 @@
           `${String(now.getMinutes()).padStart(2, '0')}:` +
           `${String(now.getSeconds()).padStart(2, '0')}`;
 
-        subhead.textContent = `Roster of 50 ${stamp}`;
       }
 
       updateClock();
