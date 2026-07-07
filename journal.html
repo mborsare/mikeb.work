@@ -170,21 +170,13 @@
     }
 
     .ticket-date-row {
-      display: flex;
-      align-items: baseline;
-      gap: 0.75rem;
       margin: 0 0 0.75rem 0;
-    }
-
-    .ticket-date-row h2 {
-      margin: 0;
     }
 
     .field-report {
       color: var(--seal);
+      display: block;
       text-decoration: none;
-      font-size: 0.7rem;
-      letter-spacing: 0.08rem;
       white-space: nowrap;
     }
 
@@ -267,7 +259,6 @@
     }
 
     .soldier-cue {
-      font-size: 125%;
       opacity: 75%;
       white-space: pre-line;
     }
@@ -352,6 +343,19 @@
     }
 
     @media print {
+      :root {
+        --bg: #ffffff;
+        --text: #000000;
+        --stamp: #999999;
+        --seal: #000000;
+        --line-color: #d8d8d8;
+      }
+
+      * {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
       html {
         font-size: 16px;
       }
@@ -359,26 +363,24 @@
       body {
         display: block;
         min-height: auto;
-        background: white !important;
-        color: #000 !important;
+        background: var(--bg) !important;
+        color: var(--text) !important;
         line-height: 1.2;
       }
 
       .container {
-        width: 100%;
         max-width: none;
         padding: 0;
       }
 
-      .upload-box,
-      nav {
+      nav,
+      .upload-box {
         display: none !important;
       }
 
       header {
         margin-bottom: 0.08in;
         break-after: avoid;
-        page-break-after: avoid;
       }
 
       header pre {
@@ -388,68 +390,51 @@
       .ascii-prime {
         font-size: 0.135rem;
         line-height: 0.9;
-        color: #000;
       }
 
       .ascii-journal {
         font-size: 0.215rem;
         line-height: 0.9;
-        color: #000;
         opacity: 1;
       }
 
-      .sign-here {
-        color: #999;
-        opacity: 1;
-        margin-top: 0.03in;
-        margin-right: 0;
-        font-size: 0.5rem;
-        line-height: 1;
-      }
-
+      .sign-here,
       #clock {
-        display: block;
-        color: #000;
         opacity: 1;
         font-size: 0.55rem;
         line-height: 1;
         margin-top: 0.03in;
       }
 
+      .sign-here {
+        margin-right: 0;
+      }
+
       .rules-section {
-        margin: 0 0 0.18in 0;
+        margin-bottom: 0.18in;
       }
 
       .handwriting-paper {
-        min-height: 10rem;
-        background: white !important;
-        background-image: none !important;
+        background: #ffffff !important;
         --paper-line-gap: 0.3in;
-        --paper-line-color: #d8d8d8;
+        --paper-line-color: var(--line-color);
       }
 
       .mission-lines-section {
         margin-bottom: 0.16in;
         break-inside: avoid;
-        page-break-inside: avoid;
       }
 
       .mission-lines-section .handwriting-paper {
-        min-height: 6in;
+        min-height: 5.675in;
       }
 
       .bottom-section {
-        display: grid;
         grid-template-columns: 0.9fr 1.35fr;
         gap: 0.25in;
         align-items: start;
         font-size: 0.55rem;
         break-inside: avoid;
-        page-break-inside: avoid;
-      }
-
-      .column {
-        min-width: 0;
       }
 
       h2 {
@@ -463,94 +448,49 @@
       }
 
       .cursive-teacher {
-        font-size: 2.75rem;
+        font-size: 2rem;
         letter-spacing: 0.04rem;
         line-height: 0.43in;
-        margin: 0;
-      }
-
-      .squad-stack {
-        flex: 0 0 auto;
-        display: flex;
-        flex-direction: column;
-        gap: 0.035in;
       }
 
       .soldier-card {
-        flex: 0 0 auto;
-        min-height: 0;
-        display: grid;
         grid-template-columns: 0.75in minmax(0, 1fr) auto;
-        align-items: center;
-        gap: 0.08in;
-        background: transparent !important;
-        color: #000 !important;
+        min-height: 0;
+        color: var(--text) !important;
         break-inside: avoid;
-        page-break-inside: avoid;
-        padding: 0.025in 0.045in;
-      }
-
-      .soldier-avatar .avatar-img {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-        display: block;
-      }
-
-      .soldier-copy {
-        min-width: 0;
-        line-height: 1.33;
       }
 
       .soldier-name {
-        color: #000;
+        color: var(--text);
         line-height: 1;
         white-space: nowrap;
-        overflow: visible;
         text-overflow: clip;
       }
 
-      .soldier-cue {
-        white-space: pre-line;
-      }
-
       .soldier-outcomes {
-        display: grid;
         grid-template-columns: repeat(2, 0.48in);
         gap: 0.08in;
       }
 
       .soldier-outcome {
-        display: flex;
-        align-items: center;
-        justify-content: center;
         min-height: 0;
-        color: #000;
-        line-height: 1;
-        border-right: 0;
+        color: var(--text);
       }
 
-      .secondary-pages {
-        break-before: page;
-        page-break-before: always;
-      }
-
+      .secondary-pages,
       .footer-ascii {
         break-before: page;
-        page-break-before: always;
       }
 
       .draw-grid {
+        grid-template-columns: repeat(3, 1fr);
         gap: 0.12in;
-        grid-template-columns: 3fr 3fr 3fr;
       }
 
       .draw-grid li {
-        background-color: transparent !important;
-        border: 1px solid #bbb;
-        color: #000;
+        background: transparent !important;
+        border-color: #bbbbbb;
+        color: var(--text);
         font-size: 0.5rem;
       }
 
@@ -610,7 +550,7 @@
         <section class="cursive-area">
           <div>
             <h2>Cursive</h2>
-            <p class="cursive-teacher">Protect the downside</p>
+            <p class="cursive-teacher">Protect the mission</p>
             <p class="cursive-teacher">Restraint pays</p>
             <p class="cursive-teacher">Emotions are state</p>
             <p class="cursive-teacher">Same canvas</p>
@@ -624,7 +564,9 @@
           <div class="ticket-date-row">
             <h2 id="ticket-date">Thu Jul 2</h2>
             <a class="field-report" href="/field.html">1. View the field</a>
-            <p>2. Deploy capital soldiers 1 at a time</p>
+            <a class="field-report" href="https://chatgpt.com/g/g-6851d442e8ac8191bca2ba28545f3c74-nq-brief">2. Get
+              briefed</a>
+            3. Deploy capital soldiers 1 at a time
           </div>
           <div class="squad-stack" id="squad-stack"></div>
         </section>
