@@ -347,6 +347,9 @@
       <div class="subhead">Roster strength 30</div>
       <div class="subhead">Mission strength 20</div>
       <div class="subhead">Patrol strength 2</div>
+      <div class="subhead" id="mission-state">Mission state loading</div>
+      <div class="subhead" id="mission-end">Mission end loading</div>
+      <div class="subhead" id="next-mission-begin">Next begin loading</div>
     </header>
 
     <main>
@@ -512,6 +515,9 @@
     // ---- Render roster from shared soldier manifest ----
     (() => {
       const gallery = document.getElementById('gallery');
+      const missionStateLabel = document.getElementById('mission-state');
+      const missionEndLabel = document.getElementById('mission-end');
+      const nextMissionBeginLabel = document.getElementById('next-mission-begin');
       const army = window.CapitalArmy || window.PrimeArmy;
       const CAPITAL_ARMY_API = 'https://capitalarmy.mborsare.workers.dev/api/capital-army/state';
       const MISSION_EPOCH = new Date('2026-07-06T00:00:00');
@@ -565,6 +571,40 @@
         return ymd(missionStartFor(date));
       }
 
+      function dateFromYmd(value) {
+        const parts = String(value || '').split('-').map(Number);
+
+        if (parts.length !== 3 || parts.some(part => !Number.isFinite(part))) {
+          return missionStartFor(new Date());
+        }
+
+        return new Date(parts[0], parts[1] - 1, parts[2]);
+      }
+
+      function missionEndForMissionId(missionId) {
+        return addDays(dateFromYmd(missionId), MISSION_LENGTH_DAYS - 1);
+      }
+
+      function nextMissionBeginForMissionId(missionId) {
+        return addDays(dateFromYmd(missionId), MISSION_LENGTH_DAYS);
+      }
+
+      function formatMissionDate(date) {
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        return `${String(date.getDate()).padStart(2, '0')} ${months[date.getMonth()]} ${date.getFullYear()}`;
+      }
+
+      function updateMissionScheduleLabels(missionId = currentMissionId()) {
+        if (missionEndLabel) {
+          missionEndLabel.textContent = `Mission end ${formatMissionDate(missionEndForMissionId(missionId))}`;
+        }
+
+        if (nextMissionBeginLabel) {
+          nextMissionBeginLabel.textContent = `Next begin ${formatMissionDate(nextMissionBeginForMissionId(missionId))}`;
+        }
+      }
+
       function currentMissionId() {
         const params = new URLSearchParams(window.location.search);
         return params.get('mission') || missionIdFor(new Date());
@@ -572,6 +612,39 @@
 
       function soldierId(soldier) {
         return String(soldier.id).padStart(2, '0');
+      }
+
+      function formatMissionUpdatedAt(value) {
+        if (!value) return 'not updated';
+
+        const date = new Date(value);
+
+        if (Number.isNaN(date.getTime())) return 'updated unknown';
+
+        return (
+          'updated ' +
+          `${String(date.getHours()).padStart(2, '0')}:` +
+          `${String(date.getMinutes()).padStart(2, '0')}`
+        );
+      }
+
+      function updateMissionStateLabel(missionState) {
+        if (!missionStateLabel) return;
+
+        const states = missionState?.soldiers || {};
+        let rtb = 0;
+        let kia = 0;
+
+        Object.values(states).forEach(record => {
+          if (record?.state === 'RTB') rtb += 1;
+          if (record?.state === 'KIA') kia += 1;
+        });
+
+        const marked = rtb + kia;
+        const updated = formatMissionUpdatedAt(missionState?.updatedAt);
+
+        missionStateLabel.textContent =
+          `Mission state ${marked} marked · ${rtb} RTB · ${kia} KIA · ${updated}`;
       }
 
       function getWriteKey() {
@@ -631,6 +704,8 @@
       }
 
       function applyMissionState(missionState) {
+        updateMissionScheduleLabels(missionState?.missionId || currentMissionId());
+
         const states = missionState?.soldiers || {};
         activeMissionState = missionState || {
           missionId: currentMissionId(),
@@ -664,6 +739,8 @@
             activeButton.setAttribute('aria-pressed', 'true');
           }
         });
+
+        updateMissionStateLabel(activeMissionState);
       }
 
       async function refreshMissionState() {
@@ -672,6 +749,10 @@
           applyMissionState(missionState);
         } catch (error) {
           console.warn('Capital Army state unavailable.', error);
+
+          if (missionStateLabel && !activeMissionState) {
+            missionStateLabel.textContent = 'Mission state unavailable';
+          }
         }
       }
 
@@ -735,6 +816,8 @@
       }).join('');
 
       gallery.addEventListener('click', handleStateButtonClick);
+
+      updateMissionScheduleLabels();
 
       if (window.CapitalArmyDither) {
         window.CapitalArmyDither.queueDither(gallery);
