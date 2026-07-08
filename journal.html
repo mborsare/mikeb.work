@@ -190,6 +190,21 @@
       outline-offset: 0.2rem;
     }
 
+    .new-pair-button {
+      color: var(--seal);
+      background: transparent;
+      border: 0;
+      border-bottom: 1px solid transparent;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .new-pair-button:hover,
+    .new-pair-button:focus-visible {
+      border-bottom-color: var(--seal);
+      outline: 0;
+    }
+
     ul {
       list-style: none;
       margin-top: 0.3rem;
@@ -425,7 +440,8 @@
       }
 
       nav,
-      .upload-box {
+      .upload-box,
+      .new-pair-button {
         display: none !important;
       }
 
@@ -624,6 +640,7 @@
             <a class="field-report" href="https://chatgpt.com/g/g-6851d442e8ac8191bca2ba28545f3c74-nq-brief">2. Get
               briefed</a>
             3. Deploy capital soldiers 1 at a time
+            <button class="new-pair-button" id="new-pair-button" type="button">New pair</button>
           </div>
           <div class="squad-stack" id="squad-stack"></div>
         </section>
@@ -779,8 +796,11 @@
     (() => {
       const title = document.getElementById('ticket-date');
       const stack = document.getElementById('squad-stack');
+      const newPairButton = document.getElementById('new-pair-button');
       const CAPITAL_ARMY_API = 'https://capitalarmy.mborsare.workers.dev/api/capital-army/state';
       const WRITE_KEY_STORAGE = 'capitalArmyWriteKey';
+      const SQUAD_STORAGE_PREFIX = 'capitalArmySquad';
+      const SERVED_STORAGE_PREFIX = 'capitalArmyServed';
       const MISSION_EPOCH = new Date('2026-07-06T00:00:00');
       const MISSION_LENGTH_DAYS = 14;
       const SOLDIERS_PER_DAY = 2;
@@ -807,6 +827,9 @@
       }[char])));
 
       let currentMissionId = '';
+      let currentDate = new Date();
+      let currentSquad = [];
+      let lastMissionState = null;
 
       function isTradingDay(date) {
         const day = date.getDay();
@@ -869,6 +892,110 @@
 
       function soldierHref(soldier) {
         return `${ARMY_PAGE_URL}#soldier-${soldierId(soldier)}`;
+      }
+
+      function storageDateKey(date) {
+        return ymd(startOfDay(date));
+      }
+
+      function squadStorageKey(missionId, date) {
+        return `${SQUAD_STORAGE_PREFIX}-${missionId}-${storageDateKey(date)}`;
+      }
+
+      function servedStorageKey(missionId) {
+        return `${SERVED_STORAGE_PREFIX}-${missionId}`;
+      }
+
+      function readStorageJson(key, fallback) {
+        try {
+          const value = localStorage.getItem(key);
+          return value ? JSON.parse(value) : fallback;
+        } catch {
+          return fallback;
+        }
+      }
+
+      function writeStorageJson(key, value) {
+        try {
+          localStorage.setItem(key, JSON.stringify(value));
+        } catch (error) {
+          console.warn('Capital Army local storage failed.', error);
+        }
+      }
+
+      function shuffle(values) {
+        const next = [...values];
+
+        for (let i = next.length - 1; i > 0; i -= 1) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [next[i], next[j]] = [next[j], next[i]];
+        }
+
+        return next;
+      }
+
+      function soldiersFromIds(ids) {
+        return ids
+          .map(id => missionSoldiers.find(soldier => soldierId(soldier) === id))
+          .filter(Boolean);
+      }
+
+      function savedServedIds(missionId) {
+        return readStorageJson(servedStorageKey(missionId), []);
+      }
+
+      function saveServedIds(missionId, ids) {
+        const served = new Set(savedServedIds(missionId));
+        ids.forEach(id => served.add(id));
+        writeStorageJson(servedStorageKey(missionId), [...served]);
+      }
+
+      function stateServedIds(missionState) {
+        const states = missionState?.soldiers || {};
+
+        return Object.keys(states).filter(id => states[id]?.state);
+      }
+
+      function defaultSquadFor(date) {
+        const day = tradingDayIndex(date);
+        const startIndex = (day * SOLDIERS_PER_DAY) % missionSoldiers.length;
+        const squad = missionSoldiers.slice(startIndex, startIndex + SOLDIERS_PER_DAY);
+
+        if (squad.length < SOLDIERS_PER_DAY) {
+          squad.push(...missionSoldiers.slice(0, SOLDIERS_PER_DAY - squad.length));
+        }
+
+        return squad;
+      }
+
+      function savedSquadFor(date) {
+        const missionId = missionIdFor(date);
+        const ids = readStorageJson(squadStorageKey(missionId, date), []);
+        const squad = soldiersFromIds(ids);
+        return squad.length === SOLDIERS_PER_DAY ? squad : null;
+      }
+
+      function saveSquadFor(date, squad) {
+        const missionId = missionIdFor(date);
+        const ids = squad.map(soldierId);
+        writeStorageJson(squadStorageKey(missionId, date), ids);
+        saveServedIds(missionId, ids);
+      }
+
+      function randomUnservedSquad(missionState) {
+        const served = new Set([
+          ...savedServedIds(currentMissionId),
+          ...stateServedIds(missionState),
+          ...currentSquad.map(soldierId)
+        ]);
+
+        const eligible = missionSoldiers.filter(soldier => !served.has(soldierId(soldier)));
+
+        if (eligible.length < SOLDIERS_PER_DAY) {
+          return null;
+        }
+
+        return shuffle(eligible).slice(0, SOLDIERS_PER_DAY);
       }
 
       function getWriteKey() {
@@ -958,24 +1085,22 @@
 
         try {
           const missionState = await readMissionState(currentMissionId);
+          lastMissionState = missionState;
           applyMissionState(missionState);
         } catch (error) {
           console.warn('Capital Army state unavailable.', error);
         }
       }
 
-      function renderSquad(date) {
+      function renderSquad(date, squadOverride = null) {
         if (!missionSoldiers.length) return;
 
+        currentDate = date;
         currentMissionId = missionIdFor(date);
 
-        const day = tradingDayIndex(date);
-        const startIndex = (day * SOLDIERS_PER_DAY) % missionSoldiers.length;
-        const squad = missionSoldiers.slice(startIndex, startIndex + SOLDIERS_PER_DAY);
-
-        if (squad.length < SOLDIERS_PER_DAY) {
-          squad.push(...missionSoldiers.slice(0, SOLDIERS_PER_DAY - squad.length));
-        }
+        const squad = squadOverride || savedSquadFor(date) || defaultSquadFor(date);
+        currentSquad = squad;
+        saveSquadFor(date, squad);
 
         if (title) {
           title.textContent = date
@@ -1010,6 +1135,34 @@
         }).join('');
 
         refreshMissionState();
+      }
+
+      if (newPairButton) {
+        newPairButton.addEventListener('click', async () => {
+          newPairButton.disabled = true;
+
+          let missionState = lastMissionState;
+
+          try {
+            missionState = await readMissionState(currentMissionId);
+            lastMissionState = missionState;
+          } catch (error) {
+            console.warn('Capital Army state unavailable. Using local patrol history.', error);
+          }
+
+          const squad = randomUnservedSquad(missionState);
+
+          if (!squad) {
+            alert('No two unserved soldiers left this mission.');
+            newPairButton.disabled = false;
+            return;
+          }
+
+          renderSquad(currentDate, squad);
+          if (missionState) applyMissionState(missionState);
+
+          newPairButton.disabled = false;
+        });
       }
 
       if (stack) {
