@@ -357,7 +357,7 @@
 
     .draw-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 0.6rem;
       margin-top: 0.5rem;
     }
@@ -555,11 +555,6 @@
         break-before: page;
       }
 
-      .draw-grid {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 0.12in;
-      }
-
       .draw-grid li {
         background: transparent !important;
         border-color: #bbbbbb;
@@ -648,30 +643,22 @@
       <section style="margin: 3rem 2rem 0;">
         <h2>Write</h2>
         <section class="rules-section">
-          <p class="daily-question">question from json</p>
+          <p class="daily-question">Why is soldier 1 in the Capital Army?</p>
           <div class="handwriting-paper" aria-hidden="true" style="min-height: 3rem;"></div>
         </section>
 
         <section class="rules-section">
-          <p class="daily-question">question from json</p>
+          <p class="daily-question">Soldier 2 makes me think of ...</p>
           <div class="handwriting-paper" aria-hidden="true" style="min-height: 3rem;"></div>
         </section>
 
-        <section class="rules-section">
-          <p class="daily-question">question from json</p>
-          <div class="handwriting-paper" aria-hidden="true" style="min-height: 3rem;"></div>
-        </section>
       </section>
 
       <section>
         <h2>Draw</h2>
         <ul class="draw-grid">
-          <li>Variance</li>
-          <li>The campaign</li>
-          <li>I traded myself</li>
-          <li>I chased</li>
-          <li>The day stop hit and I kept going</li>
-          <li>I accepted the risk</li>
+          <li>Soldier 1</li>
+          <li>Solder 2</li>
         </ul>
       </section>
     </div>
@@ -1233,38 +1220,6 @@
           reader.readAsDataURL(file);
         });
       });
-    })();
-
-    (async () => {
-      try {
-        const res = await fetch('/backoffice/reflect-prompts.json');
-        const prompts = await res.json();
-
-        const selected = [...prompts]
-          .sort(() => Math.random() - 0.5)
-          .slice(0, 3);
-
-        const els = document.querySelectorAll('.daily-question');
-
-        selected.forEach((q, i) => {
-          if (els[i]) {
-            els[i].textContent = q.prompt;
-          }
-        });
-
-      } catch (e) {
-        console.warn('Prompts unavailable', e);
-
-        const fallbacks = [
-          'What did you learn today?',
-          'What could you improve?',
-          'What are you grateful for?'
-        ];
-
-        document.querySelectorAll('.daily-question').forEach((el, i) => {
-          el.textContent = fallbacks[i] || '';
-        });
-      }
     })();
   </script>
 </body>
