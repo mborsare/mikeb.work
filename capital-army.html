@@ -127,7 +127,7 @@
 
     @media (min-width: 40rem) {
       .gallery {
-        grid-template-columns: repeat(6, 1fr);
+        grid-template-columns: repeat(5, 1fr);
         gap: 1.5rem;
       }
     }
@@ -201,16 +201,16 @@
       color: var(--text);
     }
 
-    .soldier-state {
-      min-height: 1rem;
-      margin-top: 0.25rem;
-      color: var(--stamp);
-      font-size: 0.7rem;
-      letter-spacing: 0.08rem;
+    .card[data-state="RTB"] img,
+    .card[data-state="KIA"] img {
+      scale: 81%;
     }
 
-    .card[data-state="RTB"] .soldier-state {
-      color: var(--seal);
+
+
+
+    .card[data-state="RTB"] img {
+      filter: sepia(81);
     }
 
     .card[data-state="KIA"] img {
@@ -221,10 +221,6 @@
     .card[data-state="KIA"] .name {
       color: var(--stamp);
       text-decoration: line-through;
-    }
-
-    .card[data-state="KIA"] .soldier-state {
-      color: var(--stamp);
     }
 
     .state-controls {
@@ -240,9 +236,8 @@
       background: transparent;
       color: var(--stamp);
       font: inherit;
-      font-size: 0.65rem;
       line-height: 1;
-      padding: 0.22rem 0.38rem;
+      padding: 0.5rem 0.8rem;
       cursor: pointer;
     }
 
@@ -329,12 +324,6 @@
         color: #000;
         font-size: 0.5rem;
         margin-top: 0.04in;
-      }
-
-      .soldier-state {
-        color: #000;
-        font-size: 0.45rem;
-        min-height: 0;
       }
 
       .state-controls {
@@ -477,7 +466,7 @@
               const blue = data[index + 2];
               const alpha = data[index + 3];
 
-              const luminance = (red * 0.299) + (green * 0.587) + (blue * 0.114);
+              const luminance = (red * 0.299) + (green * 0.581) + (blue * 0.118);
               const contrast = ((luminance - 128) * 1.18) + 128;
               const threshold = ((bayer8[y & 7][x & 7] + 0.5) / 64) * 255;
               const useInk = contrast < threshold;
@@ -641,12 +630,6 @@
         return res.json();
       }
 
-      function stateLabel(state) {
-        if (state === 'RTB') return 'MISSION RTB';
-        if (state === 'KIA') return 'MISSION KIA';
-        return '';
-      }
-
       function applyMissionState(missionState) {
         const states = missionState?.soldiers || {};
         activeMissionState = missionState || {
@@ -656,14 +639,8 @@
         };
 
         gallery.querySelectorAll('.card').forEach(card => {
-          const stateEl = card.querySelector('.soldier-state');
           const stateButtons = card.querySelectorAll('.state-button');
-
           delete card.dataset.state;
-
-          if (stateEl) {
-            stateEl.textContent = '';
-          }
 
           stateButtons.forEach(button => {
             button.classList.remove('is-active');
@@ -678,14 +655,9 @@
           const card = gallery.querySelector(`[data-soldier-id="${id}"]`);
           if (!card) return;
 
-          const stateEl = card.querySelector('.soldier-state');
           const activeButton = card.querySelector(`.state-button[data-state="${state}"]`);
 
           card.dataset.state = state;
-
-          if (stateEl) {
-            stateEl.textContent = stateLabel(state);
-          }
 
           if (activeButton) {
             activeButton.classList.add('is-active');
@@ -752,7 +724,6 @@
       >
       <div class="meta">
         <div class="name">${escapeHtml(name)}</div>
-        <div class="soldier-state" aria-label="Mission state"></div>
         ${cue}
         <div class="state-controls" aria-label="Mission roster marks">
           <button class="state-button" type="button" data-state="RTB" aria-pressed="false" title="Mark ${escapeHtml(name)} mission RTB">RTB</button>
