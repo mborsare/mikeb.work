@@ -442,10 +442,17 @@
 
         const naturalWidth = img.naturalWidth;
         const naturalHeight = img.naturalHeight;
-        const maxWidth = 480;
-        const scale = Math.min(1, maxWidth / naturalWidth);
-        const width = Math.max(1, Math.round(naturalWidth * scale));
-        const height = Math.max(1, Math.round(naturalHeight * scale));
+
+        // This controls the chunkiness of the dither.
+        const sampleWidth = 200;
+        const sampleScale = Math.min(1, sampleWidth / naturalWidth);
+        const width = Math.max(1, Math.round(naturalWidth * sampleScale));
+        const height = Math.max(1, Math.round(naturalHeight * sampleScale));
+
+        // This controls the final exported size.
+        const outputWidth = Math.min(naturalWidth, 720);
+        const outputScale = outputWidth / naturalWidth;
+        const outputHeight = Math.max(1, Math.round(naturalHeight * outputScale));
 
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d', {willReadFrequently: true});
@@ -470,7 +477,7 @@
               const alpha = data[index + 3];
 
               const luminance = (red * 0.299) + (green * 0.581) + (blue * 0.118);
-              const contrast = ((luminance - 128) * 1.18) + 128;
+              const contrast = ((luminance - 128) * 1) + 181;
               const threshold = ((bayer8[y & 7][x & 7] + 0.5) / 64) * 255;
               const useInk = contrast < threshold;
               const color = useInk ? ink : paper;
@@ -483,8 +490,22 @@
           }
 
           context.putImageData(imageData, 0, 0);
-          img.src = canvas.toDataURL('image/png');
+
+          const outputCanvas = document.createElement('canvas');
+          const outputContext = outputCanvas.getContext('2d');
+
+          if (!outputContext) return;
+
+          outputCanvas.width = outputWidth;
+          outputCanvas.height = outputHeight;
+
+          // Important: keeps the dither blocky instead of blurry.
+          outputContext.imageSmoothingEnabled = false;
+          outputContext.drawImage(canvas, 0, 0, outputWidth, outputHeight);
+
+          img.src = outputCanvas.toDataURL('image/png');
           img.classList.add('is-dithered-photo');
+
         } catch (error) {
           img.dataset.dithered = 'false';
           img.classList.remove('is-dithered-photo');
