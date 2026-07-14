@@ -484,11 +484,11 @@
       const valSpan = document.createElement('span');
       const priceNum = Number(item.price ?? 0);
 
-      let direction = '→';
+      let direction = '`';
 
       if (previousPrice !== null) {
-        if (priceNum > previousPrice) direction = '↑';
-        else if (priceNum < previousPrice) direction = '↓';
+        if (priceNum > previousPrice) direction = ' ⬆︎  ';
+        else if (priceNum < previousPrice) direction = ' ⬇︎  ';
       }
 
       valSpan.textContent =
