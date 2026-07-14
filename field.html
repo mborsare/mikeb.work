@@ -484,16 +484,18 @@
       const valSpan = document.createElement('span');
       const priceNum = Number(item.price ?? 0);
 
-      let direction = '`';
+      let direction = '..';
 
       if (previousPrice !== null) {
-        if (priceNum > previousPrice) direction = ' ⬆︎  ';
-        else if (priceNum < previousPrice) direction = ' ⬇︎  ';
+        if (priceNum > previousPrice) direction = 'up';
+        else if (priceNum < previousPrice) direction = 'dn';
       }
 
       valSpan.textContent =
         item.range !== undefined && item.range !== null
-          ? `${priceNum.toFixed(2)} ${direction} ${item.range.toFixed(2)}`
+          ? `${priceNum.toFixed(2)} ${direction} ${Number(item.range)
+            .toFixed(2)
+            .padStart(5, '\u00A0')}`
           : priceNum.toFixed(2);
 
       if (item.range !== undefined && item.range !== null) {
