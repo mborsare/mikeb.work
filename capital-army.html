@@ -311,11 +311,11 @@
 
     .card img {
       width: 100%;
+      border-radius: 1rem;
       object-fit: contain;
       display: block;
-      cursor: zoom-in;
+      cursor: crosshair;
       padding: 0.25rem;
-      image-rendering: pixelated;
     }
 
     .meta {
@@ -362,23 +362,12 @@
       background: transparent;
     }
 
-    .card[data-state="RTB"] img,
     .card[data-state="KIA"] img {
-      scale: 81%;
-    }
-
-    .card[data-state="RTB"] img {
-      filter: sepia(81);
-    }
-
-    .card[data-state="KIA"] img {
-      opacity: 0.28;
-      filter: grayscale(100%) contrast(1.12);
+      filter: invert(1);
     }
 
     .card[data-state="KIA"] .name {
-      color: var(--stamp);
-      text-decoration: line-through;
+      color: lightgrey;
     }
 
     .state-controls {
@@ -396,19 +385,19 @@
       font: inherit;
       line-height: 1;
       padding: 0.5rem 0.8rem;
-      cursor: pointer;
     }
 
     .state-button:hover,
     .state-button:focus-visible,
     .state-button.is-active {
       color: var(--seal);
-      border-color: var(--seal);
+      border: 0;
     }
 
     .card[data-state="KIA"] .state-button.is-active {
       color: var(--stamp);
-      border-color: var(--stamp);
+      cursor: not-allowed;
+      border-color: none;
     }
 
     @media print {
