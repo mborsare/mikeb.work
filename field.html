@@ -256,7 +256,7 @@
       border: 2px solid var(--seal);
     }
 
-    /* ── speculator mode ───────────────────────── */
+    /* ── mode switches ── */
     .mode-switch {
       display: inline-flex;
       align-items: center;
@@ -352,16 +352,22 @@
       <button class="tab" data-symbol="ES">ES</button>
     </div>
 
-    <label class="mode-switch">
-      <input id="speculatorMode" type="checkbox" />
-      <span>Speculator mode</span>
-    </label>
+    <div style="display:flex; gap: 1.5rem">
+      <label class="mode-switch">
+        <input id="speculatorMode" type="checkbox" />
+        <span>Speculator</span>
+      </label>
+      <label class="mode-switch">
+        <input id="audioToggle" type="checkbox" />
+        <span>Sound</span>
+      </label>
+    </div>
 
     <pre style="text-align: center; font-size: .3rem; padding: 4rem 0 0;">
-▗▄▄▄▖▗▄▄▄▖▗▄▄▄▖▗▖   ▗▄▄▄      ▗▄▄▖ ▗▄▖ ▗▖  ▗▖▗▄▄▄ ▗▄▄▄▖▗▄▄▄▖▗▄▄▄▖ ▗▄▖ ▗▖  ▗▖ ▗▄▄▖
-▐▌      █  ▐▌   ▐▌   ▐▌  █     ▐▌   ▐▌ ▐▌▐▛▚▖▐▌▐▌  █  █    █    █  ▐▌ ▐▌▐▛▚▖▐▌▐▌   
-▐▛▀▀▘   █  ▐▛▀▀▘▐▌   ▐▌  █     ▐▌   ▐▌ ▐▌▐▌ ▝▜▌▐▌  █  █    █    █  ▐▌ ▐▌▐▌ ▝▜▌ ▝▀▚▖
-▐▌   ▗▄█▄▖▐▙▄▄▖▐▙▄▄▖▐▙▄▄▀     ▝▚▄▄▖▝▚▄▞▘▐▌  ▐▌▐▙▄▄▀▗▄█▄▖  █  ▗▄█▄▖▝▚▄▞▘▐▌  ▐▌▗▄▄▞▘
+▗▄▄▄▖▗▄▄▄▖▗▄▄▄▖▗▖   ▗▄▄▄     ▗▄▄▖ ▗▄▖ ▗▖  ▗▖▗▄▄▄ ▗▄▄▄▖▗▄▄▄▖▗▄▄▄▖ ▗▄▖ ▗▖  ▗▖ ▗▄▄▖
+▐▌    █  ▐▌   ▐▌   ▐▌  █     ▐▌   ▐▌ ▐▌▐▛▚▖▐▌▐▌  █  █   █   █  ▐▌ ▐▌▐▛▚▖▐▌▐▌   
+▐▛▀▀☌   █  ▐▛▀▀☌▐▌   ▐▌  █     ▐▌   ▐▌ ▐▌▐▌ ▝▜▌▐▌  █  █   █   █  ▐▌ ▐▌▐▌ ▝▜▌ ▝▀▚▖
+▐▌   ▗▄█▄▖▐▙▄▄▖▐▙▄▄▖▐▙▄▄▀     ▝▚▄▄▖▝▚▄▞☌▐▌  ▐▌▐▙▄▄▀▗▄█▄▖  █  ▗▄█▄▖▝▚▄▞☌▐▌  ▐▌▗▄▄▞☌
     </pre>
   </div>
 
@@ -384,18 +390,10 @@
   <details class="report-card">
     <summary class="army-label">Market emotions</summary>
     <div class="meta-grid">
-      <div class="meta-item">
-        <span class="meta-val" id="mRegime">—</span>
-      </div>
-      <div class="meta-item">
-        <span class="meta-val" id="mGrade">—</span>
-      </div>
-      <div class="meta-item">
-        <span class="meta-val" id="mRplus">—</span>
-      </div>
-      <div class="meta-item">
-        <span class="meta-val" id="mRange">—</span>
-      </div>
+      <div class="meta-item"><span class="meta-val" id="mRegime">—</span></div>
+      <div class="meta-item"><span class="meta-val" id="mGrade">—</span></div>
+      <div class="meta-item"><span class="meta-val" id="mRplus">—</span></div>
+      <div class="meta-item"><span class="meta-val" id="mRange">—</span></div>
     </div>
   </details>
 
@@ -413,23 +411,36 @@
   <pre id="prime-logo" class="ascii" style="font-size:0.4rem; margin-top:9rem;">
   ██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████ 
   ▓██░  ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█   ▀ 
-  ▓██░ ██▓▒▓██ ░▄█ ▒▒██▒▓██    ▓██░▒███   
-  ▒██▄█▓▒ ▒▒██▀▀█▄  ░██░▒██    ▒██ ▒▓█  ▄ 
+  ▓██░ ██▓▒▓██ ░▄█ ▒▒██▒▓██   ▓██░▒███   
+  ▒██▄█▓▒ ▒▒██▀▀█▄  ░██░▒██   ▒██ ▒▓█  ▄ 
   ▒██▒ ░  ░░██▓ ▒██▒░██░▒██▒   ░██▒░▒████▒
   ▒▓▒░ ░  ░░ ▒▓ ░▒▓░░▓  ░ ▒░   ░  ░░░ ▒░ ░
-  ░▒ ░        ░▒ ░ ▒░ ▒ ░░  ░      ░ ░ ░  ░
-  ░░          ░░   ░  ▒ ░░      ░      ░   
-                ░      ░          ░      ░  ░
+  ░▒ ░      ░▒ ░ ▒░ ▒ ░░  ░      ░ ░ ░  ░
+  ░░        ░░   ░  ▒ ░░      ░      ░   
+                 ░      ░          ░     ░
 </pre>
 
   <script>
     let SYMBOL = "NQ";
     const STORAGE_KEY_BASE = 'primeWeatherHistory';
+    const SPECULATOR_MODE_KEY = 'fieldSpeculatorMode';
+    const AUDIO_KEY = 'fieldAudioEnabled';
+
+    // ── Audio Setup ─────────────────────────────
+    const audioToggle = document.getElementById('audioToggle');
+    const tickSound = new Audio('/backoffice/the-stacks/tickertape.m4a');
+
+    function playMechanicalTick() {
+      if (audioToggle.checked) {
+        tickSound.currentTime = 0;
+        tickSound.play().catch(e => console.log("Audio awaiting interaction"));
+      }
+    }
+
     function storageKey() {return `${STORAGE_KEY_BASE}_${SYMBOL}`;}
 
     const ET_TZ = "America/New_York";
     const TOTAL_SOLDIERS = 250;
-    const SPECULATOR_MODE_KEY = 'fieldSpeculatorMode';
 
     let rawHistoricalData = [];
     let visibleItemCount = 0;
@@ -443,9 +454,7 @@
     function initLazyLoad() {
       if (observer) observer.disconnect();
       observer = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting) {
-          appendMoreData();
-        }
+        if (entries[0].isIntersecting) {appendMoreData();}
       }, {rootMargin: '600px'});
     }
 
@@ -464,25 +473,19 @@
       const block = document.createElement('div');
       block.className = 'data-block';
       block.dataset.ts = item.ts;
-
       const row = document.createElement('div');
       row.className = 'data-row';
-
       const timeSpan = document.createElement('span');
       timeSpan.textContent = new Date(item.ts).toLocaleTimeString('en-US', {timeZone: ET_TZ});
-
       const valSpan = document.createElement('span');
       const priceNum = item.price ?? 0;
-
       valSpan.textContent = item.range !== undefined && item.range !== null
         ? `${priceNum.toFixed(2)} / ${item.range.toFixed(2)}`
         : priceNum.toFixed(2);
-
       if (item.range !== undefined && item.range !== null) {
         if (item.range > mean + 2 * std) valSpan.className = 'outlier';
         else if (item.range > mean + std) valSpan.className = 'outlier-soft';
       }
-
       row.appendChild(timeSpan);
       row.appendChild(valSpan);
       block.appendChild(row);
@@ -493,42 +496,33 @@
       const grid = document.getElementById('dataGrid');
       if (!grid) return;
       grid.innerHTML = '';
-
       const primary = document.createElement('div');
       primary.className = 'tape-copy';
       grid.appendChild(primary);
-
       const sentinel = document.createElement('div');
       sentinel.className = 'sentinel';
       grid.appendChild(sentinel);
-
       if (rawHistoricalData.length === 0) return;
-
       visibleItemCount = 0;
       initLazyLoad();
       appendMoreData(60);
-
       if (observer) observer.observe(sentinel);
     }
 
     function appendMoreData(chunkSize = 40) {
       if (visibleItemCount >= rawHistoricalData.length) return;
-
       const primary = document.querySelector('.tape-copy');
       if (!primary) return;
-
       const startIdx = rawHistoricalData.length - 1 - visibleItemCount;
       const amountToLoad = Math.min(chunkSize, startIdx + 1);
       const endIdx = startIdx - amountToLoad + 1;
       const {mean, std} = getStats();
-
       for (let i = startIdx; i >= endIdx; i--) {
         const item = rawHistoricalData[i];
         if (!item) continue;
         const block = createDataBlock(item, mean, std);
         primary.appendChild(block);
       }
-
       visibleItemCount += amountToLoad;
     }
 
@@ -538,37 +532,21 @@
     }
 
     // ── storage ─────────────────────────────────
-    function loadHistory() {
-      try {return JSON.parse(localStorage.getItem(storageKey())) || [];}
-      catch {return [];}
-    }
-
-    function saveHistory(history) {
-      localStorage.setItem(storageKey(), JSON.stringify(history));
-    }
-
+    function loadHistory() {try {return JSON.parse(localStorage.getItem(storageKey())) || [];} catch {return [];} }
+    function saveHistory(history) {localStorage.setItem(storageKey(), JSON.stringify(history));}
     function appendToHistory(data) {
       const history = loadHistory();
       if (!data || !data.priceSeries || !data.priceSeries.length) return history;
-
       const base = new Date(data.asOf).getTime();
       const n = data.priceSeries.length;
-
       for (let i = 0; i < n; i++) {
         const ts = base - (n - 1 - i) * 60000;
         const pItem = data.priceSeries[i];
         const rItem = data.rangeSeries ? data.rangeSeries[i] : undefined;
-
-        history.push({
-          ts,
-          price: pItem ? (pItem.hi + pItem.lo) / 2 : 0,
-          range: rItem
-        });
+        history.push({ts, price: pItem ? (pItem.hi + pItem.lo) / 2 : 0, range: rItem});
       }
-
       const deduped = Object.values(history.reduce((acc, row) => (acc[row.ts] = row, acc), {}));
       deduped.sort((a, b) => a.ts - b.ts);
-
       const modernCap = deduped.slice(-2000);
       saveHistory(modernCap);
       return modernCap;
@@ -576,7 +554,6 @@
 
     // ── clock + countdown ───────────────────────
     let nextFetch = Date.now() + 60000;
-
     (function () {
       const clockEl = document.getElementById('clock');
       const countdownEl = document.getElementById('countdown');
@@ -589,19 +566,12 @@
       setInterval(tick, 1000);
     })();
 
-    // ── market hours (ET) ───────────────────────
+    // ── market hours ────────────────────────────
     function etParts(date) {
-      const parts = new Intl.DateTimeFormat("en-US", {
-        timeZone: ET_TZ,
-        weekday: "short",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false
-      }).formatToParts(date);
+      const parts = new Intl.DateTimeFormat("en-US", {timeZone: ET_TZ, weekday: "short", hour: "2-digit", minute: "2-digit", hour12: false}).formatToParts(date);
       const get = t => parts.find(p => p.type === t)?.value;
       return {weekday: get("weekday"), hour: Number(get("hour"))};
     }
-
     function isClosedET(date) {
       const p = etParts(date);
       if (["Mon", "Tue", "Wed", "Thu"].includes(p.weekday) && p.hour === 17) return true;
@@ -610,16 +580,12 @@
       if (p.weekday === "Sun" && p.hour < 18) return true;
       return false;
     }
-
     function nextOpenMinute(date) {
       let t = new Date(date.getTime());
       while (isClosedET(t)) {t = new Date(t.getTime() + 60000);}
       return t;
     }
-
-    function computeNextFetch(asOf) {
-      return nextOpenMinute(new Date(asOf)).getTime();
-    }
+    function computeNextFetch(asOf) {return nextOpenMinute(new Date(asOf)).getTime();}
 
     // ── armies ───────────────────────────────────
     function renderArmyAscii(id, count) {
@@ -644,7 +610,6 @@
 
       const timeString = new Date(data.asOf).toLocaleTimeString('en-US', {timeZone: ET_TZ});
       document.getElementById('lastStamp').textContent = `Last fetch: ${timeString}`;
-
       nextFetch = computeNextFetch(data.asOf);
 
       const rPlus = Math.max(0, Math.min(1, Number(data.rPlus ?? 0.5)));
@@ -658,19 +623,17 @@
 
       rawHistoricalData = appendToHistory(data);
 
-      // Inject new data intelligently instead of wiping DOM
       const primary = document.querySelector('.tape-copy');
       if (primary && primary.children.length > 0) {
         const topBlock = primary.firstElementChild;
         const lastTs = Number(topBlock.dataset.ts) || 0;
-
         const newItems = rawHistoricalData.filter(item => item.ts > lastTs);
         const {mean, std} = getStats();
-
         for (let i = 0; i < newItems.length; i++) {
           const block = createDataBlock(newItems[i], mean, std);
           primary.insertBefore(block, primary.firstChild);
           visibleItemCount++;
+          playMechanicalTick(); // Trigger the sound
         }
       } else {
         rebuildVisibleDom();
@@ -682,7 +645,6 @@
       const statusEl = document.getElementById('marketStatus');
       const now = new Date();
       const closed = isClosedET(now);
-
       statusEl.style.display = closed ? 'block' : 'none';
       if (closed) document.getElementById('countdown').textContent = ' (Market closed)';
       return !closed;
@@ -691,54 +653,41 @@
     async function fetchWeather() {
       if (!updateMarketStatus()) return;
       try {
-        const res = await fetch(
-          `https://weather.mborsare.workers.dev/prime/weather/${SYMBOL}`,
-          {cache: 'no-store'}
-        );
+        const res = await fetch(`https://weather.mborsare.workers.dev/prime/weather/${SYMBOL}`, {cache: 'no-store'});
         if (!res.ok) throw new Error();
         updateUI(await res.json());
-      } catch (err) {
-        console.error('Failed to fetch weather data');
-      }
+      } catch (err) {console.error('Failed to fetch weather data');}
     }
 
     function hydrateFromStorage() {
       rawHistoricalData = loadHistory();
-      if (rawHistoricalData.length > 0) {
-        rebuildVisibleDom();
-      }
+      if (rawHistoricalData.length > 0) {rebuildVisibleDom();}
     }
 
-    // ── Event bindings ──
+    // ── Event bindings ──────────────────────────
     const speculatorToggle = document.getElementById('speculatorMode');
     const savedSpeculatorMode = localStorage.getItem(SPECULATOR_MODE_KEY) === '1';
-
     speculatorToggle.checked = savedSpeculatorMode;
     document.body.classList.toggle('speculator-mode', savedSpeculatorMode);
+    speculatorToggle.addEventListener('change', () => setSpeculatorMode(speculatorToggle.checked));
 
-    speculatorToggle.addEventListener('change', () => {
-      setSpeculatorMode(speculatorToggle.checked);
-    });
+    // Audio binding
+    const savedAudio = localStorage.getItem(AUDIO_KEY) === '1';
+    audioToggle.checked = savedAudio;
+    audioToggle.addEventListener('change', () => localStorage.setItem(AUDIO_KEY, audioToggle.checked ? '1' : '0'));
 
     hydrateFromStorage();
-
-    function tickSystem() {
-      if (updateMarketStatus()) fetchWeather();
-    }
-
+    function tickSystem() {if (updateMarketStatus()) fetchWeather();}
     document.querySelectorAll(".tab").forEach(tab => {
       tab.onclick = () => {
         SYMBOL = tab.dataset.symbol;
         document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
         tab.classList.add("active");
-
         setInstrumentClass();
-
         const grid = document.getElementById("dataGrid");
         if (grid) grid.innerHTML = "";
         document.getElementById("buyAscii").innerHTML = "";
         document.getElementById("sellAscii").innerHTML = "";
-
         hydrateFromStorage();
         fetchWeather();
       }
