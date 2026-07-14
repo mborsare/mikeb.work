@@ -468,27 +468,46 @@
       }
       return {mean, std};
     }
-
-    function createDataBlock(item, mean, std) {
+    function createDataBlock(item, mean, std, previousPrice = null) {
       const block = document.createElement('div');
       block.className = 'data-block';
       block.dataset.ts = item.ts;
+
       const row = document.createElement('div');
       row.className = 'data-row';
+
       const timeSpan = document.createElement('span');
-      timeSpan.textContent = new Date(item.ts).toLocaleTimeString('en-US', {timeZone: ET_TZ});
+      timeSpan.textContent = new Date(item.ts).toLocaleTimeString('en-US', {
+        timeZone: ET_TZ
+      });
+
       const valSpan = document.createElement('span');
-      const priceNum = item.price ?? 0;
-      valSpan.textContent = item.range !== undefined && item.range !== null
-        ? `${priceNum.toFixed(2)} / ${item.range.toFixed(2)}`
-        : priceNum.toFixed(2);
-      if (item.range !== undefined && item.range !== null) {
-        if (item.range > mean + 2 * std) valSpan.className = 'outlier';
-        else if (item.range > mean + std) valSpan.className = 'outlier-soft';
+      const priceNum = Number(item.price ?? 0);
+
+      let direction = '→';
+
+      if (previousPrice !== null) {
+        if (priceNum > previousPrice) direction = '↑';
+        else if (priceNum < previousPrice) direction = '↓';
       }
+
+      valSpan.textContent =
+        item.range !== undefined && item.range !== null
+          ? `${priceNum.toFixed(2)} ${direction} ${item.range.toFixed(2)}`
+          : priceNum.toFixed(2);
+
+      if (item.range !== undefined && item.range !== null) {
+        if (item.range > mean + 2 * std) {
+          valSpan.className = 'outlier';
+        } else if (item.range > mean + std) {
+          valSpan.className = 'outlier-soft';
+        }
+      }
+
       row.appendChild(timeSpan);
       row.appendChild(valSpan);
       block.appendChild(row);
+
       return block;
     }
 
@@ -520,7 +539,17 @@
       for (let i = startIdx; i >= endIdx; i--) {
         const item = rawHistoricalData[i];
         if (!item) continue;
-        const block = createDataBlock(item, mean, std);
+        const previousPrice =
+          i > 0
+            ? Number(rawHistoricalData[i - 1]?.price ?? 0)
+            : null;
+
+        const block = createDataBlock(
+          item,
+          mean,
+          std,
+          previousPrice
+        );
         primary.appendChild(block);
       }
       visibleItemCount += amountToLoad;
@@ -630,10 +659,27 @@
         const newItems = rawHistoricalData.filter(item => item.ts > lastTs);
         const {mean, std} = getStats();
         for (let i = 0; i < newItems.length; i++) {
-          const block = createDataBlock(newItems[i], mean, std);
+          const item = newItems[i];
+
+          const dataIndex = rawHistoricalData.findIndex(
+            row => row.ts === item.ts
+          );
+
+          const previousPrice =
+            dataIndex > 0
+              ? Number(rawHistoricalData[dataIndex - 1]?.price ?? 0)
+              : null;
+
+          const block = createDataBlock(
+            item,
+            mean,
+            std,
+            previousPrice
+          );
+
           primary.insertBefore(block, primary.firstChild);
           visibleItemCount++;
-          playMechanicalTick(); // Trigger the sound
+          playMechanicalTick();
         }
       } else {
         rebuildVisibleDom();
