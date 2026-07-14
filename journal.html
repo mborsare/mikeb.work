@@ -230,7 +230,7 @@
     .soldier-card {
       flex: 1;
       display: grid;
-      grid-template-columns: 4rem minmax(0, 1fr) auto;
+      grid-template-columns: 4rem minmax(0, 1fr);
       align-items: center;
       gap: 1.25rem;
       background: transparent;
@@ -295,44 +295,6 @@
       font-size: 150%;
       text-overflow: ellipsis;
       margin-bottom: .5rem;
-    }
-
-    .soldier-outcomes {
-      gap: 2rem;
-      padding: 0 1rem;
-      letter-spacing: .25rem;
-      display: grid;
-      grid-template-columns: repeat(2, auto);
-    }
-
-    .soldier-outcome {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 1.15rem;
-      color: #fff;
-      background: transparent;
-      border: 0;
-      border-bottom: 1px solid transparent;
-      font: inherit;
-      line-height: 1;
-      opacity: 50%;
-      padding: 0;
-      cursor: pointer;
-    }
-
-    .soldier-outcome:hover,
-    .soldier-outcome:focus-visible {
-      color: var(--seal);
-      opacity: 1;
-      outline: 0;
-      border-bottom-color: var(--seal);
-    }
-
-    .soldier-outcome.is-active {
-      color: var(--seal);
-      opacity: 1;
-      border-bottom-color: var(--seal);
     }
 
     .soldier-card[data-state="KIA"] .soldier-avatar,
@@ -521,7 +483,7 @@
       }
 
       .soldier-card {
-        grid-template-columns: 0.75in minmax(0, 1fr) auto;
+        grid-template-columns: 0.75in minmax(0, 1fr);
         min-height: 0;
         color: var(--text) !important;
         break-inside: avoid;
@@ -532,22 +494,6 @@
         line-height: 1;
         white-space: nowrap;
         text-overflow: clip;
-      }
-
-      .soldier-outcomes {
-        grid-template-columns: repeat(2, 0.48in);
-        gap: 0.08in;
-      }
-
-      .soldier-outcome {
-        min-height: 0;
-        color: var(--text);
-        border: 0;
-      }
-
-      .soldier-outcome.is-active {
-        color: var(--text);
-        border: 0;
       }
 
       .secondary-pages,
@@ -631,7 +577,7 @@
         <section aria-label="today's squad">
           <div class="ticket-date-row">
             <h2 id="ticket-date">Thu Jul 2</h2>
-            Scout for 15 minutes. Deploy 1 soldier. If RTB then another soldier is allowed.
+            Scout for 15 minutes. Deploy 1 soldier. If RTB then another soldier is allowed after 14:15
             <button class="new-pair-button" id="new-pair-button" type="button">New pair</button>
           </div>
           <div class="squad-stack" id="squad-stack"></div>
@@ -782,7 +728,6 @@
       const stack = document.getElementById('squad-stack');
       const newPairButton = document.getElementById('new-pair-button');
       const CAPITAL_ARMY_API = 'https://capitalarmy.mborsare.workers.dev/api/capital-army/state';
-      const WRITE_KEY_STORAGE = 'capitalArmyWriteKey';
       const SQUAD_STORAGE_PREFIX = 'capitalArmySquad';
       const SERVED_STORAGE_PREFIX = 'capitalArmyServed';
       const MISSION_EPOCH = new Date('2026-07-06T00:00:00');
@@ -982,20 +927,6 @@
         return shuffle(eligible).slice(0, SOLDIERS_PER_DAY);
       }
 
-      function getWriteKey() {
-        let key = localStorage.getItem(WRITE_KEY_STORAGE);
-
-        if (!key) {
-          key = window.prompt('Capital Army write key');
-
-          if (key) {
-            localStorage.setItem(WRITE_KEY_STORAGE, key);
-          }
-        }
-
-        return key;
-      }
-
       async function readMissionState(missionId) {
         const res = await fetch(`${CAPITAL_ARMY_API}?mission=${encodeURIComponent(missionId)}`, {
           cache: 'no-store'
@@ -1003,38 +934,6 @@
 
         if (!res.ok) {
           throw new Error(`State read failed: ${res.status}`);
-        }
-
-        return res.json();
-      }
-
-      async function writeSoldierState(missionId, id, state) {
-        const key = getWriteKey();
-
-        if (!key) {
-          throw new Error('Missing write key');
-        }
-
-        const res = await fetch(CAPITAL_ARMY_API, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-ca-key': key
-          },
-          body: JSON.stringify({
-            missionId,
-            soldierId: id,
-            state
-          })
-        });
-
-        if (res.status === 401) {
-          localStorage.removeItem(WRITE_KEY_STORAGE);
-          throw new Error('Unauthorized. Saved write key cleared.');
-        }
-
-        if (!res.ok) {
-          throw new Error(`State write failed: ${res.status}`);
         }
 
         return res.json();
@@ -1056,11 +955,6 @@
             if (name) delete name.dataset.state;
           }
 
-          card.querySelectorAll('.soldier-outcome').forEach(button => {
-            const active = button.dataset.stateOption === state;
-            button.classList.toggle('is-active', active);
-            button.setAttribute('aria-pressed', active ? 'true' : 'false');
-          });
         });
       }
 
@@ -1110,10 +1004,6 @@
               </div>
               <div class="soldier-cue">${escapeHtml(soldier.cue)}</div>
             </div>
-            <div class="soldier-outcomes" aria-label="Outcome marks">
-              <button class="soldier-outcome" type="button" data-state-option="RTB" aria-pressed="false">RTB</button>
-              <button class="soldier-outcome" type="button" data-state-option="KIA" aria-pressed="false">KIA</button>
-            </div>
           </article>
         `;
         }).join('');
@@ -1146,33 +1036,6 @@
           if (missionState) applyMissionState(missionState);
 
           newPairButton.disabled = false;
-        });
-      }
-
-      if (stack) {
-        stack.addEventListener('click', async event => {
-          const button = event.target.closest('.soldier-outcome');
-          if (!button) return;
-
-          const card = button.closest('.soldier-card');
-          if (!card) return;
-
-          const id = card.dataset.soldierId;
-          const requestedState = button.dataset.stateOption;
-          const currentState = card.dataset.state || '';
-          const nextState = currentState === requestedState ? null : requestedState;
-
-          button.disabled = true;
-
-          try {
-            const missionState = await writeSoldierState(currentMissionId, id, nextState);
-            applyMissionState(missionState);
-          } catch (error) {
-            console.warn('Capital Army write failed.', error);
-            alert(error.message || 'Capital Army write failed.');
-          } finally {
-            button.disabled = false;
-          }
         });
       }
 
