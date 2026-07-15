@@ -1,0 +1,912 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>mikeb.work/speculation-art</title>
+  <style>
+    :root {
+      font-size: 16px;
+      --bg: whitesmoke;
+      --text: gray;
+      --muted: lightgray;
+      --bright: black;
+      --accent: red;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 400;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Comic Sans MS", "Comic Sans", cursive;
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+
+    a {
+      color: var(--muted);
+      text-underline-offset: .2rem;
+    }
+
+    a:hover,
+    a:focus-visible {
+      color: var(--accent);
+      outline: none;
+    }
+
+    .container {
+      width: min(100%, 46rem);
+      margin: 0 auto;
+      padding: 1rem clamp(1rem, 4vw, 2rem) 5rem;
+    }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      gap: 2rem;
+      padding: .75rem 0 1rem;
+      color: var(--muted);
+    }
+
+    #clock {
+      color: var(--muted);
+    }
+
+    header.title {
+      padding: 4rem 0 2.5rem;
+    }
+
+    h1,
+    h2,
+    h3,
+    p,
+    blockquote {
+      font-size: 1rem;
+    }
+
+    h1 {
+      max-width: 34rem;
+      margin: 0;
+      color: var(--bright);
+      line-height: 1.45;
+    }
+
+    .subtitle {
+      margin: 1rem 0 0;
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .5rem 1.25rem;
+      padding: 1rem 0;
+    }
+
+    nav a {
+      color: var(--muted);
+      text-decoration: none;
+    }
+
+    nav a:hover,
+    nav a:focus-visible {
+      color: var(--accent);
+    }
+
+    section {
+      padding: 4rem 0;
+    }
+
+
+    h2 {
+      margin: 0 0 2.5rem;
+      color: var(--accent);
+    }
+
+    h3 {
+      margin: 3.5rem 0 1.25rem;
+      color: var(--bright);
+    }
+
+    p {
+      margin: 0 0 1.4rem;
+    }
+
+    blockquote {
+      margin: 0;
+      padding: .81rem 0;
+      color: var(--text);
+    }
+
+    blockquote p {
+      margin: 0;
+    }
+
+    blockquote.rule strong {
+      display: block;
+      margin-bottom: .35rem;
+      color: var(--bright);
+    }
+
+    blockquote.rule span {
+      display: block;
+    }
+
+    footer {
+      padding-top: 2rem;
+      color: var(--muted);
+    }
+
+
+
+    .mini-map-control {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 60;
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      padding: .35rem .55rem;
+      border: 1px solid var(--muted);
+      background: var(--bg);
+      color: var(--text);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .mini-map-control:hover,
+    .mini-map-control:focus-within {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .mini-map-control input {
+      width: 1rem;
+      height: 1rem;
+      margin: 0;
+      accent-color: var(--accent);
+    }
+
+    .mini-map {
+      position: fixed;
+      top: 3.75rem;
+      right: 1rem;
+      z-index: 50;
+      width: 12rem;
+      max-height: calc(100vh - 4.75rem);
+      overflow: auto;
+      padding: .75rem;
+      border: 1px solid var(--muted);
+      background: var(--bg);
+      box-shadow: 0 .4rem 1.25rem rgb(0 0 0 / .08);
+    }
+
+    .mini-map[hidden] {
+      display: none;
+    }
+
+    .mini-map__head {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: .5rem;
+      color: var(--muted);
+    }
+
+    .mini-map__track {
+      position: relative;
+      height: .2rem;
+      margin-bottom: .75rem;
+      overflow: hidden;
+      background: var(--muted);
+    }
+
+    .mini-map__progress {
+      display: block;
+      width: 0;
+      height: 100%;
+      background: var(--accent);
+    }
+
+    .mini-map nav {
+      display: grid;
+      gap: .1rem;
+      padding: 0;
+    }
+
+    .mini-map a {
+      display: block;
+      padding: .2rem .35rem;
+      color: var(--muted);
+      text-decoration: none;
+      border-left: .15rem solid transparent;
+    }
+
+    .mini-map a:hover,
+    .mini-map a:focus-visible,
+    .mini-map a.is-current {
+      color: var(--bright);
+      border-left-color: var(--accent);
+    }
+
+    @media (max-width: 38rem) {
+      .top {
+        display: block;
+      }
+
+      #clock {
+        display: block;
+        margin-top: .5rem;
+      }
+
+      header.title {
+        padding-top: 3rem;
+      }
+
+
+      .mini-map-control {
+        top: .75rem;
+        right: .75rem;
+      }
+
+      .mini-map {
+        top: 3.5rem;
+        right: .75rem;
+        left: .75rem;
+        width: auto;
+        max-height: calc(100vh - 4.25rem);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <label class="mini-map-control" for="mini-map-toggle">
+    <input id="mini-map-toggle" type="checkbox" aria-controls="mini-map" aria-expanded="false" />
+    <span>map</span>
+  </label>
+
+  <aside class="mini-map" id="mini-map" aria-label="Reading map" hidden>
+    <div class="mini-map__head">
+      <span>you are here</span>
+      <output id="reading-progress">0%</output>
+    </div>
+    <div class="mini-map__track" aria-hidden="true">
+      <span class="mini-map__progress" id="mini-map-progress"></span>
+    </div>
+    <nav aria-label="Mini map">
+      <a href="#speculation">speculation</a>
+      <a href="#life">life</a>
+      <a href="#business">business</a>
+      <a href="#men">men</a>
+      <a href="#society">society</a>
+      <a href="#language">language</a>
+    </nav>
+  </aside>
+
+  <div class="container">
+    <div class="top">
+      <a href="//www.mikeb.work">mikeb.work</a>
+      <time id="clock"></time>
+    </div>
+
+    <header class="title" id="top">
+      <h1>Speculation as a Fine Art and Thoughts on Life</h1>
+      <p class="subtitle">Dickson G. Watts</p>
+    </header>
+
+    <nav aria-label="Book sections">
+      <a href="#speculation">speculation</a>
+      <a href="#life">life</a>
+      <a href="#business">business</a>
+      <a href="#men">men</a>
+      <a href="#society">society</a>
+      <a href="#language">language</a>
+    </nav>
+
+    <main>
+      <section id="speculation">
+        <h2>Speculation as a Fine Art</h2>
+        <p>Before entering on our inquiry, before considering the rules of our art, we will examine the subject in the
+          abstract. Is speculation right? It may be questioned, tried by the highest standards, whether any trade where
+          an exact equivalent is not given can be right. But as society is now organized speculation seems a necessity.
+        </p>
+        <p>Is there any difference between speculation and gambling? The terms are often used interchangeably, but
+          speculation presupposes intellectual effort; gambling, blind chance. Accurately to define the two is
+          difficult; all definitions are difficult. Wit and humor, for instance, can be defined; but notwithstanding the
+          most subtle distinction, wit and humor blend, run into each other. This is true of speculation and gambling.
+          The former has some of the elements of chance; the latter some of the elements of reason. We define as best we
+          can. Speculation is a venture based upon calculation. Gambling is a venture without calculation. The law makes
+          this distinction; it sustains speculation and condemns gambling.</p>
+        <p>All business is more or less speculation. The term speculation, however, is commonly restricted to business
+          of exceptional uncertainty. The uninitiated believe that chance is so large a part of speculation that it is
+          subject to no rules, is governed by no laws. This is a serious error. We propose in this article to point out
+          some of the laws in this realm.</p>
+        <p>There is no royal road to success in speculation. We do not undertake, and it would be worse than folly to
+          undertake, to show how money can be made. Those who make for themselves or others an infallible plan delude
+          themselves and others. Our effort will be to set forth the great underlying principles of the &quot;art&quot;
+          the application of which must depend on circumstances, the time and the man.</p>
+        <p>Let us first consider the qualities essential to the equipment of the speculator. We name them: Selfreliance,
+          judgment, courage, prudence, pliability.</p>
+        <h3>The equipment of the speculator</h3>
+        <blockquote class="rule"><strong>Self-Reliance.</strong><span>A man must think for himself, must follow his own
+            convictions. George MacDonald says: &quot;A man cannot have another man&#x27;s ideas any more than he can
+            another man&#x27;s soul or another man&#x27;s body.&quot; Self-trust is the foundation of successful
+            effort.</span></blockquote>
+        <blockquote class="rule"><strong>Judgment.</strong><span>That equipoise, that nice adjustment of the faculties
+            one to the other, which is called good judgment, is an essential to the speculator.</span></blockquote>
+        <blockquote class="rule"><strong>Courage.</strong><span>That is, confidence to act on the decisions of the mind.
+            In speculation there is value in Mirabeau&#x27;s dictum: &quot;Be bold, still be bold; always be
+            bold.&quot;</span></blockquote>
+        <blockquote class="rule"><strong>Prudence.</strong><span>The power of measuring the danger, together with a
+            certain alertness and watchfulness, is very important. There should be a balance of these two, Prudence and
+            Courage; Prudence in contemplation, Courage in execution. Lord Bacon says: &quot;In meditation all dangers
+            should be seen; in execution one, unless very formidable.&quot; Connected with these qualities, properly an
+            outgrowth of them, is a third, viz: promptness. The mind convinced, the act should follow. In the words of
+            Macbeth; &quot;Henceforth the very firstlings of my heart shall be the firstlings of my hand.&quot; Think,
+            act, promptly.</span></blockquote>
+        <blockquote class="rule"><strong>Pliability.</strong><span>The ability to change an opinion, the power of
+            revision. &quot;He who observes,&quot; says Emerson, &quot;and observes again, is always
+            formidable.&quot;</span></blockquote>
+        <p>The qualifications named are necessary to the makeup of a speculator, but they must be in well-balanced
+          combination. A deficiency or an overplus of one quality will destroy the effectiveness of all. The possession
+          of such faculties, in a proper adjustment is, of course, uncommon. In speculation, as in life, few succeed,
+          many fail.</p>
+        <p>Each department of life has its language, expressive if not elegant, and in dealing with the subject we must
+          perforce adopt the language of the Street. The laws given will be found to apply to speculation of any kind.
+          They are universal laws; but for the sake of clearness we assume the case of speculation as conducted in one
+          of our exchanges, where they can be best demonstrated.</p>
+        <h3>Laws absolute</h3>
+        <blockquote class="rule"><strong>Never Overtrade.</strong><span>To take an interest larger than the capital
+            justifies is to invite disaster. With such an interest a fluctuation in the market unnerves the operator,
+            and his judgment becomes worthless.</span></blockquote>
+        <blockquote class="rule"><strong>Never &quot;Double Up&quot;; that is, never completely and at once reverse a
+            position.</strong><span>Being &quot;long,&quot; for instance, do not &quot;sell out&quot; and go as much
+            &quot;short.&quot; This may occasionally succeed, but is very hazardous, for should the market begin again
+            to advance, the mind reverts to its original opinion and the speculator &quot;covers up&quot; and &quot;goes
+            long&quot; again. Should this last change be wrong, complete demoralization ensues. The change in the
+            original position should have been made moderately, cautiously, thus keeping the judgment clear and
+            preserving the balance of the mind.</span></blockquote>
+        <blockquote class="rule"><strong>&quot;Run Quickly,&quot; or not at all; that is to say, act promptly at the
+            first approach of danger,…</strong><span>&quot;Run Quickly,&quot; or not at all; that is to say, act
+            promptly at the first approach of danger, but failing to do this until others see the danger, hold on or
+            close out part of the &quot;interest.&quot;</span></blockquote>
+        <blockquote class="rule"><strong>Another rule is, when doubtful, reduce the amount of the interest; for either
+            the mind is…</strong><span>Another rule is, when doubtful, reduce the amount of the interest; for either the
+            mind is not satisfied with the position taken, or the interest is too large for safety. One man told another
+            that he could not sleep on account of his position in the market; his friend judiciously and laconically
+            replied: &quot;Sell down to a sleeping point.&quot;</span></blockquote>
+        <h3>Rules conditional</h3>
+        <p>These rules are subject to modification according to the circumstances, individuality and temperament of the
+          operator.</p>
+        <blockquote class="rule"><strong>It is better to &quot;average up&quot; than to &quot;average down.&quot; This
+            opinion is contrary to the one…</strong><span>It is better to &quot;average up&quot; than to &quot;average
+            down.&quot; This opinion is contrary to the one commonly held and acted upon; it being the practice to buy,
+            and on a decline to buy more. This reduces the average. Probably four times out of five this method will
+            result in striking a reaction in the market that will prevent loss, but the fifth time, meeting with a
+            permanently declining market, the operator loses his head and closes out, making a heavy loss — a loss so
+            great as to bring complete demoralization, often ruin. But buying at first moderately, and, as the market
+            advances, adding slowly and cautiously to the &quot;line&quot; — this is a way of speculating that requires
+            great care and watchfulness, for the market will often (probably four times out of five) react to the point
+            of &quot;average.&quot; Here lies the danger. Failure to close out at the point of average destroys the
+            safety of the whole operation. Occasionally a permanently advancing market is met with and a big profit
+            secured. In such an operation the original risk is small, the danger at no time great, and when successful,
+            the profit is large. The method should only be employed when an important advance or decline is expected,
+            and with a moderate capital can be undertaken with comparative safety.</span></blockquote>
+        <blockquote class="rule"><strong>To &quot;buy down&quot; requires a long purse and a strong nerve, and ruin
+            often overtakes those who…</strong><span>To &quot;buy down&quot; requires a long purse and a strong nerve,
+            and ruin often overtakes those who have both nerve and money. The stronger the nerve the more probability of
+            staying too long. There is, however, a class of successful operators who &quot;buy down&quot; and hold on.
+            They deal in relatively small amounts. Entering the market prudently with the determination of holding on
+            for a long period, they are not disturbed by its fluctuations. They are men of good judgment, who buy in
+            times of depression to hold for a general revival of business — an investing rather than a speculating
+            class.</span></blockquote>
+        <blockquote class="rule"><strong>In all ordinary circumstances our advice would be to buy at once an amount that
+            is within…</strong><span>In all ordinary circumstances our advice would be to buy at once an amount that is
+            within the proper limits of capital, etc., &quot;selling out&quot; at a loss or profit, according to
+            judgment. The rule is to stop losses and let profits run. If small profits are taken, then small losses must
+            be taken. Not to have the courage to accept a loss, and to be too eager to take a profit, is fatal. It is
+            the ruin of many.</span></blockquote>
+        <blockquote class="rule"><strong>Public opinion is not to be ignored.</strong><span>A strong speculative current
+            is for the time being overwhelming, and should be closely watched. The rule is, to act cautiously with
+            public opinion; against it, boldly. To go with the market, even when the basis is a good one, is dangerous.
+            It may at any time turn and rend you. Every speculator knows the danger of too much &quot;company.&quot; It
+            is equally necessary to exercise common caution in going against the market. This caution should be
+            continued to the point of wavering — of loss of confidence — when the market should be boldly encountered to
+            the full extent of strength, nerve and capital. The market has a pulse on which the hand of the operator
+            should be placed as that of the physician on the wrist of the patient. This pulse-beat must be the guide
+            when and how to act.</span></blockquote>
+        <blockquote class="rule"><strong>Quiet, weak markets are good markets to sell.</strong><span>They ordinarily
+            develop into declining markets. But when a market has gone through the stages of quiet and weak to active
+            and declining, then on to semi-panic or panic, it should be bought freely. When vice versa, a quiet and firm
+            market develops into activity and strength, then into excitement, it should be sold with great
+            confidence.</span></blockquote>
+        <blockquote class="rule"><strong>In forming an opinion of the market, the element of chance ought not be
+            omitted.</strong><span>There is a doctrine of chances — Napoleon in his campaigns allowed a margin for
+            chance — for the accidents that come in to destroy or modify the best calculation. Calculation must measure
+            the incalculable. In the &quot;reproof of chance lies the true proof of men.&quot; It is better to act on
+            general than special information (it is not so misleading), viz., the state of the country, the condition of
+            the crops, manufacturers, etc. Statistics are valuable, but they must be kept subordinate to a comprehensive
+            view of the whole situation. Those who confine themselves too closely to statistics are poor guides.
+            &quot;There is nothing,&quot; said Canning, &quot;so fallacious as facts, except figures.&quot;</span>
+        </blockquote>
+        <blockquote>&quot;When in doubt, do nothing. Don&#x27;t enter the market on half convictions; wait till the
+          convictions are fully matured.&quot;</blockquote>
+        <p>We have written to little purpose unless we have left the impression that the fundamental principle that lies
+          at the base of all speculation is this: Act so as to keep the mind clear, its judgment trustworthy. A reserve
+          force should therefore be maintained and kept for supreme movements, when the full strength of the whole man
+          should be put on the stroke delivered.</p>
+        <p>It may be thought that the carrying out of these rules is difficult. As we said in the outset, the gifted man
+          only can apply them. To the artist alone are the rules of his art valuable.</p>
+      </section>
+      <section id="life">
+        <h2>Life</h2>
+        <blockquote>Compensations do not always compensate.</blockquote>
+        <blockquote>A common deception, — self-deception.</blockquote>
+        <blockquote>Hold in time, or take the jump.</blockquote>
+        <blockquote>A danger known is half overcome. A fault recognized is half conquered.</blockquote>
+        <blockquote>A great insult, — tell a man he can&#x27;t take a joke.</blockquote>
+        <blockquote>Fools try to prove that they are right. Wise men try to find when they are wrong.</blockquote>
+        <blockquote>That writer is the greatest who says the least and suggests the most.</blockquote>
+        <blockquote>Follow the vague and intangible, and it will become definite and tangible.</blockquote>
+        <blockquote>A man&#x27;s good qualities are often, at bottom, only pride.</blockquote>
+        <blockquote>Two standards, — one for yourself and one for your neighbor. The first should be fixed, the second
+          flexible.</blockquote>
+        <blockquote>That man is greatest who quickens most the lives of other men.</blockquote>
+        <blockquote>All see; few observe, fewer still compare.</blockquote>
+        <blockquote>The finished fabric of science is the raw material of philosophy.</blockquote>
+        <blockquote>Destruction must often precede construction, but most men stop at the former.</blockquote>
+        <blockquote>Common sense is sense men have in common.</blockquote>
+        <blockquote>Defer to a man and he will listen to you.</blockquote>
+        <blockquote>The dangerous classes, — enthusiasts and fools.</blockquote>
+        <blockquote>A true estimate of one&#x27;s self is not vanity.</blockquote>
+        <blockquote>Suffering of the body is pain, of the mind anguish, of the spirit agony.</blockquote>
+        <blockquote>Man can improve on nature. Perhaps that is his business here.</blockquote>
+        <blockquote>The distant is the great, the near the little. But the little-near controls man rather than the
+          distantgreat.</blockquote>
+        <blockquote>Catch thoughts &quot;on the fly,&quot; for there is no rebound.</blockquote>
+        <blockquote>To conquer fate, advance to meet it.</blockquote>
+        <blockquote>The first blow is half the battle.</blockquote>
+        <blockquote>Man&#x27;s enemies are legion. Ofttimes he himself is his only friend.</blockquote>
+        <blockquote>Surplus is as bad as deficiency, deficiency as surplus.</blockquote>
+        <blockquote>Sentimentality is an ugly caricature of beautiful sentiment.</blockquote>
+        <blockquote>Nerve is nerves controlled.</blockquote>
+        <blockquote>Many lean, few lift.</blockquote>
+        <blockquote>Imagination controlled is a great builder; imagination uncontrolled, a great destroyer.</blockquote>
+        <blockquote>People forget in the rush, remember in the hush.</blockquote>
+        <blockquote>Look before you leap, but not when you leap.</blockquote>
+        <blockquote>The greatest tolerance is to tolerate the intolerant.</blockquote>
+        <blockquote>Awe is fear petrified.</blockquote>
+        <blockquote>A blemish in youth, a vice in old age.</blockquote>
+        <blockquote>To the careless, life is a drama; to the heartless, a comedy; to the thoughtful, a tragedy.
+        </blockquote>
+        <blockquote>Health is equilibrium.</blockquote>
+        <blockquote>The man who conforms never transforms.</blockquote>
+        <blockquote>Incongruity is the basis of humor; inconsistency, a source of wit.</blockquote>
+        <blockquote>Respect your limitations; you limitations will not respect you.</blockquote>
+        <blockquote>Man fears the unknown, despises the uncomprehended.</blockquote>
+        <blockquote>Sleep is a truce, death a surrender.</blockquote>
+        <blockquote>&quot;Up to the limit,&quot; but not beyond the limit.</blockquote>
+        <blockquote>Put on the brakes in middle life, or the momentum of youth will destroy you.</blockquote>
+        <blockquote>Vehemence is a sign of weakness; quietness is a sign of strength.</blockquote>
+        <blockquote>Among crazy people, a sane man is thought a lunatic.</blockquote>
+        <blockquote>Nothing so formidable as knowledge — except ignorance.</blockquote>
+        <blockquote>Great wealth is a misfortune; it attracts parasites and repels friends.</blockquote>
+        <blockquote>Nothing so impressive as simplicity.</blockquote>
+        <blockquote>The world is full of commonplace people. The query is, What becomes of the &quot;phenomenal
+          children?&quot;</blockquote>
+        <blockquote>Wealth is a good inheritance, but a sound stomach is a better.</blockquote>
+        <blockquote>Tiresome people are interesting — to themselves.</blockquote>
+        <blockquote>People meditate much — on other people&#x27;s sins.</blockquote>
+        <blockquote>The man who makes a positive assertion is — positively wrong.</blockquote>
+        <blockquote>Every man is distinguished (distinct from others) if he would be natural.</blockquote>
+        <blockquote>Better the vagaries of eccentricity than commonplace dullness.</blockquote>
+        <blockquote>The man who &quot;knows it all&quot; has much to learn.</blockquote>
+        <blockquote>The test of a man is what he is in an emergency.</blockquote>
+        <blockquote>To separate the essential from the non-essential is the mark of a superior mind.</blockquote>
+        <blockquote>People, like gems, have flaws. If we would enjoy them we should not examine too closely.
+        </blockquote>
+        <blockquote>In his secret heart, every man thinks the universe is especially hard on him.</blockquote>
+        <blockquote>If all men were geniuses, there would be no genius.</blockquote>
+        <blockquote>Genius consists of seeing instantly the vital point.</blockquote>
+        <blockquote>Every man is a secret; his friends, those who guess a part of the riddle.</blockquote>
+        <blockquote>The more points of view, the better the point of view.</blockquote>
+        <blockquote>Morals and money, — either alone is a great power; together they are omnipotent.</blockquote>
+        <blockquote>Don&#x27;t batter down the door; pick the lock.</blockquote>
+        <blockquote>Light is one; and yet people see things in &quot;a different light.&quot; It is shadow that makes
+          the difference.</blockquote>
+        <blockquote>Don&#x27;t fool with Nature; she &quot;strikes back.&quot;</blockquote>
+        <blockquote>Break antagonism with a joke.</blockquote>
+        <blockquote>Recognize a fault, but don&#x27;t dwell on it.</blockquote>
+        <blockquote>Enthusiasm is a poor guide, but a good companion.</blockquote>
+        <blockquote>A prophet is without honor — the first time he makes a mistake.</blockquote>
+        <blockquote>Don&#x27;t stand shivering on the brink; take the plunge.</blockquote>
+        <blockquote>Habit is the tyrant of man; inheritance, the tyrant of the race.</blockquote>
+        <blockquote>The peace of ignorance; the serenity of knowledge.</blockquote>
+        <blockquote>Censure is poor food, but we can extract some nourishment from it.</blockquote>
+        <blockquote>All movements are in waves, — in politics, in business, in the atmosphere, in spirit. Rest with
+        </blockquote>
+        <blockquote>descending wave; mount with the ascending wave.</blockquote>
+        <blockquote>None so blind as those who are sure they see.</blockquote>
+        <blockquote>At thirty, most men are in a condition of arrested development. A few grow until their bodies fall
+          into the grave.</blockquote>
+        <blockquote>Wealth is a means of refinement; but having done its work it ceases to aid, and retards true
+          refinement.</blockquote>
+        <blockquote>In youth a man forges the chains that bind him in old age.</blockquote>
+        <blockquote>Seeing things in their right relation to each other is the highest vision.</blockquote>
+        <blockquote>Teach men to navigate life&#x27;s sea as you teach a boy to swim; put your hand under him, then
+          slowly and gently withdraw it.</blockquote>
+        <blockquote>Nothing so dear to a man as his money — except his prejudice.</blockquote>
+        <blockquote>The voice may speak false, but the eye always tells.</blockquote>
+        <blockquote>One moment man may soar through space; another, grovel in the dust.</blockquote>
+        <blockquote>If a horse knew his strength, no man could drive him. If man knew his power, the universe could
+          hardly contain him.</blockquote>
+        <blockquote>Sickness develops a man inwardly, health outwardly. To have the benefits of both, man must have been
+          sick and become well.</blockquote>
+        <blockquote>Much power, like much learning, makes men mad.</blockquote>
+        <blockquote>The man who rides a &quot;high horse&quot; forgets how things look to people on foot.</blockquote>
+        <blockquote>A great man changes the map of the earth; a great idea, the map of the stars.</blockquote>
+        <blockquote>A philosopher doesn&#x27;t win battles, found empires; but reclaims new territory and civilizes old
+          hemispheres.</blockquote>
+        <blockquote>Desire for superiority is universal. If a man be a knave, he wishes to be the greatest knave; if a
+          fool, the biggest fool.</blockquote>
+        <blockquote>Man rules man; ideas rules the world.</blockquote>
+        <blockquote>The realist makes the mistake of exposing everything. It isn&#x27;t necessary to go through the
+          kitchen to reach the parlor.</blockquote>
+        <blockquote>Take counsel on your fears, but don&#x27;t be controlled by them.</blockquote>
+        <blockquote>Acquire a habit and a habit has acquired you.</blockquote>
+        <blockquote>A man who does not change his mind has little mind to change.</blockquote>
+        <blockquote>The enthusiastic man is an iconoclast; the vain man, a fool.</blockquote>
+        <blockquote>Pleasure and pain are the two poles of consciousness; they make the circuit complete.</blockquote>
+        <blockquote>The man with a grievance is not &quot;acquainted with grief.&quot;</blockquote>
+        <blockquote>&quot;Misery loves company,&quot; but &quot;company&quot; doesn&#x27;t reciprocate.</blockquote>
+        <blockquote>A strong personality arouses antagonisms. A pronounced individuality removes barriers.</blockquote>
+        <blockquote>Money covers a multitude of sins.</blockquote>
+        <blockquote>&quot;There is many a slip between the cup and the lip,&quot; but only one slip between the cup and
+          the ground.</blockquote>
+        <blockquote>Get on a train of cars and you will go to your destination. Get on a train of thought and you will
+          go — where?</blockquote>
+        <blockquote>Capacity for suffering is in exact proportion to capacity for enjoyment.</blockquote>
+        <blockquote>One half of the world commits suicide; the other half is murdered.</blockquote>
+        <blockquote>All men travel in circles. A few increase the diameter of the circle.</blockquote>
+        <blockquote>Some people lie and never deceive; other speak truth and always deceive.</blockquote>
+        <blockquote>Angels abroad are often demons at home.</blockquote>
+        <blockquote>Administer correction with a joke, and it will go down like a sugar-coated pill.</blockquote>
+        <blockquote>The man who does not laugh at himself, despise himself, and worship himself, knows nothing about
+          himself.</blockquote>
+        <blockquote>&quot;Tools to those who can use them,&quot; words to those who can understand them.</blockquote>
+        <blockquote>In the presence of some people we wither like sensitive-plants; in the presence of others, we expand
+          like flowers.</blockquote>
+        <blockquote>Man is his own court; his own judge, and his own executioner.</blockquote>
+        <blockquote>Wealth is first a means and then a barrier to refinement.</blockquote>
+        <blockquote>A good second-hand article, — experience.</blockquote>
+        <blockquote>Wise men sometimes say foolish things. Fools sometimes say wise things.</blockquote>
+        <blockquote>Destroy the illusions and there is not much left of life.</blockquote>
+        <blockquote>Men make large demands on the universe, but they offer little in payment.</blockquote>
+        <blockquote>Many men have the &quot;courage of their opinions,&quot; few the courage to abandon their opinions.
+        </blockquote>
+        <blockquote>Some people think; others think they think.</blockquote>
+        <blockquote>A friend is one with whom we can think out loud.</blockquote>
+        <blockquote>People who wish to do; people who wish to know; people who wish to see; people who wish to dream, —
+          the first are statesmen; the second, philosophers; the third are artists; the last are poets.</blockquote>
+        <blockquote>At twenty, and again at sixty, a man &quot;knows it all.&quot;</blockquote>
+        <blockquote>Many disappointments, but the man who is &quot;spoiling for a fight&quot; gets what he is looking
+          for.</blockquote>
+        <blockquote>Don&#x27;t look at your friends through a microscope, nor at yourself through a telescope.
+        </blockquote>
+        <blockquote>&quot;Great bodies move slowly.&quot; Great events move rapidly.</blockquote>
+        <blockquote>Sarcasm is the spawn of meanness; joking, the offspring of good-nature.</blockquote>
+        <blockquote>The unpardonable sin, — not to make money.</blockquote>
+        <blockquote>Many a truth spoken in jest; many an untruth spoken in earnest.</blockquote>
+        <blockquote>The sorrows of youth are acute; of age bitter.</blockquote>
+        <blockquote>Stagnation is damnation. Circulation is salvation.</blockquote>
+        <blockquote>To have made one&#x27;s self ridiculous, and not to mourn over it, is a supreme test of virtue.
+        </blockquote>
+        <blockquote>Blame, when praise is deserved, exasperates; praise, when blame is deserved, humiliates.
+        </blockquote>
+        <blockquote>If you wait until you see clearly, you will never act; if you wait for a pure motive, you will never
+          move.</blockquote>
+        <blockquote>Virtue is its own reward; so is vice.</blockquote>
+        <blockquote>A wise man laughs at his own follies.</blockquote>
+        <blockquote>To be sincere with others is easy; with one&#x27;s self, difficult.</blockquote>
+        <blockquote>To be called a knave is sometimes forgiven; to be called a fool, never.</blockquote>
+        <blockquote>Use condition&#x27;s possession. You must use your body or lose it; use your mind or lose it; use
+          your soul or lose it.</blockquote>
+        <blockquote>Never explain. Let your life be the explanation.</blockquote>
+        <blockquote>Recognition is the greatest honor man can bestow on man; condescension, the greatest insult.
+        </blockquote>
+        <blockquote>Most men absorb the atmosphere they are in. A few create their own atmosphere.</blockquote>
+        <blockquote>Do you wish sympathy? Don&#x27;t seek it.</blockquote>
+        <blockquote>Patience is sustained courage.</blockquote>
+        <blockquote>If you know, you have already fallen in error.</blockquote>
+        <blockquote>A fool often condescends to a fool.</blockquote>
+        <blockquote>&quot;Whatever is, is&quot; wrong, and needs to be changed, arbitrarily or by evolution.
+        </blockquote>
+        <blockquote>&quot;The destruction of the poor is their poverty.&quot; The destruction of the rich is the riches.
+        </blockquote>
+        <blockquote>The greatest possession, — self-possession.</blockquote>
+        <blockquote>Shyness is vanity turned inward.</blockquote>
+        <blockquote>The want of sympathy shows us how sweet sympathy is.</blockquote>
+        <blockquote>In life, as in a game of cards, you must sit out bad luck.</blockquote>
+        <blockquote>Tradition is the hereditary disease of the race.</blockquote>
+        <blockquote>Man seldom wishes advice; he wishes to be confirmed in his own opinion.</blockquote>
+        <blockquote>Advice is cheap. That is the reason there is so much of it.</blockquote>
+        <blockquote>Tyranny is the vice of a brutal man; submission to it, the vice of a timid man.</blockquote>
+        <blockquote>&quot;Sweet are the uses of adversity&quot; — if adversity does not last too long.</blockquote>
+        <blockquote>Tendency is everything. The direction in which you start determines your destination.</blockquote>
+        <blockquote>Wisdom consists of seeing many things and concentrating on one thing.</blockquote>
+        <blockquote>We cannot be just and hold the scales ourselves.</blockquote>
+        <blockquote>Keep your voice down and you will keep your temper down.</blockquote>
+        <blockquote>The wound that injustice makes goes deeper and lasts longer than any other.</blockquote>
+        <blockquote>Teach by indirection rather than by direction; by suggestion, rather than instruction.</blockquote>
+        <blockquote>Never do to-day what you can as well do to-morrow. The wisdom of to-morrow is better than that of
+          to-day.</blockquote>
+        <blockquote>You must make your own acquaintance in some world; better begin in this one.</blockquote>
+        <blockquote>If you want to go anywhere, start. If you want to do anything, begin.</blockquote>
+        <blockquote>Some authors are apart from their work; others, a part of their work. The former we admire; the
+          latter we love.</blockquote>
+        <blockquote>A man who has made a mistake suffers enough. Don&#x27;t &quot;throw it up&quot; to him.</blockquote>
+        <blockquote>Two kinds of wisdom, — to persist in things worth doing; to abandon things not worth doing.
+        </blockquote>
+        <blockquote>Courage consists in doing the thing you are afraid to do.</blockquote>
+        <blockquote>To advise is to claim superiority and is resented, unless the superiority is admitted.</blockquote>
+        <blockquote>Dislike is sometimes based upon understanding; oftener, on misunderstanding.</blockquote>
+        <blockquote>A good man thinks the motives of others are as pure as his own. A bad man thinks the motive of
+          others are as bad as his own. Life often corrects the mistake of the former, seldom those of the latter.
+        </blockquote>
+        <blockquote>Life is a dream. Some men know they are dreaming; others think they are awake.</blockquote>
+        <blockquote>All things demand an outlet. The passageway of the body stopped, death ensues; the mind, inverted,
+          stagnates; the soul, denied expression, stifles.</blockquote>
+        <blockquote>Two kinds of vision, — to see things as we see them; to see things as others see them.</blockquote>
+        <blockquote>&quot;The dreamer&quot; is a man who lives in advance of his time.</blockquote>
+        <blockquote>Men wish to die when they should live; wish to live when they should die.</blockquote>
+        <blockquote>When in adversity, don&#x27;t speak of it; you will make others unhappy. When in prosperity,
+          don&#x27;t speak of it; you will also make others unhappy.</blockquote>
+        <blockquote>Some men are alive after they are dead; others are dead while still alive.</blockquote>
+        <blockquote>Argument is an effort of each man to force his idea</blockquote>
+        <blockquote>on the other; discussion is an effort to gain knowledge. The wise man declines argument, invites
+          discussion.</blockquote>
+        <blockquote>The whole truth cannot be stated in any one proposition.</blockquote>
+        <blockquote>Do you want a secret kept? Don&#x27;t tell it.</blockquote>
+        <blockquote>A true view can only be gained by having been in a thing and having come out of it.</blockquote>
+        <blockquote>Two kinds of truth, — abstract and practical. Practical truth is as much of the abstract truth as
+          can be applied at any given time.</blockquote>
+        <blockquote>Eating, drinking, and sleeping are the penalties the soul pays for inhabiting a body.</blockquote>
+        <blockquote>Man begins in simplicity, advances to complexity, returns to simplicity. The last is complexity
+          reduced to the fewer terms. Society follows the same course. It is now in the complex stage.</blockquote>
+        <blockquote>Bodily and mental attitude should correspond. When receiving correction, sit down; when
+          administering it, stand up.</blockquote>
+        <blockquote>To know when to begin is easy; when to stop, difficult.</blockquote>
+        <blockquote>Vanity struggles long and dies hard.</blockquote>
+        <blockquote>Bragging is an expensive luxury. Better not indulge in it.</blockquote>
+        <blockquote>Nothing so sad as the laughter that hides a broken heart.</blockquote>
+        <blockquote>People who live on the surface live long. People who live in the depths live much.</blockquote>
+        <blockquote>There will be many Methuselahs when man shall have magnified his spiritual power to a maximum, and
+          reduced his physical wants to a minimum.</blockquote>
+        <blockquote>Old young men are invariably wicked; young old men, universally good.</blockquote>
+        <blockquote>If you work yourself down, sleep yourself up.</blockquote>
+        <blockquote>Imagination makes cowards of us all.</blockquote>
+        <blockquote>The rich have few friends; the poor, no enemies.</blockquote>
+        <blockquote>Placing emphasis in the right place is the truest art and the highest wisdom.</blockquote>
+      </section>
+      <section id="business">
+        <h2>Business</h2>
+        <blockquote>TAKE short views. If you shoot at a near mark, even if your hand shakes you will hit it. If you
+          shoot at a distant mark, and your hand vibrates slightly, you will miss it.</blockquote>
+        <blockquote>When danger threatens, don&#x27;t stand like a sheep; run like a deer.</blockquote>
+        <blockquote>Imagination is as great a power in business as it is in art, in literature, or in religion.
+        </blockquote>
+        <blockquote>Make your theories fit your facts, not your facts your theories.</blockquote>
+        <blockquote>Don&#x27;t storm the fortress of fortune; lay siege to it.</blockquote>
+        <blockquote>Opportunities are always there, but the opportunist is lacking.</blockquote>
+        <blockquote>Stubborn men don&#x27;t live long — financially.</blockquote>
+        <blockquote>In practical affairs the &quot;personal equation&quot; is not sufficiently taken into the account.
+        </blockquote>
+        <blockquote>Trust your impulses; they are often a higher reason.</blockquote>
+        <blockquote>The foolishness of the many is the opportunity of the few.</blockquote>
+        <blockquote>The man who thinks right will gain much. The man who thinks quick and right has the world in a
+          sling.</blockquote>
+        <blockquote>The success of one is the failure of a hundred.</blockquote>
+        <blockquote>The more &quot;hindsight&quot; the better foresight.</blockquote>
+        <blockquote>It is always the &quot;unlucky man&quot; who believes in luck.</blockquote>
+        <blockquote>Not the knowledge of facts, but the interpretation of facts differentiates the successful from the
+          unsuccessful man.</blockquote>
+        <blockquote>A &quot;plausible&quot; man deals in everything except facts.</blockquote>
+        <blockquote>Reject green wood, raw men, and new enterprises; wait until they are seasoned.</blockquote>
+        <blockquote>Business is a kaleidoscope, continually changing and forming new combinations. Take a fresh look
+          every day.</blockquote>
+        <blockquote>&quot;A sure thing&quot; is a dangerous thing.</blockquote>
+        <blockquote>Seeing things too soon is as bad as seeing things too late.</blockquote>
+        <blockquote>Act on the temporary; the temporary may become the permanent.</blockquote>
+        <blockquote>Luck, the destruction of the weak, is overcome by the strong.</blockquote>
+        <blockquote>Luck exists. But the able man acts so as to minimize bad luck and augment good luck.</blockquote>
+        <blockquote>Take care of the losses; the profits will take care of themselves.</blockquote>
+        <blockquote>Not how much can you make, but how much can you lose.</blockquote>
+        <blockquote>Eternal vigilance is the price of — success.</blockquote>
+        <blockquote>Better make &quot;new&quot; money than to go to law to collect an &quot;old&quot; debt.</blockquote>
+        <blockquote>Beware of the &quot;unfortunate&quot; man; flee from the enthusiastic man.</blockquote>
+        <blockquote>Better capital in a man&#x27;s head than capital in a bank.</blockquote>
+        <blockquote>Look after the principal; the interest will look after itself.</blockquote>
+        <blockquote>In the business world, as in the physical and moral world, plasticity is life, rigidity is death.
+        </blockquote>
+        <blockquote>To be &quot;too greedy&quot; is as bad in business as in morals.</blockquote>
+        <blockquote>Learn principles. Facts will then fall into their relations and connections.</blockquote>
+        <blockquote>Quick decisions are the best decisions.</blockquote>
+        <blockquote>When you begin to doubt, begin to &quot;get out.&quot;</blockquote>
+        <blockquote>Thought and act should be hyphened.</blockquote>
+        <blockquote>If a speculation keeps you awake at night, sell down to the sleeping point.</blockquote>
+      </section>
+      <section id="men">
+        <h2>Men</h2>
+        <blockquote>SOME men are so mellow that they are rotten.</blockquote>
+        <blockquote>Little men talk of people; great men, of things.</blockquote>
+        <blockquote>The self-important man is seldom important to others.</blockquote>
+        <blockquote>No man is as good as he is thought to be; no man as bad.</blockquote>
+        <blockquote>A tiresome man, — a man with a theory.</blockquote>
+        <blockquote>Money adds nothing to an extraordinary man, but it is the &quot;saving grace&quot; of an ordinary
+          man.</blockquote>
+        <blockquote>The able man compares himself with the known and is proud. The great man compares himself with the
+          unknown and is humble.</blockquote>
+        <blockquote>The vain man is laughable; the proud man is insufferable.</blockquote>
+        <blockquote>An able man disdains the wisdom of other men; a great man uses the wisdom of other men.</blockquote>
+        <blockquote>Two kinds of men, — men who see things as they are, and men who see things as they ought to be. The
+          former are practical, the latter reformers. The wise man accepts the position of the former, and works to
+          accomplish that of the latter.</blockquote>
+        <blockquote>Against flattery women are on guard. Men can be flattered into doing almost anything.</blockquote>
+        <blockquote>Men excuse their vices by enumerating their virtues.</blockquote>
+        <blockquote>The great man is little, the little man great. The difference between them lies in that the great
+          man knows his littleness, but the little man does not comprehend his greatness.</blockquote>
+        <blockquote>The little man demands to be understood; the great man is content to be misunderstood.</blockquote>
+        <blockquote>The man who talks of his grand acquaintances is never a grand man.</blockquote>
+        <blockquote>Some men are icebergs, — they never had any heat; others are burned-out volcanoes, — only the ashes
+          remain.</blockquote>
+        <blockquote>Men who go straight to the point either see very little or see very much.</blockquote>
+        <blockquote>Many men have the &quot;courage of their opinions,&quot; few the courage to abandon opinions.
+        </blockquote>
+        <blockquote>A real man has no &quot;appearances&quot; to &quot;keep up.&quot;</blockquote>
+        <blockquote>The man who stands on his dignity has nothing else to stand on.</blockquote>
+        <blockquote>The &quot;self-made man&quot; is proud of a very poor job.</blockquote>
+        <blockquote>Strong men are silent. When a strong man begins to talk, he is losing his power.</blockquote>
+        <blockquote>The talented man must live to be appreciated. The genius must die to be appreciated.</blockquote>
+        <blockquote>The most complete man is he who touches life at the most points.</blockquote>
+        <blockquote>The man who monopolizes the conversation has a monopoly himself.</blockquote>
+        <blockquote>The mistake of an able man is that he thinks others are as able as he.</blockquote>
+      </section>
+      <section id="society">
+        <h2>Society</h2>
+        <blockquote>THE least &quot;manner&quot; the best manners.</blockquote>
+        <blockquote>Second-class people, — those just below us.</blockquote>
+        <blockquote>The Hobgoblin of Society, — “What people will say?”</blockquote>
+        <blockquote>The world is not deceived; it distinguishes between that which is &quot;put on&quot; from that which
+          grows on.</blockquote>
+        <blockquote>Men wear masks and the world takes them seriously; when a man shows his real face, the world laughs.
+        </blockquote>
+        <blockquote>Nondescripts, — &quot;nice people.&quot;</blockquote>
+        <blockquote>Disturbers of society, — people who are aggressively intellectual, and people who have prominent
+          consciences.</blockquote>
+        <blockquote>Man seeks society because he can&#x27;t endure his own companionship.</blockquote>
+        <blockquote>Society is one organism. Lift the race and the individual is lifted. Lift the individual and the
+          race is lifted.</blockquote>
+        <blockquote>&quot;Make believe&quot; is a game society plays as well as children.</blockquote>
+        <blockquote>Better talk good sense than good English.</blockquote>
+        <blockquote>Public opinion is the scarecrow of society.</blockquote>
+        <blockquote>Society people order their clothes, but get their opinions &quot;ready made.&quot;</blockquote>
+        <blockquote>What sap is to the tree, blood to man, money is to society.</blockquote>
+      </section>
+      <section id="language">
+        <h2>Language</h2>
+        <blockquote>LANGUAGE is an evolution, and has its roots in the ground.</blockquote>
+        <blockquote>Words are counters in the game of life. Use them carefully; they must be redeemed.</blockquote>
+        <blockquote>Words burn like fire and heat like balm.</blockquote>
+        <blockquote>Words are coins. Stamp them with your own image.</blockquote>
+        <blockquote>The language of sorrow is tears; the language of despair, silence.</blockquote>
+        <blockquote>Thoughts are vitalized blood.</blockquote>
+        <blockquote>We can say things we can&#x27;t write; write things we can&#x27;t say.</blockquote>
+        <blockquote>Brevity is the soul of — language.</blockquote>
+        <blockquote>To know when to speak is rare; when to be silent, rarer still.</blockquote>
+        <blockquote>Not what others have written, but what you think.</blockquote>
+        <blockquote>There is a language of science, a language of diplomacy, a language of commerce, a language of
+          spirit.</blockquote>
+        <blockquote>To understand a man, you must know the language spoken.</blockquote>
+        <blockquote>A word in times saves nine.</blockquote>
+      </section>
+    </main>
+
+    <footer>
+      <p>Text from 2003 print edition</p>
+    </footer>
+  </div>
+
+  <script>
+    (() => {
+      const clock = document.getElementById('clock');
+
+
+      const miniMapToggle = document.getElementById('mini-map-toggle');
+      const miniMap = document.getElementById('mini-map');
+      const progressBar = document.getElementById('mini-map-progress');
+      const progressText = document.getElementById('reading-progress');
+      const sections = [...document.querySelectorAll('main > section[id]')];
+      const mapLinks = [...miniMap.querySelectorAll('a[href^="#"]')];
+
+      function setMiniMapOpen(isOpen) {
+        miniMap.hidden = !isOpen;
+        miniMapToggle.setAttribute('aria-expanded', String(isOpen));
+
+        try {
+          localStorage.setItem('speculation-mini-map', isOpen ? 'open' : 'closed');
+        } catch (_) {
+          // The map still works when storage is unavailable.
+        }
+      }
+
+      function updateReadingPosition() {
+        const scrollTop = window.scrollY;
+        const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+        const progress = scrollable > 0 ? Math.min(1, Math.max(0, scrollTop / scrollable)) : 0;
+        const percent = Math.round(progress * 100);
+
+        progressBar.style.width = `${percent}%`;
+        progressText.value = `${percent}%`;
+        progressText.textContent = `${percent}%`;
+
+        const marker = scrollTop + window.innerHeight * .35;
+        let currentSection = sections[0];
+
+        for (const section of sections) {
+          if (section.offsetTop <= marker) currentSection = section;
+          else break;
+        }
+
+        for (const link of mapLinks) {
+          const isCurrent = link.getAttribute('href') === `#${currentSection.id}`;
+          link.classList.toggle('is-current', isCurrent);
+          if (isCurrent) link.setAttribute('aria-current', 'location');
+          else link.removeAttribute('aria-current');
+        }
+      }
+
+      let savedMapState = false;
+      try {
+        savedMapState = localStorage.getItem('speculation-mini-map') === 'open';
+      } catch (_) {
+        // Use the closed default.
+      }
+
+      miniMapToggle.checked = savedMapState;
+      setMiniMapOpen(savedMapState);
+      miniMapToggle.addEventListener('change', () => setMiniMapOpen(miniMapToggle.checked));
+      window.addEventListener('scroll', updateReadingPosition, {passive: true});
+      window.addEventListener('resize', updateReadingPosition);
+      updateReadingPosition();
+
+      function updateClock() {
+        const now = new Date();
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        clock.textContent = `${days[now.getDay()]} ${months[now.getMonth()]} ${now.getDate()} ` +
+          `${String(now.getHours()).padStart(2, '0')}:` +
+          `${String(now.getMinutes()).padStart(2, '0')}:` +
+          `${String(now.getSeconds()).padStart(2, '0')}`;
+      }
+
+      updateClock();
+      setInterval(updateClock, 1000);
+    })();
+  </script>
+</body>
+
+</html>
