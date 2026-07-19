@@ -83,9 +83,7 @@
 <body>
   <div class="container">
     <h1 style="font-size:0.275rem;color:transparent">Mike Borsare</h1>
-
-    <time id="clock"></time>
-    <span style="color:var(--stamp)">UTC</span>
+    <time id="clock"></time> <span style="color: var(--stamp);">UTC</span>
 
     <nav style="padding:1rem">
       <a href="index.html" class="ascii">Back</a>
@@ -118,22 +116,14 @@
 
     <div style="padding:2rem 0">
       <h2 style="color:var(--seal)">Latest Episode</h2>
-
-      <audio id="audio-player" controls preload="none" style="width:100%;max-width:600px"></audio>
-
+      <audio id="audio-player" autoplay controls preload="none" style="width:100%;max-width:600px"></audio>
       <p id="episode-title">Loading…</p>
     </div>
 
     <main>
       <h2 style="color:var(--seal);margin:2rem 0 1rem">Archive</h2>
-
-      <ul id="episode-list" class="loading" style="
-          list-style:none;
-          padding:1rem;
-          text-align:left;
-          max-width:600px;
-          margin:0 auto;
-        ">
+      <ul id="episode-list" class="loading"
+        style="list-style:none;padding:1rem;text-align:left;max-width:600px;margin:0 auto">
         <li class="list-item">Loading episodes…</li>
       </ul>
     </main>
@@ -154,270 +144,103 @@
 
   <script>
     /* ---------- CLOCK ---------- */
-
     (() => {
       const clock = document.getElementById('clock');
       let t = 0;
-
       function update() {
-        clock.textContent = new Date()
-          .toISOString()
-          .replace('T', ' ')
-          .slice(0, 23);
+        clock.textContent = new Date().toISOString().replace('T', ' ').slice(0, 23);
       }
-
       function pulse() {
         t += 0.02;
         clock.style.opacity = 0.35 + (Math.sin(t) + 1) * 0.15;
         requestAnimationFrame(pulse);
       }
-
       update();
       setInterval(update, 50);
       pulse();
     })();
 
-    /* ---------- PODCAST ---------- */
-
+    /* ---------- PODCAST (via Cloudflare Worker) ---------- */
     const WORKER_URL = 'https://the-news.mborsare.workers.dev';
-
-    /*
-      Permanent Apple Podcasts identifier for
-      The Washington Post's "The 7".
-    */
-    const PODCAST_ITUNES_ID = 1652580979;
-    const EXPECTED_PUBLISHER = 'Washington Post';
-
-    /*
-      Versioned cache key prevents the old incorrectly
-      resolved podcast from loading.
-    */
-    const STORAGE_KEY =
-      `podcast_cache_taddy_${PODCAST_ITUNES_ID}_v2`;
+    const PODCAST_NAME = 'The 7';
+    const PODCAST_ITUNES_ID = '1652580979'
+    const STORAGE_KEY = 'podcast_cache_taddy_1652580979';
 
     const audioPlayer = document.getElementById('audio-player');
     const episodeTitle = document.getElementById('episode-title');
     const episodeList = document.getElementById('episode-list');
 
-    function renderError(message) {
-      episodeTitle.textContent = message;
-      episodeList.classList.remove('loading');
-      episodeList.innerHTML = '';
-
-      const li = document.createElement('li');
-      li.className = 'list-item';
-      li.textContent = 'Episodes are temporarily unavailable.';
-
-      episodeList.appendChild(li);
-    }
-
     function renderEpisodes(episodes) {
-      if (!Array.isArray(episodes) || episodes.length === 0) {
-        return;
-      }
+      if (!episodes?.length) return;
 
       episodeList.innerHTML = '';
       episodeList.classList.remove('loading');
 
-      episodes.forEach((episode, index) => {
-        if (index === 0) {
-          audioPlayer.src = episode.url;
-          episodeTitle.textContent = episode.label;
+      episodes.forEach((ep, idx) => {
+        if (idx === 0 && !audioPlayer.src) {
+          audioPlayer.src = ep.url;
+          episodeTitle.textContent = ep.label;
         }
 
         const li = document.createElement('li');
         li.className = 'list-item';
-        li.textContent = episode.label;
-
-        li.addEventListener('click', () => {
-          audioPlayer.src = episode.url;
-          episodeTitle.textContent = episode.label;
-
-          audioPlayer.play().catch(() => {
-            /*
-              Browser autoplay restrictions may block playback.
-              The selected episode will still be loaded.
-            */
-          });
-        });
-
+        li.textContent = ep.label;
+        li.onclick = () => {
+          audioPlayer.src = ep.url;
+          episodeTitle.textContent = ep.label;
+          audioPlayer.play().catch(() => { });
+        };
         episodeList.appendChild(li);
       });
     }
 
-    function readCache() {
-      try {
-        const rawCache = localStorage.getItem(STORAGE_KEY);
-
-        if (!rawCache) {
-          return;
-        }
-
-        const cached = JSON.parse(rawCache);
-
-        if (
-          cached?.itunesId === PODCAST_ITUNES_ID &&
-          Array.isArray(cached.episodes) &&
-          cached.episodes.length > 0
-        ) {
-          renderEpisodes(cached.episodes);
-        } else {
-          localStorage.removeItem(STORAGE_KEY);
-        }
-      } catch (error) {
-        console.warn('Discarding invalid podcast cache:', error);
-        localStorage.removeItem(STORAGE_KEY);
-      }
-    }
-
     async function fetchEpisodes() {
       const query = `
-        query {
-          getPodcastSeries(itunesId: ${PODCAST_ITUNES_ID}) {
-            uuid
-            name
-            itunesId
-            rssUrl
-            itunesInfo {
-              publisherName
-            }
-            episodes(
-              sortOrder: LATEST
-              page: 1
-              limitPerPage: 25
-            ) {
-              uuid
-              name
-              audioUrl
-              datePublished
-            }
-          }
-        }
-      `;
+  query {
+    getPodcastSeries(itunesId: ${PODCAST_ITUNES_ID}) {
+      uuid
+      name
+      episodes(limitPerPage: 25) {
+        uuid
+        name
+        audioUrl
+        datePublished
+      }
+    }
+  }
+`;
+
 
       try {
-        const response = await fetch(WORKER_URL, {
+        const res = await fetch(WORKER_URL, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({query})
         });
 
-        if (!response.ok) {
-          throw new Error(
-            `Worker returned HTTP ${response.status}`
-          );
-        }
+        const json = await res.json();
+        if (json.errors) throw new Error(json.errors[0].message);
 
-        const json = await response.json();
+        const episodes = json.data.getPodcastSeries.episodes
+          .filter(ep => ep.audioUrl)
+          .map(ep => ({
+            label: `${new Date(ep.datePublished * 1000)
+              .toLocaleDateString('en-US', {month: 'short', day: 'numeric'})}: ${ep.name}`,
+            url: ep.audioUrl
+          }));
 
-        if (json.errors?.length) {
-          throw new Error(
-            json.errors
-              .map(error => error.message)
-              .join('; ')
-          );
-        }
-
-        const podcast = json.data?.getPodcastSeries;
-
-        if (!podcast) {
-          throw new Error('Podcast was not returned');
-        }
-
-        const returnedItunesId = Number(podcast.itunesId);
-
-        if (returnedItunesId !== PODCAST_ITUNES_ID) {
-          throw new Error(
-            `Wrong podcast returned. Expected ${PODCAST_ITUNES_ID}, received ${podcast.itunesId}`
-          );
-        }
-
-        const publisher =
-          podcast.itunesInfo?.publisherName || '';
-
-        if (
-          !publisher
-            .toLowerCase()
-            .includes(EXPECTED_PUBLISHER.toLowerCase())
-        ) {
-          throw new Error(
-            `Unexpected publisher: ${publisher || 'unknown'}`
-          );
-        }
-
-        const episodes = (podcast.episodes || [])
-          .filter(episode => {
-            return Boolean(
-              episode.audioUrl &&
-              episode.name &&
-              episode.datePublished
-            );
-          })
-          .map(episode => {
-            const publishedDate = new Date(
-              Number(episode.datePublished) * 1000
-            );
-
-            const formattedDate =
-              publishedDate.toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric'
-              });
-
-            return {
-              label: `${formattedDate}: ${episode.name}`,
-              url: episode.audioUrl
-            };
-          });
-
-        if (episodes.length === 0) {
-          throw new Error(
-            'No playable episodes were returned'
-          );
-        }
-
-        localStorage.setItem(
-          STORAGE_KEY,
-          JSON.stringify({
-            itunesId: PODCAST_ITUNES_ID,
-            podcastName: podcast.name,
-            publisher,
-            rssUrl: podcast.rssUrl,
-            cachedAt: Date.now(),
-            episodes
-          })
-        );
-
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(episodes));
         renderEpisodes(episodes);
 
-        console.info('Podcast resolved correctly:', {
-          name: podcast.name,
-          uuid: podcast.uuid,
-          itunesId: podcast.itunesId,
-          publisher,
-          rssUrl: podcast.rssUrl
-        });
-      } catch (error) {
-        console.error('Podcast loading failed:', error);
-
-        /*
-          Preserve valid cached episodes if they are already
-          displayed. Otherwise show an error state.
-        */
-        const hasRenderedEpisodes =
-          episodeList.children.length > 0 &&
-          !episodeList.classList.contains('loading') &&
-          Boolean(audioPlayer.src);
-
-        if (!hasRenderedEpisodes) {
-          renderError('Error loading The 7');
-        }
+      } catch (e) {
+        console.error(e);
+        episodeTitle.textContent = 'Error loading episodes';
       }
     }
 
-    readCache();
+    const cached = localStorage.getItem(STORAGE_KEY);
+    if (cached) renderEpisodes(JSON.parse(cached));
+
     fetchEpisodes();
   </script>
 </body>
