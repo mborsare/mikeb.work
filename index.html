@@ -17,6 +17,14 @@
       --toast-bg: #ffffff;
       --toast-text: #000000;
 
+      /* fluid type scale */
+      --type-xs: clamp(0.72rem, 0.68rem + 0.18vw, 0.82rem);
+      --type-base: clamp(0.9rem, 0.82rem + 0.34vw, 1.06rem);
+      --type-nav: clamp(0.94rem, 0.86rem + 0.32vw, 1.08rem);
+      --type-lg: clamp(1.15rem, 0.98rem + 0.72vw, 1.55rem);
+      --type-xl: clamp(1.4rem, 1.08rem + 1.35vw, 2rem);
+      --type-ascii: clamp(0.62rem, 0.46rem + 0.7vw, 1rem);
+
       /* derived button colors */
       --btn-fill: color-mix(in hsl,
           var(--bg),
@@ -46,7 +54,7 @@
       background: var(--bg);
       color: var(--text);
       font-family: 'ComicMono', monospace;
-      font-size: 1rem;
+      font-size: var(--type-base);
     }
 
     .container {
@@ -68,12 +76,13 @@
 
     .site-intro h1 {
       color: var(--seal);
-      font-size: 1rem;
+      font-size: var(--type-base);
       margin: 0 0 0.5rem;
     }
 
     .site-intro p {
       color: var(--text);
+      font-size: var(--type-base);
       margin: 0;
     }
 
@@ -89,7 +98,7 @@
       color: var(--stamp);
       content: "MJB";
       white-space: pre;
-      font-size: 1rem;
+      font-size: var(--type-base);
       margin-left: 1rem;
       vertical-align: middle;
       display: inline-block;
@@ -102,7 +111,7 @@
 
     @media (max-width: 60rem) {
       .list-item {
-        font-size: 1.5rem;
+        font-size: var(--type-lg);
         text-align: center;
       }
     }
@@ -199,6 +208,7 @@
 
     nav {
       display: grid;
+      font-size: var(--type-nav);
       gap: 1rem;
       padding-bottom: 4rem;
     }
@@ -276,12 +286,13 @@
 
     .missive {
       text-align: left;
+      color: var(--stamp);
       display: flex;
       justify-content: center;
       white-space: pre-wrap;
       word-break: break-word;
       max-width: 100%;
-      font-size: 12px;
+      font-size: var(--type-xl);
       line-height: 1.4;
       margin: 0;
     }
@@ -303,13 +314,13 @@
 
     .reading-title {
       color: var(--seal);
-      font-size: 1.15rem;
+      font-size: var(--type-nav);
       margin-bottom: 0.25rem;
     }
 
     .reading-author {
       color: var(--stamp);
-      font-size: 0.85rem;
+      font-size: var(--type-xs);
       margin-bottom: 0.75rem;
     }
 
@@ -323,7 +334,7 @@
       gap: 0.25rem;
       margin: 0 auto 0.75rem;
       color: var(--text);
-      font-size: 0.85rem;
+      font-size: var(--type-xs);
     }
 
     .reading-start {
@@ -333,7 +344,7 @@
       align-items: center;
       justify-content: center;
       color: var(--stamp);
-      font-size: 0.85rem;
+      font-size: var(--type-xs);
     }
 
     .reading-start input {
@@ -534,6 +545,7 @@
     .ascii-heading {
       display: block;
       white-space: pre;
+      font-size: var(--type-ascii);
       line-height: 1;
       color: var(--seal);
     }
@@ -610,95 +622,20 @@
       <h2 class="sr-only">Now reading</h2>
       <!-- prettier-ignore -->
       <pre class="ascii-heading" aria-hidden="true">
-      __           __   ___       __          __  
-|\ | /  \ |  |    |__) |__   /\  |  \ | |\ | / _` 
-| \| \__/ |/\|    |  \ |___ /~~\ |__/ | | \| \__> 
-                                                  
+• ▌ ▄ ·. ▄▄▄ .▄▄▄▄▄ ▄ .▄      ·▄▄▄▄  
+·██ ▐███▪▀▄.▀·•██  ██▪▐█▪     ██▪ ██ 
+▐█ ▌▐▌▐█·▐▀▀▪▄ ▐█.▪██▀▐█ ▄█▀▄ ▐█· ▐█▌
+██ ██▌▐█▌▐█▄▄▌ ▐█▌·██▌▐▀▐█▌.▐▌██. ██ 
+▀▀  █▪▀▀▀ ▀▀▀  ▀▀▀ ▀▀▀ · ▀█▄▀▪▀▀▀▀▀• 
 </pre>
       <div class="missives">
-        <section class="currently-reading" aria-label="Currently reading" data-nosnippet>
-          <img class="reading-cover" src="/backoffice/covers/too-big-to-fail.jpg" width="183" height="280"
-            alt="Too Big to Fail book cover" decoding="async" />
-          <div class="reading-meta">
-            <div class="reading-title">Too Big to Fail</div>
-            <div class="reading-author">Andrew Ross Sorkin</div>
-            <div class="reading-time">
-              Reading for <span id="reading-timer" class="glitch-clock">0 seconds</span>
-            </div>
-            <div class="reading-stats">
-              <div>624 pages</div>
-              <div>~187,000 words</div>
-              <div>~20h 48m at a methodical 150 wpm</div>
-            </div>
-            <label class="reading-start">
-              Started
-              <input id="reading-start" type="datetime-local" />
-            </label>
-          </div>
-        </section>
-        <details class="old-missives" data-nosnippet>
-          <summary>Field notes</summary>
-
-          <pre class="missive">
-11:02 Fr 10 APR
->> Morning activation
-
-This is fuel for clarity
-Observe the state
-Work slowly with restraint
----------------------------------------
-</pre>
-
-          <!-- prettier-ignore -->
-          <pre class="missive">
-14:05 Tu 17 FEB
->> Discipline with prime
-
-Discipline is putting yourself first. 
-Your body, 
-your environment, 
-your attention
----------------------------------------
-</pre>
-
-          <!-- prettier-ignore -->
-          <pre class="missive">
-14:05 Tu 17 FEB
->> Daily schedule 
-
-9–11 media, chores
-12 thc, lunch
-13 media, chores
-14 make, movement and strength
-
-* Create chore list daily
----------------------------------------
-</pre>
-
-          <!-- prettier-ignore -->
-          <pre class="missive">
-23:43 Fr 13 FEB
->> Enter at exhaustion then ride energy
----------------------------------------
-</pre>
-
-          <!-- prettier-ignore -->
-          <pre class="missive">
-21:12 Fr 13 FEB
->> Good work this week
----------------------------------------
-</pre>
-
-          <!-- prettier-ignore -->
-          <pre class="missive">
-16:39 Fr 13 FEB
->> Always iterate
----------------------------------------
-</pre>
-        </details>
+        <div class="missive">Survey the region</div>
+        <div class="missive">Mark neighborhood edges</div>
+        <div class="missive">Watch the now for 15 minutes</div>
+        <div class="missive">Pick the spot</div>
+        <div class="missive">Wait for ally</div>
+        <div class="missive">Send soldier</div>
       </div>
-
-
     </div>
     <h2 class="sr-only">Doctrine</h2>
     <!-- prettier-ignore -->
