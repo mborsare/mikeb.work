@@ -7,10 +7,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
-    .daily-question {
-      font-size: .75rem;
-    }
-
     .upload-preview {
       width: 100%;
       display: block;
@@ -42,19 +38,19 @@
     }
 
     @font-face {
-      font-family: 'ComicMono';
-      src: url('/fonts/ComicMono-Regular.woff') format('woff');
+      font-family: "ComicMono";
+      src: url("/fonts/ComicMono-Regular.woff") format("woff");
       font-display: swap;
     }
 
     @font-face {
-      font-family: 'CursiveWorksheet';
-      src: url('/fonts/Cursive-Worksheet.ttf') format('truetype');
+      font-family: "CursiveWorksheet";
+      src: url("/fonts/Cursive-Worksheet.ttf") format("truetype");
       font-display: swap;
     }
 
     .cursive-teacher {
-      font-family: 'CursiveWorksheet';
+      font-family: "CursiveWorksheet";
       font-size: 3rem;
       letter-spacing: 0.1rem;
       line-height: 3rem;
@@ -68,7 +64,7 @@
       justify-content: center;
       background: var(--bg);
       color: var(--text);
-      font-family: 'ComicMono', monospace;
+      font-family: "ComicMono", monospace;
       line-height: 1.4;
     }
 
@@ -162,7 +158,7 @@
     }
 
     h2 {
-      margin: 0 0 0.75rem 0;
+      margin: 0 0 1rem 0;
       text-transform: uppercase;
       font-size: 0.7rem;
       letter-spacing: 0.3rem;
@@ -190,7 +186,7 @@
       outline-offset: 0.2rem;
     }
 
-    .new-pair-button {
+    .button {
       color: var(--seal);
       background: transparent;
       border: 0;
@@ -199,8 +195,8 @@
       cursor: pointer;
     }
 
-    .new-pair-button:hover,
-    .new-pair-button:focus-visible {
+    .button:hover,
+    .button:focus-visible {
       border-bottom-color: var(--seal);
       outline: 0;
     }
@@ -264,7 +260,7 @@
 
     .soldier-avatar {
       width: 60px;
-      height: 120px;
+      height: 90px;
       background-color: transparent;
       overflow: visible;
       position: relative;
@@ -294,7 +290,7 @@
       overflow: visible;
       font-size: 150%;
       text-overflow: ellipsis;
-      margin-bottom: .5rem;
+      margin-bottom: 0.5rem;
     }
 
     .soldier-card[data-state="KIA"] .soldier-avatar,
@@ -320,23 +316,80 @@
     .draw-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 0.6rem;
-      margin-top: 0.5rem;
+      gap: 5rem;
+      padding: 2.5rem;
     }
 
-    .draw-grid li {
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      padding: 4.5rem 0.5rem;
+    .draw-grid>li {
       text-align: center;
-      color: var(--stamp);
-      letter-spacing: 0.05em;
-      line-height: 1.3;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      transform:
+        translate(var(--shift-x, 0), var(--shift-y, 0)) rotate(var(--tilt, 0deg));
+      transform-origin: center;
     }
 
-    .draw-grid li:hover {
-      background: rgba(234, 255, 234, 0.08);
-      color: var(--seal);
+    .scantron-box {
+      grid-template-columns: repeat(1, 1fr);
+    }
+
+    .scantron-sheet {
+      width: 80%;
+      height: 80%;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      align-content: center;
+      gap: .5rem;
+    }
+
+    .scantron-bubble {
+      width: 100%;
+      border: 1px solid var(--line-color);
+      border-radius: 8px;
+      padding: .25rem .1rem;
+    }
+
+    .hunt-size-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .hunt-size-scale {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .25rem;
+    }
+
+    .hunt-size-row {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 3rem 1.5rem 1.25rem;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .hunt-size-value {
+      text-align: right;
+    }
+
+    .hunt-size-tick {
+      width: 100%;
+      height: 1px;
+      background: currentColor;
+    }
+
+    .hunt-size-bubble {
+      width: 1rem;
+      aspect-ratio: 1;
+      border: 1.5px solid currentColor;
+      border-radius: 50%;
+      box-sizing: border-box;
+      background: var(--bg);
     }
 
     @media (max-width: 900px) {
@@ -354,10 +407,6 @@
 
       .bottom-section {
         grid-template-columns: 1fr;
-      }
-
-      .draw-grid {
-        grid-template-columns: repeat(2, 1fr);
       }
 
       .games-section {
@@ -403,7 +452,7 @@
 
       nav,
       .upload-box,
-      .new-pair-button {
+      .button {
         display: none !important;
       }
 
@@ -501,13 +550,6 @@
         break-before: page;
       }
 
-      .draw-grid li {
-        background: transparent !important;
-        border-color: #bbbbbb;
-        color: var(--text);
-        font-size: 0.5rem;
-      }
-
       .games-section {
         grid-template-columns: 1fr 1fr;
       }
@@ -569,14 +611,6 @@
             <p class="cursive-teacher">Emotions are state</p>
             <p class="cursive-teacher">Same canvas</p>
             <p class="cursive-teacher">Always cycling</p>
-            <ol>
-              <li>Survey region</li>
-              <li>Survey edges</li>
-              <li>Mark edges</li>
-              <li>Wait for ally</li>
-              <li>If +15, send 1 soldier into positive conditions</li>
-              <li>If RTB, another soldier is allowed after 14:15.</li>
-            </ol>
           </div>
         </section>
       </div>
@@ -584,9 +618,11 @@
       <div class="column">
         <section aria-label="today's squad">
           <div class="ticket-date-row">
-            <h2 id="ticket-date">Thu Jul 2</h2>
-            <h3>Today's soldiers</h3>
-            <button class="new-pair-button" id="new-pair-button" type="button">New pair</button>
+            <h2>Date:
+              <span id="ticket-date">Thu Jul 2</span>
+            </h2>
+            <span>Soldier 2 allowed after 14:15 if 1 is RTB</span>
+            <button class="button" id="new-pair-button" type="button">Randomize soldiers 🔄</button>
           </div>
           <div class="squad-stack" id="squad-stack"></div>
         </section>
@@ -594,25 +630,36 @@
     </section>
 
     <div class="secondary-pages">
-      <section style="margin: 3rem 2rem 0;">
-        <h2>Write</h2>
-        <section class="rules-section">
-          <p class="daily-question">Why is soldier 1 in the Capital Army?</p>
-          <div class="handwriting-paper" aria-hidden="true" style="min-height: 3rem;"></div>
-        </section>
-
-        <section class="rules-section">
-          <p class="daily-question">Soldier 2 makes me think of ...</p>
-          <div class="handwriting-paper" aria-hidden="true" style="min-height: 3rem;"></div>
-        </section>
-
-      </section>
-
-      <section>
-        <h2>Draw</h2>
+      <section style="margin: 3rem 0;">
+        <h2>Observation and governance</h2>
         <ul class="draw-grid">
-          <li>Soldier 1</li>
-          <li>Solder 2</li>
+          <li class="scantron-box">
+            <p>Shade in each minute of observation ✏️</p>
+            <div class="scantron-sheet" aria-label="15 observation minutes">
+              <span class="scantron-bubble">1</span>
+              <span class="scantron-bubble">2</span>
+              <span class="scantron-bubble">3</span>
+              <span class="scantron-bubble">4</span>
+              <span class="scantron-bubble">5</span>
+              <span class="scantron-bubble">6</span>
+              <span class="scantron-bubble">7</span>
+              <span class="scantron-bubble">8</span>
+              <span class="scantron-bubble">9</span>
+              <span class="scantron-bubble">10</span>
+              <span class="scantron-bubble">11</span>
+              <span class="scantron-bubble">12</span>
+              <span class="scantron-bubble">13</span>
+              <span class="scantron-bubble">14</span>
+              <span class="scantron-bubble">15</span>
+            </div>
+          </li>
+          <li class="hunt-size-box">
+            <p>Observed hunt size in points 🦌</p>
+            <div class="hunt-size-scale" data-min="0" data-max="100" data-step="10"
+              aria-label="Observed hunt size from 0 to 100 points"></div>
+          </li>
+          <li>Where are the local liquidity pools? 🏊</li>
+          <li>What are the argument's edges 📏</li>
         </ul>
       </section>
     </div>
@@ -664,13 +711,13 @@
 
   <script>
     (() => {
-      const SVG_NS = 'http://www.w3.org/2000/svg';
+      const SVG_NS = "http://www.w3.org/2000/svg";
 
       function cssLengthToPx(value, parent) {
-        const probe = document.createElement('div');
-        probe.style.position = 'absolute';
-        probe.style.visibility = 'hidden';
-        probe.style.pointerEvents = 'none';
+        const probe = document.createElement("div");
+        probe.style.position = "absolute";
+        probe.style.visibility = "hidden";
+        probe.style.pointerEvents = "none";
         probe.style.height = value.trim();
         parent.appendChild(probe);
         const px = probe.getBoundingClientRect().height;
@@ -678,29 +725,39 @@
         return px || 20;
       }
 
+      document.querySelectorAll(".draw-grid > li").forEach(item => {
+        const tilt = (Math.random() * 8 - 9.5).toFixed(2);
+        const shiftX = (Math.random() * 9 - 2).toFixed(1);
+        const shiftY = (Math.random() * 4 - 6).toFixed(1);
+
+        item.style.setProperty("--tilt", `${tilt}deg`);
+        item.style.setProperty("--shift-x", `${shiftX}px`);
+        item.style.setProperty("--shift-y", `${shiftY}px`);
+      });
+
       function renderPaper(el) {
-        el.querySelector('.paper-lines')?.remove();
+        el.querySelector(".paper-lines")?.remove();
 
         const style = getComputedStyle(el);
-        const gapValue = style.getPropertyValue('--paper-line-gap') || '1.25rem';
+        const gapValue = style.getPropertyValue("--paper-line-gap") || "1.25rem";
         const gap = cssLengthToPx(gapValue, el);
         const height = Math.ceil(el.getBoundingClientRect().height);
 
         if (!height || !gap) return;
 
-        const svg = document.createElementNS(SVG_NS, 'svg');
-        svg.classList.add('paper-lines');
-        svg.setAttribute('viewBox', `0 0 100 ${height}`);
-        svg.setAttribute('preserveAspectRatio', 'none');
-        svg.setAttribute('aria-hidden', 'true');
-        svg.setAttribute('focusable', 'false');
+        const svg = document.createElementNS(SVG_NS, "svg");
+        svg.classList.add("paper-lines");
+        svg.setAttribute("viewBox", `0 0 100 ${height}`);
+        svg.setAttribute("preserveAspectRatio", "none");
+        svg.setAttribute("aria-hidden", "true");
+        svg.setAttribute("focusable", "false");
 
         for (let y = gap; y < height; y += gap) {
-          const line = document.createElementNS(SVG_NS, 'line');
-          line.setAttribute('x1', '0');
-          line.setAttribute('x2', '100');
-          line.setAttribute('y1', y);
-          line.setAttribute('y2', y);
+          const line = document.createElementNS(SVG_NS, "line");
+          line.setAttribute("x1", "0");
+          line.setAttribute("x2", "100");
+          line.setAttribute("y1", y);
+          line.setAttribute("y2", y);
           svg.appendChild(line);
         }
 
@@ -708,20 +765,20 @@
       }
 
       function renderAllPaper() {
-        document.querySelectorAll('.handwriting-paper').forEach(renderPaper);
+        document.querySelectorAll(".handwriting-paper").forEach(renderPaper);
       }
 
-      window.addEventListener('load', renderAllPaper);
-      window.addEventListener('resize', renderAllPaper);
-      window.addEventListener('beforeprint', renderAllPaper);
-      window.addEventListener('afterprint', renderAllPaper);
+      window.addEventListener("load", renderAllPaper);
+      window.addEventListener("resize", renderAllPaper);
+      window.addEventListener("beforeprint", renderAllPaper);
+      window.addEventListener("afterprint", renderAllPaper);
 
-      const mq = window.matchMedia('print');
-      mq.addEventListener?.('change', renderAllPaper);
+      const mq = window.matchMedia("print");
+      mq.addEventListener?.("change", renderAllPaper);
     })();
 
     (() => {
-      const clock = document.getElementById('clock');
+      const clock = document.getElementById("clock");
 
       function tick() {
         clock.textContent = new Date().toLocaleTimeString();
@@ -732,22 +789,22 @@
     })();
 
     (() => {
-      const title = document.getElementById('ticket-date');
-      const stack = document.getElementById('squad-stack');
-      const newPairButton = document.getElementById('new-pair-button');
+      const title = document.getElementById("ticket-date");
+      const stack = document.getElementById("squad-stack");
+      const newPairButton = document.getElementById("new-pair-button");
 
       const CAPITAL_ARMY_ROOT =
-        'https://capitalarmy.mborsare.workers.dev/api/capital-army';
+        "https://capitalarmy.mborsare.workers.dev/api/capital-army";
       const STATE_API = `${CAPITAL_ARMY_ROOT}/state`;
       const MISSIONS_API = `${CAPITAL_ARMY_ROOT}/missions`;
-      const SQUAD_STORAGE_PREFIX = 'capitalArmySquad';
+      const SQUAD_STORAGE_PREFIX = "capitalArmySquad";
       const SOLDIERS_PER_DAY = 2;
-      const ARMY_PAGE_URL = '/capital-army.html';
+      const ARMY_PAGE_URL = "/capital-army.html";
 
       const army = window.CapitalArmy || window.PrimeArmy;
 
       if (!army) {
-        console.warn('Capital Army soldier manifest unavailable.');
+        console.warn("Capital Army soldier manifest unavailable.");
         return;
       }
 
@@ -758,15 +815,15 @@
       const avatarUrl = army.avatarUrl || (
         soldier =>
           `/backoffice/the-stacks/soldiers/` +
-          `soldier_${String(soldier.id).padStart(2, '0')}.jpg`
+          `soldier_${String(soldier.id).padStart(2, "0")}.jpg`
       );
       const escapeHtml = army.escapeHtml || (
         value => String(value).replace(/[&<>'"]/g, char => ({
-          '&': '&amp;',
-          '<': '&lt;',
-          '>': '&gt;',
-          "'": '&#39;',
-          '"': '&quot;'
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          "'": "&#39;",
+          '"': "&quot;"
         }[char]))
       );
 
@@ -785,8 +842,8 @@
 
       function ymd(date) {
         const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
         return `${year}-${month}-${day}`;
       }
 
@@ -795,7 +852,7 @@
       }
 
       function soldierId(soldier) {
-        return String(soldier.id).padStart(2, '0');
+        return String(soldier.id).padStart(2, "0");
       }
 
       function soldierHref(soldier) {
@@ -827,7 +884,7 @@
         try {
           localStorage.setItem(key, JSON.stringify(value));
         } catch (error) {
-          console.warn('Capital Army local storage failed.', error);
+          console.warn("Capital Army local storage failed.", error);
         }
       }
 
@@ -845,7 +902,7 @@
       function soldiersFromIds(ids) {
         return ids
           .map(id => soldiers.find(
-            soldier => soldierId(soldier) === String(id).padStart(2, '0')
+            soldier => soldierId(soldier) === String(id).padStart(2, "0")
           ))
           .filter(Boolean);
       }
@@ -883,10 +940,10 @@
 
         Object.entries(states).forEach(([id, record]) => {
           if (
-            record?.state === 'RTB' ||
-            record?.state === 'KIA'
+            record?.state === "RTB" ||
+            record?.state === "KIA"
           ) {
-            marked.add(String(id).padStart(2, '0'));
+            marked.add(String(id).padStart(2, "0"));
           }
         });
 
@@ -923,7 +980,7 @@
 
       async function apiJson(url) {
         const response = await fetch(url, {
-          cache: 'no-store'
+          cache: "no-store"
         });
 
         if (!response.ok) {
@@ -962,12 +1019,12 @@
 
         const states = missionState?.soldiers || {};
 
-        stack.querySelectorAll('.soldier-card').forEach(card => {
+        stack.querySelectorAll(".soldier-card").forEach(card => {
           const id = card.dataset.soldierId;
-          const state = states[id]?.state || '';
-          const name = card.querySelector('.soldier-name');
+          const state = states[id]?.state || "";
+          const name = card.querySelector(".soldier-name");
 
-          if (state === 'RTB' || state === 'KIA') {
+          if (state === "RTB" || state === "KIA") {
             card.dataset.state = state;
             if (name) {
               name.dataset.state = state;
@@ -988,13 +1045,13 @@
 
         if (title) {
           title.textContent = currentDate
-            .toLocaleDateString('en-US', {
-              weekday: 'short',
-              month: 'short',
-              day: 'numeric'
+            .toLocaleDateString("en-US", {
+              weekday: "short",
+              month: "short",
+              day: "numeric"
             })
-            .replace(',', '');
-          title.title = 'No active mission';
+            .replace(",", "");
+          title.title = "No active mission";
         }
 
         if (stack) {
@@ -1014,7 +1071,7 @@
         squadOverride = null
       ) {
         if (!missionState?.missionId || !soldiers.length) {
-          renderNoMission('No active mission.');
+          renderNoMission("No active mission.");
           return;
         }
 
@@ -1033,8 +1090,8 @@
           if (stack) {
             stack.innerHTML = (
               '<p class="soldier-cue">' +
-              'Fewer than two unmarked soldiers remain in this mission.' +
-              '</p>'
+              "Fewer than two unmarked soldiers remain in this mission." +
+              "</p>"
             );
           }
 
@@ -1050,12 +1107,12 @@
 
         if (title) {
           title.textContent = date
-            .toLocaleDateString('en-US', {
-              weekday: 'short',
-              month: 'short',
-              day: 'numeric'
+            .toLocaleDateString("en-US", {
+              weekday: "short",
+              month: "short",
+              day: "numeric"
             })
-            .replace(',', '');
+            .replace(",", "");
           title.title = `Mission ${currentMissionId}`;
         }
 
@@ -1094,13 +1151,13 @@
               </div>
             </article>
           `;
-        }).join('');
+        }).join("");
 
         applyMissionState(missionState);
 
         if (newPairButton) {
           newPairButton.disabled =
-            missionState.status === 'closed' ||
+            missionState.status === "closed" ||
             availableSoldiers(missionState).length < SOLDIERS_PER_DAY;
         }
       }
@@ -1110,7 +1167,7 @@
           const missionState = await readActiveMissionState();
 
           if (!missionState) {
-            renderNoMission('No active mission.');
+            renderNoMission("No active mission.");
             return;
           }
 
@@ -1124,23 +1181,23 @@
 
           if (newPairButton) {
             newPairButton.disabled =
-              missionState.status === 'closed' ||
+              missionState.status === "closed" ||
               availableSoldiers(missionState).length < SOLDIERS_PER_DAY;
           }
         } catch (error) {
-          console.warn('Capital Army state unavailable.', error);
+          console.warn("Capital Army state unavailable.", error);
         }
       }
 
       if (newPairButton) {
-        newPairButton.addEventListener('click', async () => {
+        newPairButton.addEventListener("click", async () => {
           newPairButton.disabled = true;
 
           try {
             const missionState = await readActiveMissionState();
 
             if (!missionState) {
-              renderNoMission('No active mission.');
+              renderNoMission("No active mission.");
               return;
             }
 
@@ -1152,19 +1209,19 @@
 
             if (!squad) {
               window.alert(
-                'Fewer than two unmarked soldiers remain in this mission.'
+                "Fewer than two unmarked soldiers remain in this mission."
               );
               return;
             }
 
             renderSquad(currentDate, missionState, squad);
           } catch (error) {
-            console.warn('Capital Army state unavailable.', error);
-            window.alert('Could not read the active mission.');
+            console.warn("Capital Army state unavailable.", error);
+            window.alert("Could not read the active mission.");
           } finally {
             if (lastMissionState) {
               newPairButton.disabled =
-                lastMissionState.status === 'closed' ||
+                lastMissionState.status === "closed" ||
                 availableSoldiers(lastMissionState).length < SOLDIERS_PER_DAY;
             }
           }
@@ -1172,7 +1229,7 @@
       }
 
       const params = new URLSearchParams(window.location.search);
-      const testDate = params.get('date');
+      const testDate = params.get("date");
       currentDate = testDate
         ? new Date(`${testDate}T12:00:00`)
         : new Date();
@@ -1180,19 +1237,19 @@
       readActiveMissionState()
         .then(missionState => {
           if (!missionState) {
-            renderNoMission('No active mission.');
+            renderNoMission("No active mission.");
             return;
           }
 
           renderSquad(currentDate, missionState);
         })
         .catch(error => {
-          console.warn('Capital Army initialization failed.', error);
-          renderNoMission('Capital Army state unavailable.');
+          console.warn("Capital Army initialization failed.", error);
+          renderNoMission("Capital Army state unavailable.");
         });
 
-      window.addEventListener('focus', refreshActiveMission);
-      document.addEventListener('visibilitychange', () => {
+      window.addEventListener("focus", refreshActiveMission);
+      document.addEventListener("visibilitychange", () => {
         if (!document.hidden) {
           refreshActiveMission();
         }
@@ -1202,12 +1259,12 @@
     (() => {
       const today = new Date().toISOString().slice(0, 10);
 
-      document.querySelectorAll('[data-store]').forEach(section => {
+      document.querySelectorAll("[data-store]").forEach(section => {
         const keyBase = section.dataset.store;
         const storageKey = `${keyBase}-${today}`;
 
         const input = section.querySelector('input[type="file"]');
-        const img = section.querySelector('.upload-preview');
+        const img = section.querySelector(".upload-preview");
 
         const saved = localStorage.getItem(storageKey);
         if (saved) {
@@ -1215,7 +1272,7 @@
           img.hidden = false;
         }
 
-        input.addEventListener('change', () => {
+        input.addEventListener("change", () => {
           const file = input.files[0];
           if (!file) return;
 
@@ -1226,11 +1283,41 @@
               img.src = reader.result;
               img.hidden = false;
             } catch {
-              alert('Storage full. Clear old images.');
+              alert("Storage full. Clear old images.");
             }
           };
           reader.readAsDataURL(file);
         });
+      });
+    })();
+
+    (() => {
+      document.querySelectorAll(".hunt-size-scale").forEach(scale => {
+        const min = Number(scale.dataset.min ?? 0);
+        const max = Number(scale.dataset.max ?? 100);
+        const step = Number(scale.dataset.step ?? 10);
+
+        scale.replaceChildren();
+
+        for (let value = max; value >= min; value -= step) {
+          const row = document.createElement("div");
+          row.className = "hunt-size-row";
+
+          const label = document.createElement("span");
+          label.className = "hunt-size-value";
+          label.textContent = value;
+
+          const tick = document.createElement("span");
+          tick.className = "hunt-size-tick";
+          tick.setAttribute("aria-hidden", "true");
+
+          const bubble = document.createElement("span");
+          bubble.className = "hunt-size-bubble";
+          bubble.setAttribute("aria-hidden", "true");
+
+          row.append(label, tick, bubble);
+          scale.appendChild(row);
+        }
       });
     })();
   </script>
