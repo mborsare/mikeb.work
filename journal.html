@@ -725,15 +725,30 @@
         return px || 20;
       }
 
-      document.querySelectorAll(".draw-grid > li").forEach(item => {
-        const tilt = (Math.random() * 8 - 9.5).toFixed(2);
-        const shiftX = (Math.random() * 9 - 2).toFixed(1);
-        const shiftY = (Math.random() * 4 - 6).toFixed(1);
+      const drawItems = [...document.querySelectorAll(".draw-grid > li")];
+      const tiltDirections = shuffle([-1, 1, -1, 1]);
 
-        item.style.setProperty("--tilt", `${tilt}deg`);
-        item.style.setProperty("--shift-x", `${shiftX}px`);
-        item.style.setProperty("--shift-y", `${shiftY}px`);
+      drawItems.forEach((item, index) => {
+        const direction = tiltDirections[index % tiltDirections.length];
+        const tilt = direction * (2.5 + Math.random() * 8);
+        const shiftX = -10 + Math.random() * 20;
+        const shiftY = -8 + Math.random() * 16;
+
+        item.style.setProperty("--tilt", `${tilt.toFixed(2)}deg`);
+        item.style.setProperty("--shift-x", `${shiftX.toFixed(1)}px`);
+        item.style.setProperty("--shift-y", `${shiftY.toFixed(1)}px`);
       });
+
+      function shuffle(values) {
+        const next = [...values];
+
+        for (let i = next.length - 1; i > 0; i -= 1) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [next[i], next[j]] = [next[j], next[i]];
+        }
+
+        return next;
+      }
 
       function renderPaper(el) {
         el.querySelector(".paper-lines")?.remove();
