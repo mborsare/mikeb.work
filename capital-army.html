@@ -1089,7 +1089,30 @@
       }
 
       function missionStatus(mission) {
-        if (mission?.status === 'closed') {
+        const missionId = normalizeYmd(
+          mission?.missionId || mission?.startDate
+        );
+        const startDate = normalizeYmd(
+          mission?.startDate || missionId
+        );
+        const endDate = normalizeYmd(mission?.endDate);
+        const today = todayYmd();
+
+        if (startDate && startDate > today) {
+          return 'scheduled';
+        }
+
+        if (
+          missionId &&
+          missionLedger?.activeMissionId === missionId
+        ) {
+          return 'active';
+        }
+
+        if (
+          mission?.status === 'closed' ||
+          (endDate && endDate < today)
+        ) {
           return 'closed';
         }
 
@@ -1299,9 +1322,15 @@
         const startDate = normalizeYmd(missionStartInput.value);
         const validMonday = Boolean(startDate && isMonday(startDate));
         const futureOrToday = Boolean(startDate && startDate >= todayYmd());
+        const missionAlreadyExists = Boolean(
+          startDate &&
+          (missionLedger?.missions || []).some(mission => (
+            normalizeYmd(mission.startDate || mission.missionId) === startDate
+          ))
+        );
 
         scheduleMissionButton.disabled =
-          !validMonday || !futureOrToday;
+          !validMonday || !futureOrToday || missionAlreadyExists;
 
         if (!startDate) {
           missionScheduleCopy.textContent =
@@ -1318,6 +1347,12 @@
         if (!futureOrToday) {
           missionScheduleCopy.textContent =
             'Mission start cannot be in the past.';
+          return;
+        }
+
+        if (missionAlreadyExists) {
+          missionScheduleCopy.textContent =
+            'A mission already exists for this start date.';
           return;
         }
 
@@ -1691,10 +1726,17 @@
 
         const startDate = normalizeYmd(missionStartInput.value);
 
+        const missionAlreadyExists = (
+          missionLedger?.missions || []
+        ).some(mission => (
+          normalizeYmd(mission.startDate || mission.missionId) === startDate
+        ));
+
         if (
           !startDate ||
           !isMonday(startDate) ||
-          startDate < todayYmd()
+          startDate < todayYmd() ||
+          missionAlreadyExists
         ) {
           updateSchedulePreview();
           return;
