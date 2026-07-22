@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>mikeb.work/timer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    @font-face {
+      font-family: ComicMono;
+      src: url("/fonts/ComicMono-Regular.woff") format("woff");
+      font-display: swap;
+    }
+
+    :root {
+      --panel: #292929;
+      --button: #454545;
+      --border: #555;
+      --text: #fff;
+      --quiet: #999;
+    }
+
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+      color: var(--text);
+      font-family: ComicMono, monospace;
+    }
+
+    body {
+      margin: 0;
+      display: grid;
+      place-items: center;
+    }
+
+    .timer {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      align-items: center;
+      min-height: 21rem;
+      padding: 3rem;
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      background: var(--panel);
+    }
+
+    header,
+    .controls {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    header pre {
+      margin: 0;
+    }
+
+    #clock {
+      color: var(--quiet);
+    }
+
+    #command {
+      justify-self: center;
+      width: 9ch;
+      padding: 0;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--text);
+      font: inherit;
+      font-size: clamp(5rem, 17vw, 9rem);
+      line-height: 1;
+      text-align: center;
+      cursor: text;
+    }
+
+    #command::selection {
+      color: var(--panel);
+      background: var(--text);
+    }
+
+    button {
+      padding: 0.5rem 1rem;
+      border: 0;
+      border-radius: 0.4rem;
+      background: var(--button);
+      color: var(--text);
+      font: inherit;
+      cursor: pointer;
+    }
+
+    button:active {
+      transform: scale(0.94);
+    }
+  </style>
+</head>
+
+<body>
+  <main class="timer">
+    <header>
+      <!-- prettier-ignore -->
+      <pre style="font-size:0.125rem;">
+██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████
+▓██░  ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█   ▀
+▓██░ ██▓▒▓██ ░▄█ ▒▒██▒▓██    ▓██░▒███
+▒██▄█▓▒ ▒▒██▀▀█▄  ░██░▒██    ▒██ ▒▓█  ▄
+▒██▒ ░  ░░██▓ ▒██▒░██░▒██▒   ░██▒░▒████▒
+▒▓▒░ ░  ░░ ▒▓ ░▒▓░░▓  ░ ▒░   ░  ░░░ ▒░ ░
+░▒ ░       ░▒ ░ ▒░ ▒ ░░  ░      ░ ░ ░  ░
+░░         ░░   ░  ▒ ░░      ░      ░
+            ░      ░         ░      ░  ░
+      </pre>
+
+      <time id="clock"></time>
+    </header>
+
+    <input id="command" value="1:00:00" aria-label="Timer" autocomplete="off" spellcheck="false">
+
+    <div class="controls">
+      <span></span>
+      <button id="start">▶ Start</button>
+    </div>
+  </main>
+
+  <script>
+    const clock = document.querySelector("#clock");
+    const command = document.querySelector("#command");
+    const startButton = document.querySelector("#start");
+
+    let configuredSeconds = 60 * 60;
+    let remainingSeconds = configuredSeconds;
+    let running = false;
+    let deadline = 0;
+    let timerId = null;
+
+    function updateClock() {
+      clock.textContent = new Date().toLocaleString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      });
+    }
+
+    function formatTime(totalSeconds) {
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+
+      return `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    }
+
+    function parseCommand(value) {
+      const input = value
+        .trim()
+        .toLowerCase()
+        .replaceAll(" ", "")
+        .replaceAll(";", ":");
+
+      if (!input) return null;
+
+      const isClockTime =
+        input.startsWith("@") ||
+        /(?:a|p|am|pm)$/.test(input);
+
+      if (isClockTime) {
+        const match = input.match(
+          /^@?(\d{1,2}):(\d{2})(a|p|am|pm)?$/
+        );
+
+        if (!match) return null;
+
+        let hours = Number(match[1]);
+        const minutes = Number(match[2]);
+        const meridiem = match[3];
+
+        if (minutes > 59) return null;
+
+        if (meridiem) {
+          if (hours < 1 || hours > 12) return null;
+
+          if (meridiem.startsWith("p") && hours !== 12) {
+            hours += 12;
+          }
+
+          if (meridiem.startsWith("a") && hours === 12) {
+            hours = 0;
+          }
+        } else if (hours > 23) {
+          return null;
+        }
+
+        const now = new Date();
+        const target = new Date();
+
+        target.setHours(hours, minutes, 0, 0);
+
+        if (target <= now) {
+          target.setDate(target.getDate() + 1);
+        }
+
+        return Math.ceil((target - now) / 1000);
+      }
+
+      const unitMatch = input.match(/^(\d+(?:\.\d+)?)(h|m|s)$/);
+
+      if (unitMatch) {
+        const amount = Number(unitMatch[1]);
+        const unit = unitMatch[2];
+
+        if (unit === "h") return Math.round(amount * 3600);
+        if (unit === "m") return Math.round(amount * 60);
+
+        return Math.round(amount);
+      }
+
+      if (/^\d+$/.test(input)) {
+        return Number(input) * 60;
+      }
+
+      const parts = input.split(":").map(Number);
+
+      if (
+        parts.some(Number.isNaN) ||
+        parts.length < 2 ||
+        parts.length > 3
+      ) {
+        return null;
+      }
+
+      if (parts.length === 2) {
+        const [hours, minutes] = parts;
+
+        if (minutes > 59) return null;
+
+        return hours * 3600 + minutes * 60;
+      }
+
+      const [hours, minutes, seconds] = parts;
+
+      if (minutes > 59 || seconds > 59) return null;
+
+      return hours * 3600 + minutes * 60 + seconds;
+    }
+
+    function render() {
+      command.value = formatTime(remainingSeconds);
+      command.readOnly = running;
+      startButton.textContent = running ? "Ⅱ Pause" : "▶ Start";
+    }
+
+    function tick() {
+      remainingSeconds = Math.max(
+        0,
+        Math.ceil((deadline - Date.now()) / 1000)
+      );
+
+      render();
+
+      if (remainingSeconds === 0) {
+        pause();
+        startButton.textContent = "Done";
+        document.title = "Done";
+      }
+    }
+
+    function start() {
+      if (remainingSeconds <= 0) return;
+
+      running = true;
+      deadline = Date.now() + remainingSeconds * 1000;
+      timerId = setInterval(tick, 200);
+
+      document.title = "Block";
+
+      render();
+      command.blur();
+    }
+
+    function startFromInput() {
+      const seconds = parseCommand(command.value);
+
+      if (seconds === null || seconds <= 0) {
+        command.select();
+        return;
+      }
+
+      configuredSeconds = seconds;
+      remainingSeconds = seconds;
+
+      start();
+    }
+
+    function pause() {
+      if (running) {
+        remainingSeconds = Math.max(
+          0,
+          Math.ceil((deadline - Date.now()) / 1000)
+        );
+      }
+
+      running = false;
+      clearInterval(timerId);
+      timerId = null;
+
+      render();
+    }
+
+    function selectTimer() {
+      if (running) {
+        pause();
+      }
+
+      requestAnimationFrame(() => {
+        command.focus();
+        command.select();
+      });
+    }
+
+    command.addEventListener("click", selectTimer);
+
+    command.addEventListener("focus", () => {
+      if (!running) {
+        requestAnimationFrame(() => command.select());
+      }
+    });
+
+    command.addEventListener("keydown", event => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        startFromInput();
+      }
+    });
+
+    startButton.addEventListener("click", () => {
+      if (running) {
+        pause();
+      } else if (document.activeElement === command) {
+        startFromInput();
+      } else {
+        start();
+      }
+    });
+
+    updateClock();
+    setInterval(updateClock, 1000);
+    render();
+  </script>
+</body>
+
+</html>
