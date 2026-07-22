@@ -192,9 +192,12 @@
       border-color: var(--seal);
     }
 
-    .mission-history-link.is-active::after {
-      content: ' · active';
-      color: var(--seal);
+    .mission-history-link.is-active {
+      border-color: var(--seal);
+    }
+
+    .mission-history-link.is-scheduled {
+      border-style: dashed;
     }
 
     .mission-history-counts {
@@ -240,6 +243,63 @@
       justify-content: flex-end;
       flex-wrap: wrap;
       gap: 0.55rem;
+    }
+
+    .mission-scheduler {
+      max-width: 38rem;
+      margin: 0 auto 1rem;
+      padding: 0.85rem;
+      border: 1px solid var(--line);
+      text-align: left;
+    }
+
+    .mission-scheduler-row {
+      display: grid;
+      grid-template-columns: auto minmax(10rem, 1fr) auto;
+      align-items: center;
+      gap: 0.55rem;
+    }
+
+    .mission-scheduler-label {
+      color: var(--stamp);
+      font-size: 0.72rem;
+    }
+
+    .mission-date-input {
+      width: 100%;
+      min-width: 0;
+      border: 1px solid var(--line);
+      background: var(--bg);
+      color: var(--text);
+      font: inherit;
+      font-size: 0.78rem;
+      padding: 0.58rem 0.65rem;
+    }
+
+    .mission-schedule-copy,
+    .mission-schedule-status {
+      margin-top: 0.55rem;
+      color: var(--stamp);
+      font-size: 0.7rem;
+      line-height: 1.4;
+    }
+
+    .mission-schedule-status {
+      color: var(--seal);
+    }
+
+    .mission-schedule-status.is-error {
+      color: var(--text);
+    }
+
+    .mission-schedule-status[hidden] {
+      display: none;
+    }
+
+    @media (max-width: 38rem) {
+      .mission-scheduler-row {
+        grid-template-columns: 1fr;
+      }
     }
 
     .participant-controls {
@@ -416,6 +476,7 @@
       nav,
       #clock,
       .mission-actions,
+      .mission-scheduler,
       .participant-controls,
       .confirm-panel,
       .cue {
@@ -488,6 +549,27 @@
 
     <main>
       <section class="mission-ledger" aria-label="Mission ledger">
+        <form class="mission-scheduler" id="mission-scheduler">
+          <div class="mission-scheduler-row">
+            <label class="mission-scheduler-label" for="mission-start">
+              Mission begins
+            </label>
+
+            <input class="mission-date-input" id="mission-start" name="mission-start" type="date" required>
+
+            <button class="mission-action" id="schedule-mission" type="submit">
+              Schedule 2-week mission
+            </button>
+          </div>
+
+          <div class="mission-schedule-copy" id="mission-schedule-copy">
+            Choose a Monday. The mission ends on the second Friday.
+          </div>
+
+          <div class="mission-schedule-status" id="mission-schedule-status" role="status" aria-live="polite" hidden>
+          </div>
+        </form>
+
         <div class="mission-actions">
           <button class="mission-action" id="close-mission" type="button">
             Close mission
@@ -785,7 +867,7 @@
       };
     })();
 
-    // ---- Mission ledger and participants ----
+    // ---- Mission ledger, scheduling, and participants ----
     (() => {
       const gallery = document.getElementById('gallery');
       const participantCountLabel = document.getElementById('participant-count');
@@ -796,6 +878,11 @@
       const missionReadonly = document.getElementById('mission-readonly');
       const missionHistory = document.getElementById('mission-history');
       const activeMissionLink = document.getElementById('active-mission-link');
+      const missionScheduler = document.getElementById('mission-scheduler');
+      const missionStartInput = document.getElementById('mission-start');
+      const missionScheduleCopy = document.getElementById('mission-schedule-copy');
+      const missionScheduleStatus = document.getElementById('mission-schedule-status');
+      const scheduleMissionButton = document.getElementById('schedule-mission');
       const closeMissionButton = document.getElementById('close-mission');
       const closeMissionPanel = document.getElementById('close-mission-panel');
       const closeMissionCopy = document.getElementById('close-mission-copy');
@@ -817,14 +904,17 @@
         'https://capitalarmy.mborsare.workers.dev/api/capital-army';
       const STATE_API = `${CAPITAL_ARMY_ROOT}/state`;
       const MISSIONS_API = `${CAPITAL_ARMY_ROOT}/missions`;
+      const CREATE_MISSION_API = `${CAPITAL_ARMY_ROOT}/missions/create`;
       const CLOSE_MISSION_API = `${CAPITAL_ARMY_ROOT}/missions/close`;
       const DELETE_MISSION_API = `${CAPITAL_ARMY_ROOT}/missions/delete`;
       const WRITE_KEY_STORAGE = 'capitalArmyWriteKey';
+      const MISSION_END_OFFSET_DAYS = 11;
 
       let selectedMissionId = null;
       let selectedMissionState = null;
       let missionLedger = {
         activeMissionId: null,
+        nextScheduledMissionId: null,
         missions: []
       };
 
@@ -859,9 +949,7 @@
         const params = new URLSearchParams(window.location.search);
         const value = params.get('mission');
 
-        return /^\d{4}-\d{2}-\d{2}$/.test(value || '')
-          ? value
-          : null;
+        return normalizeYmd(value);
       }
 
       function missionHref(missionId) {
@@ -872,24 +960,94 @@
         return `${url.pathname}${url.search}`;
       }
 
-      function dateFromYmd(value) {
-        const parts = String(value || '').split('-').map(Number);
+      function setSelectedMissionUrl(missionId) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('mission', missionId);
+        url.hash = '';
+        window.history.replaceState({}, '', `${url.pathname}${url.search}`);
+      }
+
+      function normalizeYmd(value) {
+        const text = String(value || '').trim();
+
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) {
+          return null;
+        }
+
+        const date = new Date(`${text}T00:00:00.000Z`);
 
         if (
-          parts.length !== 3 ||
-          parts.some(part => !Number.isFinite(part))
+          Number.isNaN(date.getTime()) ||
+          date.toISOString().slice(0, 10) !== text
         ) {
           return null;
         }
 
-        return new Date(parts[0], parts[1] - 1, parts[2]);
+        return text;
       }
 
-      function formatMissionDate(missionId) {
-        const date = dateFromYmd(missionId);
+      function dateFromYmd(value) {
+        const normalized = normalizeYmd(value);
+
+        if (!normalized) {
+          return null;
+        }
+
+        const [year, month, day] = normalized.split('-').map(Number);
+        return new Date(year, month - 1, day, 12, 0, 0, 0);
+      }
+
+      function ymd(date) {
+        return [
+          date.getFullYear(),
+          String(date.getMonth() + 1).padStart(2, '0'),
+          String(date.getDate()).padStart(2, '0')
+        ].join('-');
+      }
+
+      function addDays(value, days) {
+        const date = typeof value === 'string'
+          ? dateFromYmd(value)
+          : new Date(value);
+
+        if (!date || Number.isNaN(date.getTime())) {
+          return null;
+        }
+
+        date.setDate(date.getDate() + days);
+        return ymd(date);
+      }
+
+      function todayYmd() {
+        return ymd(new Date());
+      }
+
+      function nextMondayOnOrAfter(value) {
+        const date = dateFromYmd(value);
 
         if (!date) {
-          return missionId || 'Unknown mission';
+          return null;
+        }
+
+        const offset = (8 - date.getDay()) % 7;
+        date.setDate(date.getDate() + offset);
+        return ymd(date);
+      }
+
+      function isMonday(value) {
+        const date = dateFromYmd(value);
+        return Boolean(date && date.getDay() === 1);
+      }
+
+      function missionEndDate(startDate) {
+        return addDays(startDate, MISSION_END_OFFSET_DAYS);
+      }
+
+      function formatMissionDate(value) {
+        const date = dateFromYmd(value);
+
+        if (!date) {
+          return value || 'Unknown mission';
         }
 
         const months = [
@@ -912,6 +1070,34 @@
           `${months[date.getMonth()]} ` +
           `${date.getFullYear()}`
         );
+      }
+
+      function formatMissionRange(mission) {
+        const startDate = normalizeYmd(mission?.startDate);
+        const endDate = normalizeYmd(mission?.endDate);
+
+        if (startDate && endDate) {
+          return (
+            `${formatMissionDate(startDate)} – ` +
+            `${formatMissionDate(endDate)}`
+          );
+        }
+
+        return formatMissionDate(
+          mission?.missionId || selectedMissionId
+        );
+      }
+
+      function missionStatus(mission) {
+        if (mission?.status === 'closed') {
+          return 'closed';
+        }
+
+        if (mission?.status === 'scheduled') {
+          return 'scheduled';
+        }
+
+        return 'active';
       }
 
       function soldierId(soldier) {
@@ -986,12 +1172,31 @@
           ...options
         });
 
-        if (!response.ok) {
-          const message = await response.text();
-          throw new Error(`${response.status} ${message}`);
+        const text = await response.text();
+        let payload = null;
+
+        if (text) {
+          try {
+            payload = JSON.parse(text);
+          } catch {
+            payload = null;
+          }
         }
 
-        return response.json();
+        if (!response.ok) {
+          if (response.status === 401) {
+            localStorage.removeItem(WRITE_KEY_STORAGE);
+          }
+
+          const message =
+            payload?.error ||
+            text ||
+            `Request failed with ${response.status}`;
+
+          throw new Error(message);
+        }
+
+        return payload;
       }
 
       function authorizedPost(url, body) {
@@ -1021,6 +1226,12 @@
         );
       }
 
+      function createMission(startDate) {
+        return authorizedPost(CREATE_MISSION_API, {
+          startDate
+        });
+      }
+
       function writeMissionState(missionId, id, state) {
         return authorizedPost(STATE_API, {
           missionId,
@@ -1043,13 +1254,111 @@
         });
       }
 
+      function showScheduleStatus(message, isError = false) {
+        if (!missionScheduleStatus) {
+          return;
+        }
+
+        missionScheduleStatus.textContent = message;
+        missionScheduleStatus.classList.toggle('is-error', isError);
+        missionScheduleStatus.hidden = !message;
+      }
+
+      function suggestedMissionStart() {
+        let candidate = nextMondayOnOrAfter(todayYmd());
+        const datedMissions = (missionLedger?.missions || [])
+          .filter(mission => (
+            normalizeYmd(mission.startDate) &&
+            normalizeYmd(mission.endDate)
+          ))
+          .sort((a, b) =>
+            a.startDate.localeCompare(b.startDate)
+          );
+
+        datedMissions.forEach(mission => {
+          const candidateEnd = missionEndDate(candidate);
+          const overlaps =
+            candidate <= mission.endDate &&
+            mission.startDate <= candidateEnd;
+
+          if (overlaps) {
+            candidate = nextMondayOnOrAfter(
+              addDays(mission.endDate, 1)
+            );
+          }
+        });
+
+        return candidate;
+      }
+
+      function updateSchedulePreview() {
+        if (!missionStartInput || !scheduleMissionButton) {
+          return;
+        }
+
+        const startDate = normalizeYmd(missionStartInput.value);
+        const validMonday = Boolean(startDate && isMonday(startDate));
+        const futureOrToday = Boolean(startDate && startDate >= todayYmd());
+
+        scheduleMissionButton.disabled =
+          !validMonday || !futureOrToday;
+
+        if (!startDate) {
+          missionScheduleCopy.textContent =
+            'Choose a Monday. The mission ends on the second Friday.';
+          return;
+        }
+
+        if (!validMonday) {
+          missionScheduleCopy.textContent =
+            'Mission start must be a Monday.';
+          return;
+        }
+
+        if (!futureOrToday) {
+          missionScheduleCopy.textContent =
+            'Mission start cannot be in the past.';
+          return;
+        }
+
+        missionScheduleCopy.textContent =
+          `${formatMissionDate(startDate)} – ` +
+          `${formatMissionDate(missionEndDate(startDate))} · ` +
+          '10 trading days';
+      }
+
+      function initializeScheduler(forceSuggestion = false) {
+        if (!missionStartInput) {
+          return;
+        }
+
+        missionStartInput.min = todayYmd();
+
+        if (forceSuggestion || !missionStartInput.value) {
+          missionStartInput.value = suggestedMissionStart();
+        }
+
+        updateSchedulePreview();
+      }
+
+      function nearestScheduledMissionId() {
+        if (missionLedger?.nextScheduledMissionId) {
+          return missionLedger.nextScheduledMissionId;
+        }
+
+        return (missionLedger?.missions || [])
+          .filter(mission => mission.status === 'scheduled')
+          .sort((a, b) =>
+            (a.startDate || a.missionId).localeCompare(
+              b.startDate || b.missionId
+            )
+          )[0]?.missionId || null;
+      }
+
       function updateHeader(missionState) {
         const counts = countStates(missionState);
         const parameters = missionState?.parameters || {};
-        const status = missionState?.status === 'closed'
-          ? 'closed'
-          : 'active';
-        const missionId = missionState?.missionId || selectedMissionId;
+        const status = missionStatus(missionState);
 
         participantCountLabel.textContent =
           `Active participants ${counts.marked}`;
@@ -1061,7 +1370,7 @@
           `Patrol strength ${parameters.patrolStrength || 2}`;
 
         missionStateLabel.textContent =
-          `Mission ${formatMissionDate(missionId)} · ${status} · ` +
+          `Mission ${formatMissionRange(missionState)} · ${status} · ` +
           `${counts.rtb} RTB · ${counts.kia} KIA · ` +
           `${formatMissionUpdatedAt(missionState?.updatedAt)}`;
       }
@@ -1070,6 +1379,9 @@
         const missions = missionLedger?.missions || [];
         const closedMissions = missions.filter(
           mission => mission.status === 'closed'
+        );
+        const scheduledMissions = missions.filter(
+          mission => mission.status === 'scheduled'
         );
         const totalRtb = closedMissions.reduce(
           (sum, mission) => sum + Number(mission.rtb || 0),
@@ -1084,12 +1396,19 @@
           ? Math.round((totalRtb / totalMarked) * 100)
           : 0;
 
-        missionLedgerSummary.textContent = closedMissions.length
+        const closedCopy = closedMissions.length
           ? (
-            `Mission ledger ${closedMissions.length} closed · ` +
+            `${closedMissions.length} closed · ` +
             `${totalRtb} RTB · ${totalKia} KIA · ${rtbRate}% RTB`
           )
-          : 'Mission ledger · no closed missions yet';
+          : 'no closed missions yet';
+
+        const scheduledCopy = scheduledMissions.length
+          ? ` · ${scheduledMissions.length} scheduled`
+          : '';
+
+        missionLedgerSummary.textContent =
+          `Mission ledger · ${closedCopy}${scheduledCopy}`;
 
         const activeMissionId = missionLedger?.activeMissionId;
         const viewingActive =
@@ -1103,13 +1422,17 @@
         }
 
         missionHistory.innerHTML = missions.map(mission => {
+          const status = missionStatus(mission);
           const classes = [
             'mission-history-link',
             mission.missionId === selectedMissionId
               ? 'is-selected'
               : '',
-            mission.status === 'active'
+            status === 'active'
               ? 'is-active'
+              : '',
+            status === 'scheduled'
+              ? 'is-scheduled'
               : ''
           ].filter(Boolean).join(' ');
 
@@ -1118,20 +1441,26 @@
               class="${classes}"
               href="${missionHref(mission.missionId)}"
             >
-              ${escapeHtml(formatMissionDate(mission.missionId))}
+              ${escapeHtml(formatMissionRange(mission))}
               <span class="mission-history-counts">
+                ${escapeHtml(status)} ·
                 ${Number(mission.rtb || 0)} RTB ·
                 ${Number(mission.kia || 0)} KIA
               </span>
             </a>
           `;
         }).join('');
+
+        initializeScheduler(false);
       }
 
       function updateMissionControls(missionState) {
         const counts = countStates(missionState);
-        const isClosed = missionState?.status === 'closed';
+        const status = missionStatus(missionState);
+        const isClosed = status === 'closed';
+        const isScheduled = status === 'scheduled';
         const isActiveMission =
+          status === 'active' &&
           missionLedger.activeMissionId === missionState?.missionId;
         const isEmpty = counts.rtb === 0 && counts.kia === 0;
         const canDelete =
@@ -1142,18 +1471,35 @@
         deleteMissionPanel.hidden = true;
 
         closeMissionButton.hidden = false;
-        closeMissionButton.disabled = isClosed || !isActiveMission;
+        closeMissionButton.disabled = !isActiveMission;
         closeMissionButton.textContent = isClosed
           ? 'Mission closed ✓'
-          : 'Close mission';
+          : isScheduled
+            ? 'Mission scheduled'
+            : 'Close mission';
 
         deleteEmptyMissionButton.hidden = !canDelete;
         deleteEmptyMissionButton.disabled = !canDelete;
-        missionReadonly.hidden = !isClosed;
-        participantControls.hidden = isClosed || !isActiveMission;
+
+        missionReadonly.hidden = isActiveMission;
+
+        if (isScheduled) {
+          missionReadonly.textContent =
+            `Scheduled mission · activates ${formatMissionDate(
+              missionState.startDate || missionState.missionId
+            )} when no mission is active`;
+        } else if (isClosed) {
+          missionReadonly.textContent =
+            'Closed mission · record is read only';
+        } else {
+          missionReadonly.textContent =
+            'Mission is not the active record';
+        }
+
+        participantControls.hidden = !isActiveMission;
 
         gallery.querySelectorAll('.state-button').forEach(button => {
-          button.disabled = isClosed || !isActiveMission;
+          button.disabled = !isActiveMission;
         });
       }
 
@@ -1257,7 +1603,7 @@
         }
 
         const isEditable =
-          missionState?.status !== 'closed' &&
+          missionStatus(missionState) === 'active' &&
           missionLedger.activeMissionId === missionState?.missionId;
         const disabled = !isEditable || available.length === 0;
         const noSelection = !participantSelect.value;
@@ -1270,7 +1616,7 @@
       function renderParticipants(missionState) {
         const states = missionState?.soldiers || {};
         const isEditable =
-          missionState?.status !== 'closed' &&
+          missionStatus(missionState) === 'active' &&
           missionLedger.activeMissionId === missionState?.missionId;
 
         const participants = Object.entries(states)
@@ -1323,11 +1669,71 @@
       async function refreshAll() {
         try {
           await refreshMissionLedger();
+
+          if (!selectedMissionId) {
+            selectedMissionId =
+              missionLedger.activeMissionId ||
+              nearestScheduledMissionId() ||
+              missionLedger.missions?.[0]?.missionId ||
+              null;
+          }
+
           await refreshMissionState();
         } catch (error) {
           console.warn('Capital Army refresh failed.', error);
           missionStateLabel.textContent = 'Mission state unavailable';
           missionLedgerSummary.textContent = 'Mission ledger unavailable';
+        }
+      }
+
+      async function handleScheduleMission(event) {
+        event.preventDefault();
+
+        const startDate = normalizeYmd(missionStartInput.value);
+
+        if (
+          !startDate ||
+          !isMonday(startDate) ||
+          startDate < todayYmd()
+        ) {
+          updateSchedulePreview();
+          return;
+        }
+
+        scheduleMissionButton.disabled = true;
+        scheduleMissionButton.textContent = 'Scheduling…';
+        showScheduleStatus('');
+
+        try {
+          const result = await createMission(startDate);
+
+          missionLedger = {
+            activeMissionId: result?.activeMissionId || null,
+            nextScheduledMissionId:
+              result?.nextScheduledMissionId || null,
+            missions: result?.missions || []
+          };
+
+          selectedMissionId =
+            result?.createdMission?.missionId || startDate;
+
+          setSelectedMissionUrl(selectedMissionId);
+          renderMissionLedger();
+          await refreshMissionState();
+
+          showScheduleStatus(
+            `Scheduled ${formatMissionDate(startDate)} – ` +
+            `${formatMissionDate(missionEndDate(startDate))}.`
+          );
+
+          initializeScheduler(true);
+        } catch (error) {
+          console.warn('Mission schedule failed.', error);
+          showScheduleStatus(error.message, true);
+        } finally {
+          scheduleMissionButton.textContent =
+            'Schedule 2-week mission';
+          updateSchedulePreview();
         }
       }
 
@@ -1342,7 +1748,7 @@
         event.stopPropagation();
 
         const isEditable =
-          selectedMissionState.status !== 'closed' &&
+          missionStatus(selectedMissionState) === 'active' &&
           missionLedger.activeMissionId === selectedMissionId;
 
         if (!isEditable) {
@@ -1375,7 +1781,7 @@
           await refreshMissionLedger();
         } catch (error) {
           console.warn('Capital Army write failed.', error);
-          window.alert('State write failed. Check the key or Worker.');
+          window.alert(error.message || 'State write failed.');
         }
       }
 
@@ -1385,7 +1791,7 @@
         }
 
         const isEditable =
-          selectedMissionState.status !== 'closed' &&
+          missionStatus(selectedMissionState) === 'active' &&
           missionLedger.activeMissionId === selectedMissionId;
         const id = participantSelect.value;
 
@@ -1409,7 +1815,7 @@
           await refreshMissionLedger();
         } catch (error) {
           console.warn('Participant add failed.', error);
-          window.alert('Participant add failed. Check the key or Worker.');
+          window.alert(error.message || 'Participant add failed.');
           updateParticipantPicker(selectedMissionState);
         }
       }
@@ -1420,7 +1826,7 @@
         }
 
         const isActiveMission =
-          selectedMissionState.status !== 'closed' &&
+          missionStatus(selectedMissionState) === 'active' &&
           missionLedger.activeMissionId === selectedMissionId;
 
         if (!isActiveMission) {
@@ -1432,9 +1838,9 @@
         deleteMissionPanel.hidden = true;
         closeMissionCopy.innerHTML =
           `<strong>Close mission ` +
-          `${escapeHtml(formatMissionDate(selectedMissionId))}?</strong><br>` +
+          `${escapeHtml(formatMissionRange(selectedMissionState))}?</strong><br>` +
           `${counts.rtb} RTB · ${counts.kia} KIA will be frozen. ` +
-          `No new mission will be created.`;
+          `The next due scheduled mission can then activate.`;
 
         closeMissionPanel.hidden = false;
         cancelCloseMissionButton.focus();
@@ -1459,6 +1865,8 @@
 
           missionLedger = {
             activeMissionId: result?.activeMissionId || null,
+            nextScheduledMissionId:
+              result?.nextScheduledMissionId || null,
             missions: result?.missions || []
           };
 
@@ -1473,7 +1881,7 @@
           closeMissionPanel.hidden = true;
         } catch (error) {
           console.warn('Mission close failed.', error);
-          window.alert('Mission close failed. Nothing was changed.');
+          window.alert(error.message || 'Mission close failed.');
         } finally {
           confirmCloseMissionButton.disabled = false;
           cancelCloseMissionButton.disabled = false;
@@ -1495,7 +1903,7 @@
 
         deleteMissionCopy.innerHTML =
           `<strong>Delete mission ` +
-          `${escapeHtml(formatMissionDate(selectedMissionId))}?</strong><br>` +
+          `${escapeHtml(formatMissionRange(selectedMissionState))}?</strong><br>` +
           `It has 0 RTB and 0 KIA and will be permanently removed.`;
 
         deleteMissionPanel.hidden = false;
@@ -1526,6 +1934,7 @@
           const result = await deleteMission(selectedMissionId);
           const destinationMissionId =
             result?.activeMissionId ||
+            result?.nextScheduledMissionId ||
             result?.missions?.[0]?.missionId;
 
           if (!destinationMissionId) {
@@ -1535,9 +1944,7 @@
           window.location.assign(missionHref(destinationMissionId));
         } catch (error) {
           console.warn('Mission delete failed.', error);
-          window.alert(
-            'Delete failed. Both RTB and KIA must be zero.'
-          );
+          window.alert(error.message || 'Delete failed.');
           confirmDeleteMissionButton.disabled = false;
           cancelDeleteMissionButton.disabled = false;
           confirmDeleteMissionButton.textContent =
@@ -1546,6 +1953,20 @@
       }
 
       gallery.addEventListener('click', handleStateButtonClick);
+
+      if (missionScheduler) {
+        missionScheduler.addEventListener(
+          'submit',
+          handleScheduleMission
+        );
+      }
+
+      if (missionStartInput) {
+        missionStartInput.addEventListener('input', () => {
+          showScheduleStatus('');
+          updateSchedulePreview();
+        });
+      }
 
       participantSelect.addEventListener('change', () => {
         updateParticipantPicker(selectedMissionState);
@@ -1592,16 +2013,20 @@
       async function initialize() {
         try {
           await refreshMissionLedger();
+          initializeScheduler(false);
 
           selectedMissionId =
             requestedMissionId() ||
             missionLedger.activeMissionId ||
+            nearestScheduledMissionId() ||
             missionLedger.missions?.[0]?.missionId ||
             null;
 
           if (!selectedMissionId) {
             missionStateLabel.textContent = 'No missions found';
             participantControls.hidden = true;
+            closeMissionButton.disabled = true;
+            deleteEmptyMissionButton.hidden = true;
             return;
           }
 
@@ -1611,6 +2036,7 @@
           console.warn('Capital Army initialization failed.', error);
           missionStateLabel.textContent = 'Mission state unavailable';
           missionLedgerSummary.textContent = 'Mission ledger unavailable';
+          showScheduleStatus(error.message, true);
         }
       }
 
@@ -1628,6 +2054,7 @@
         }
       });
     })();
+
 
     // ---- Gallery interaction ----
     (() => {

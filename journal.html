@@ -812,7 +812,6 @@
       const CAPITAL_ARMY_ROOT =
         "https://capitalarmy.mborsare.workers.dev/api/capital-army";
       const STATE_API = `${CAPITAL_ARMY_ROOT}/state`;
-      const MISSIONS_API = `${CAPITAL_ARMY_ROOT}/missions`;
       const SQUAD_STORAGE_PREFIX = "capitalArmySquad";
       const SOLDIERS_PER_DAY = 2;
       const ARMY_PAGE_URL = "/capital-army.html";
@@ -1007,25 +1006,26 @@
         return response.json();
       }
 
-      function readMissionLedger() {
-        return apiJson(MISSIONS_API);
-      }
+      async function readMissionStateForDate(date) {
+        const dateKey = ymd(startOfDay(date));
 
-      function readMissionState(missionId) {
-        return apiJson(
-          `${STATE_API}?mission=${encodeURIComponent(missionId)}`
+        const response = await fetch(
+          `${STATE_API}?date=${encodeURIComponent(dateKey)}`,
+          {
+            cache: "no-store"
+          }
         );
-      }
 
-      async function readActiveMissionState() {
-        const ledger = await readMissionLedger();
-        const activeMissionId = ledger?.activeMissionId;
-
-        if (!activeMissionId) {
+        if (response.status === 404) {
           return null;
         }
 
-        return readMissionState(activeMissionId);
+        if (!response.ok) {
+          const message = await response.text();
+          throw new Error(`${response.status} ${message}`);
+        }
+
+        return response.json();
       }
 
       function applyMissionState(missionState) {
@@ -1180,7 +1180,7 @@
 
       async function refreshActiveMission() {
         try {
-          const missionState = await readActiveMissionState();
+          const missionState = await readMissionStateForDate(currentDate);
 
           if (!missionState) {
             renderNoMission("No active mission.");
@@ -1210,7 +1210,7 @@
           newPairButton.disabled = true;
 
           try {
-            const missionState = await readActiveMissionState();
+            const missionState = await readMissionStateForDate(currentDate);
 
             if (!missionState) {
               renderNoMission("No active mission.");
@@ -1250,7 +1250,7 @@
         ? new Date(`${testDate}T12:00:00`)
         : new Date();
 
-      readActiveMissionState()
+      readMissionStateForDate(currentDate)
         .then(missionState => {
           if (!missionState) {
             renderNoMission("No active mission.");
