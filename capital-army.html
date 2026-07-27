@@ -318,12 +318,20 @@
     .participant-select {
       min-width: min(19rem, 100%);
       max-width: 100%;
+      min-height: 8.5rem;
       border: 1px solid var(--line);
       background: var(--bg);
       color: var(--text);
       font: inherit;
       font-size: 0.78rem;
-      padding: 0.62rem 0.7rem;
+      padding: 0.45rem;
+    }
+
+    .participant-selection-status {
+      flex-basis: 100%;
+      color: var(--stamp);
+      font-size: 0.72rem;
+      line-height: 1.35;
     }
 
     .participant-empty {
@@ -623,18 +631,21 @@
         <div class="mission-history" id="mission-history" aria-label="Missions"></div>
       </section>
 
-      <section class="participant-controls" id="participant-controls" aria-label="Add mission participant">
-        <select class="participant-select" id="participant-select" aria-label="Choose soldier">
-          <option value="">Add participant…</option>
-        </select>
+      <section class="participant-controls" id="participant-controls" aria-label="Add mission participants">
+        <select class="participant-select" id="participant-select" aria-label="Choose soldiers" multiple
+          size="8"></select>
 
         <button class="mission-action" id="add-participant-rtb" type="button">
-          Add RTB
+          Add selected as RTB
         </button>
 
         <button class="mission-action" id="add-participant-kia" type="button">
-          Add KIA
+          Add selected as KIA
         </button>
+
+        <div class="participant-selection-status" id="participant-selection-status" role="status" aria-live="polite">
+          Select one or more soldiers from the roster.
+        </div>
       </section>
 
       <div class="participant-empty" id="participant-empty" hidden>
@@ -897,6 +908,7 @@
       const participantSelect = document.getElementById('participant-select');
       const addParticipantRtbButton = document.getElementById('add-participant-rtb');
       const addParticipantKiaButton = document.getElementById('add-participant-kia');
+      const participantSelectionStatus = document.getElementById('participant-selection-status');
       const participantEmpty = document.getElementById('participant-empty');
       const army = window.CapitalArmy || window.PrimeArmy;
 
@@ -1520,7 +1532,7 @@
 
         if (isScheduled) {
           missionReadonly.textContent =
-            `Scheduled mission · activates ${formatMissionDate(
+            `Scheduled mission · roster editable · activates ${formatMissionDate(
               missionState.startDate || missionState.missionId
             )} when no mission is active`;
         } else if (isClosed) {
@@ -1531,10 +1543,12 @@
             'Mission is not the active record';
         }
 
-        participantControls.hidden = !isActiveMission;
+        const isParticipantEditable = !isClosed;
+
+        participantControls.hidden = !isParticipantEditable;
 
         gallery.querySelectorAll('.state-button').forEach(button => {
-          button.disabled = !isActiveMission;
+          button.disabled = !isParticipantEditable;
         });
       }
 
@@ -1609,50 +1623,64 @@
         `;
       }
 
+      function selectedParticipantIds() {
+        return Array.from(participantSelect.selectedOptions)
+          .map(option => option.value)
+          .filter(Boolean);
+      }
+
+      function updateParticipantSelectionStatus(availableCount = null) {
+        if (!participantSelectionStatus) {
+          return;
+        }
+
+        const selectedCount = selectedParticipantIds().length;
+        const remaining = availableCount ?? participantSelect.options.length;
+
+        if (remaining === 0) {
+          participantSelectionStatus.textContent =
+            'Every roster soldier is already assigned to this mission.';
+          return;
+        }
+
+        participantSelectionStatus.textContent = selectedCount
+          ? `${selectedCount} soldier${selectedCount === 1 ? '' : 's'} selected.`
+          : 'Select one or more soldiers from the roster.';
+      }
+
       function updateParticipantPicker(missionState) {
         const states = missionState?.soldiers || {};
         const available = soldiers.filter(
           soldier => !states[soldierId(soldier)]
         );
-        const currentValue = participantSelect.value;
+        const selectedIds = new Set(selectedParticipantIds());
 
-        participantSelect.innerHTML = [
-          '<option value="">Add participant…</option>',
-          ...available.map(soldier => {
-            const id = soldierId(soldier);
+        participantSelect.innerHTML = available.map(soldier => {
+          const id = soldierId(soldier);
+          const selected = selectedIds.has(id) ? ' selected' : '';
 
-            return (
-              `<option value="${escapeHtml(id)}">` +
-              `${escapeHtml(fullName(soldier))}` +
-              `</option>`
-            );
-          })
-        ].join('');
-
-        if (
-          available.some(
-            soldier => soldierId(soldier) === currentValue
-          )
-        ) {
-          participantSelect.value = currentValue;
-        }
+          return (
+            `<option value="${escapeHtml(id)}"${selected}>` +
+            `${escapeHtml(fullName(soldier))}` +
+            `</option>`
+          );
+        }).join('');
 
         const isEditable =
-          missionStatus(missionState) === 'active' &&
-          missionLedger.activeMissionId === missionState?.missionId;
+          missionStatus(missionState) !== 'closed';
         const disabled = !isEditable || available.length === 0;
-        const noSelection = !participantSelect.value;
+        const noSelection = selectedParticipantIds().length === 0;
 
         participantSelect.disabled = disabled;
         addParticipantRtbButton.disabled = disabled || noSelection;
         addParticipantKiaButton.disabled = disabled || noSelection;
+        updateParticipantSelectionStatus(available.length);
       }
 
       function renderParticipants(missionState) {
         const states = missionState?.soldiers || {};
         const isEditable =
-          missionStatus(missionState) === 'active' &&
-          missionLedger.activeMissionId === missionState?.missionId;
+          missionStatus(missionState) !== 'closed';
 
         const participants = Object.entries(states)
           .filter(([, record]) => (
@@ -1672,7 +1700,10 @@
           ))
           .join('');
 
-        participantEmpty.hidden = participants.length !== 0;
+        // An editable mission with zero assigned soldiers is not an empty page:
+        // the roster picker above is the working state. Only show the empty
+        // record message for a closed mission with no participants.
+        participantEmpty.hidden = isEditable || participants.length !== 0;
         updateParticipantPicker(missionState);
 
         if (window.CapitalArmyDither) {
@@ -1790,8 +1821,7 @@
         event.stopPropagation();
 
         const isEditable =
-          missionStatus(selectedMissionState) === 'active' &&
-          missionLedger.activeMissionId === selectedMissionId;
+          missionStatus(selectedMissionState) !== 'closed';
 
         if (!isEditable) {
           return;
@@ -1827,17 +1857,16 @@
         }
       }
 
-      async function addSelectedParticipant(state) {
+      async function addSelectedParticipants(state) {
         if (!selectedMissionState) {
           return;
         }
 
         const isEditable =
-          missionStatus(selectedMissionState) === 'active' &&
-          missionLedger.activeMissionId === selectedMissionId;
-        const id = participantSelect.value;
+          missionStatus(selectedMissionState) !== 'closed';
+        const ids = selectedParticipantIds();
 
-        if (!isEditable || !id) {
+        if (!isEditable || ids.length === 0) {
           return;
         }
 
@@ -1845,20 +1874,46 @@
         addParticipantRtbButton.disabled = true;
         addParticipantKiaButton.disabled = true;
 
-        try {
-          const missionState = await writeMissionState(
-            selectedMissionId,
-            id,
-            state
-          );
+        if (participantSelectionStatus) {
+          participantSelectionStatus.textContent =
+            `Adding ${ids.length} soldier${ids.length === 1 ? '' : 's'} as ${state}…`;
+        }
 
-          participantSelect.value = '';
+        let missionState = selectedMissionState;
+        let completed = 0;
+
+        try {
+          for (const id of ids) {
+            missionState = await writeMissionState(
+              selectedMissionId,
+              id,
+              state
+            );
+            completed += 1;
+
+            if (participantSelectionStatus) {
+              participantSelectionStatus.textContent =
+                `Added ${completed} of ${ids.length} as ${state}…`;
+            }
+          }
+
           applyMissionState(missionState);
           await refreshMissionLedger();
         } catch (error) {
-          console.warn('Participant add failed.', error);
-          window.alert(error.message || 'Participant add failed.');
-          updateParticipantPicker(selectedMissionState);
+          console.warn('Bulk participant add failed.', error);
+
+          if (missionState !== selectedMissionState) {
+            applyMissionState(missionState);
+            await refreshMissionLedger();
+          } else {
+            updateParticipantPicker(selectedMissionState);
+          }
+
+          window.alert(
+            completed
+              ? `${completed} of ${ids.length} soldiers were added before the request failed. ${error.message || ''}`.trim()
+              : error.message || 'Participant add failed.'
+          );
         }
       }
 
@@ -2011,15 +2066,18 @@
       }
 
       participantSelect.addEventListener('change', () => {
-        updateParticipantPicker(selectedMissionState);
+        const noSelection = selectedParticipantIds().length === 0;
+        addParticipantRtbButton.disabled = noSelection;
+        addParticipantKiaButton.disabled = noSelection;
+        updateParticipantSelectionStatus();
       });
 
       addParticipantRtbButton.addEventListener('click', () => {
-        addSelectedParticipant('RTB');
+        addSelectedParticipants('RTB');
       });
 
       addParticipantKiaButton.addEventListener('click', () => {
-        addSelectedParticipant('KIA');
+        addSelectedParticipants('KIA');
       });
 
       closeMissionButton.addEventListener(
