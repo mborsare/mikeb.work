@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>mikeb.work/teller</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: 'ComicMono', ui-monospace, monospace;
+      background: #000;
+      color: #c0c0c0;
+    }
+
+    @font-face {
+      font-family: 'ComicMono';
+      src: url('/fonts/ComicMono-Regular.woff') format('woff');
+      font-display: swap;
+    }
+
+    body {
+      max-width: 24rem;
+      margin: 3rem auto;
+      text-align: center;
+      padding: 1rem;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    a,
+    time {
+      color: #eaffea;
+    }
+
+    time {
+      opacity: 0.5;
+    }
+
+    .teller {
+      width: min(14rem, 70vw);
+      aspect-ratio: 1;
+      margin: 1.5rem auto;
+      perspective: 50rem;
+      -webkit-perspective: 50rem;
+    }
+
+    .teller-spin {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      -webkit-transform-style: preserve-3d;
+      animation: teller-turn 8s linear infinite;
+    }
+
+    .teller-face {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+
+    .teller-back {
+      transform: rotateY(180deg);
+    }
+
+    @keyframes teller-turn {
+      to {
+        transform: rotateY(360deg);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .teller-spin {
+        animation-duration: 30s;
+      }
+    }
+
+    h1 {
+      color: white;
+      font-size: 1.45rem;
+      font-weight: normal;
+      margin-bottom: 0;
+    }
+
+    form,
+    fieldset {
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    fieldset[hidden] {
+      display: none;
+    }
+
+    form {
+      margin-top: 1rem;
+    }
+
+    fieldset {
+      border: 0;
+      padding: 0;
+      margin: 0;
+    }
+
+    label {
+      display: grid;
+      gap: 0.25rem;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+    }
+
+    input,
+    select,
+    button {
+      font: inherit;
+      font-size: 16px;
+      min-height: 2.75rem;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    output {
+      text-align: center;
+      min-height: 1.5rem;
+    }
+
+    .good {
+      color: #eaffea;
+    }
+
+    .bad {
+      color: #ffb3b3;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <a href="//mikeb.work">mikeb.work</a>
+    <time id="clock"></time>
+  </header>
+
+  <main>
+    <figure class="teller">
+      <div class="teller-spin">
+        <img class="teller-face teller-front" src="/backoffice/the-stacks/william-teller-front.jpg"
+          alt="Front of the William Teller image" />
+        <img class="teller-face teller-back" src="/backoffice/the-stacks/william-teller-back.jpg"
+          alt="Back of the William Teller image" />
+      </div>
+    </figure>
+    <h1>William Teller</h1>
+
+    <form id="expense-form">
+      <button id="auth-btn" type="button">Sign in with Google</button>
+      <output id="status" role="status" aria-live="polite"></output>
+
+      <fieldset id="app-fields" hidden disabled>
+        <label>
+          Budget month
+          <select id="sheetName" name="sheetName" required>
+            <option value="">Sign in first</option>
+          </select>
+        </label>
+
+        <label>
+          Date
+          <input id="date" name="date" type="date" required />
+        </label>
+
+        <label>
+          Category
+          <select id="category" name="category" required>
+            <option value="">Sign in first</option>
+          </select>
+        </label>
+
+        <label>
+          Description
+          <input id="description" name="description" type="text" maxlength="120" placeholder="What was it?"
+            autocomplete="off" />
+        </label>
+
+        <label>
+          Amount
+          <input id="amount" name="amount" type="number" inputmode="decimal" min="0.01" max="100000" step="0.01"
+            placeholder="0.01" required />
+        </label>
+
+        <button id="submit-btn" type="submit">Add expense</button>
+      </fieldset>
+    </form>
+  </main>
+
+  <script>
+    (() => {
+      /*
+        ONLY EDIT THESE TWO VALUES.
+
+        CLIENT_ID:
+        Google Cloud Console -> APIs & Services -> Credentials
+        Use the Web application OAuth client attached to the same GCP project.
+
+        DEPLOYMENT_ID:
+        Apps Script -> Deploy -> Manage deployments
+        Use the deployment ID for the "API Executable" deployment,
+        not the /exec web-app ID.
+      */
+      const CLIENT_ID =
+        '44830063824-55rnbs7fj3ggafnfjtj22dubr4o931pq.apps.googleusercontent.com';
+
+      const DEPLOYMENT_ID =
+        'AKfycbyFu3Y0v6fyBZLa9SVOO3nsh-W0l8bO4nB84GEKuGJjV7i6NBBmZQeWBbhS2Q5JbYZghw';
+
+      const SCOPES =
+        'https://www.googleapis.com/auth/spreadsheets';
+
+      const API_URL =
+        `https://script.googleapis.com/v1/scripts/${DEPLOYMENT_ID}:run`;
+
+      const form = document.getElementById('expense-form');
+      const authButton = document.getElementById('auth-btn');
+      const appFields = document.getElementById('app-fields');
+      const monthSelect = document.getElementById('sheetName');
+      const categorySelect = document.getElementById('category');
+      const dateInput = document.getElementById('date');
+      const descriptionInput = document.getElementById('description');
+      const amountInput = document.getElementById('amount');
+      const submitButton = document.getElementById('submit-btn');
+      const status = document.getElementById('status');
+
+      let tokenClient = null;
+      let accessToken = '';
+      let tokenExpiresAt = 0;
+      let pendingAfterAuth = null;
+
+      function setStatus(message, kind = '') {
+        status.textContent = message;
+        status.className = kind;
+      }
+
+      function setFormEnabled(enabled) {
+        appFields.disabled = !enabled;
+      }
+
+      function showSignedOutUI(message) {
+        appFields.hidden = true;
+        appFields.disabled = true;
+        authButton.hidden = false;
+        authButton.disabled = false;
+        authButton.textContent = 'Sign in with Google';
+
+        if (message) {
+          setStatus(message, 'bad');
+        }
+      }
+
+      function setOptions(select, items, placeholder) {
+        select.replaceChildren();
+
+        if (placeholder) {
+          const option = document.createElement('option');
+          option.value = '';
+          option.textContent = placeholder;
+          select.appendChild(option);
+        }
+
+        items.forEach(item => {
+          const option = document.createElement('option');
+
+          if (typeof item === 'string') {
+            option.value = item;
+            option.textContent = item;
+          } else {
+            option.value = item.name;
+            option.textContent = item.label;
+          }
+
+          select.appendChild(option);
+        });
+      }
+
+      function tokenIsUsable() {
+        return Boolean(accessToken) &&
+          Date.now() < tokenExpiresAt - 60000;
+      }
+
+      function requestAccessToken(afterAuth = null) {
+        pendingAfterAuth = afterAuth;
+
+        if (!tokenClient) {
+          setStatus('Google auth is still loading.', 'bad');
+          return;
+        }
+
+        tokenClient.requestAccessToken({
+          prompt: accessToken ? '' : 'select_account'
+        });
+      }
+
+      async function runScript(functionName, parameters = []) {
+        if (!tokenIsUsable()) {
+          return new Promise((resolve, reject) => {
+            requestAccessToken(async () => {
+              try {
+                resolve(await runScript(functionName, parameters));
+              } catch (error) {
+                reject(error);
+              }
+            });
+          });
+        }
+
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            function: functionName,
+            parameters,
+            devMode: false
+          })
+        });
+
+        const payload = await response.json().catch(() => null);
+
+        if (response.status === 401) {
+          accessToken = '';
+          tokenExpiresAt = 0;
+          showSignedOutUI('Google authorization expired. Sign in again.');
+          throw new Error('Google authorization expired. Sign in again.');
+        }
+
+        if (!response.ok) {
+          const message =
+            payload?.error?.message ||
+            `Google API error ${response.status}.`;
+
+          throw new Error(message);
+        }
+
+        if (payload.error) {
+          const detail = payload.error.details?.[0];
+          throw new Error(
+            detail?.errorMessage ||
+            payload.error.message ||
+            'Apps Script failed.'
+          );
+        }
+
+        return payload.response?.result;
+      }
+
+      async function loadApp() {
+        setFormEnabled(false);
+        setStatus('Loading budget…');
+
+        try {
+          const data = await runScript('getAppData');
+
+          setOptions(monthSelect, data.sheets);
+          monthSelect.value = data.defaultSheetName;
+          dateInput.value = data.today;
+
+          setOptions(
+            categorySelect,
+            data.categories,
+            'Select category'
+          );
+
+          setFormEnabled(true);
+          authButton.hidden = true;
+          appFields.hidden = false;
+          appFields.disabled = false;
+          setStatus('');
+        } catch (error) {
+          showSignedOutUI(error.message);
+        }
+      }
+
+      async function loadCategories(sheetName) {
+        categorySelect.disabled = true;
+        submitButton.disabled = true;
+        setOptions(categorySelect, [], 'Loading categories…');
+        setStatus('Loading categories…');
+
+        try {
+          const categories = await runScript(
+            'getCategories',
+            [sheetName]
+          );
+
+          setOptions(
+            categorySelect,
+            categories,
+            'Select category'
+          );
+
+          categorySelect.disabled = false;
+          submitButton.disabled = false;
+          setStatus('');
+        } catch (error) {
+          if (!accessToken) {
+            showSignedOutUI(error.message);
+          } else {
+            setStatus(error.message, 'bad');
+          }
+        }
+      }
+
+      function initializeGoogleAuth() {
+        if (
+          CLIENT_ID.startsWith('YOUR_') ||
+          DEPLOYMENT_ID.startsWith('YOUR_')
+        ) {
+          setStatus(
+            'Add CLIENT_ID and API deployment ID at the top of the script.',
+            'bad'
+          );
+          return;
+        }
+
+        tokenClient = google.accounts.oauth2.initTokenClient({
+          client_id: CLIENT_ID,
+          scope: SCOPES,
+          callback: response => {
+            if (response.error) {
+              setStatus(
+                response.error_description ||
+                response.error,
+                'bad'
+              );
+              return;
+            }
+
+            accessToken = response.access_token;
+            tokenExpiresAt =
+              Date.now() +
+              Number(response.expires_in || 3600) * 1000;
+
+            const continuation = pendingAfterAuth;
+            pendingAfterAuth = null;
+
+            if (continuation) {
+              continuation();
+            } else {
+              loadApp();
+            }
+          },
+          error_callback: error => {
+            setStatus(
+              error.type === 'popup_closed'
+                ? 'Google sign-in was closed.'
+                : 'Google sign-in failed.',
+              'bad'
+            );
+          }
+        });
+      }
+
+      authButton.addEventListener('click', () => {
+        requestAccessToken(loadApp);
+      });
+
+      monthSelect.addEventListener('change', () => {
+        if (monthSelect.value) {
+          loadCategories(monthSelect.value);
+        }
+      });
+
+      form.addEventListener('submit', async event => {
+        event.preventDefault();
+
+        if (!form.reportValidity()) {
+          return;
+        }
+
+        submitButton.disabled = true;
+        submitButton.textContent = 'Adding…';
+        setStatus('Adding expense…');
+
+        const expense = {
+          sheetName: monthSelect.value,
+          date: dateInput.value,
+          category: categorySelect.value,
+          description: descriptionInput.value,
+          amount: amountInput.value
+        };
+
+        try {
+          const result = await runScript(
+            'addExpense',
+            [expense]
+          );
+
+          setStatus(
+            `$${Number(result.amount).toFixed(2)} added to ${result.category}.`,
+            'good'
+          );
+
+          descriptionInput.value = '';
+          amountInput.value = '';
+          descriptionInput.focus();
+        } catch (error) {
+          if (!accessToken) {
+            showSignedOutUI(error.message);
+          } else {
+            setStatus(error.message, 'bad');
+          }
+        } finally {
+          submitButton.disabled = false;
+          submitButton.textContent = 'Add expense';
+        }
+      });
+
+      const clock = document.getElementById('clock');
+      let pulseTime = 0;
+
+      function updateClock() {
+        const now = new Date();
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        clock.textContent =
+          `${days[now.getDay()]} ${months[now.getMonth()]} ${now.getDate()} ` +
+          `${String(now.getHours()).padStart(2, '0')}:` +
+          `${String(now.getMinutes()).padStart(2, '0')}:` +
+          `${String(now.getSeconds()).padStart(2, '0')}`;
+      }
+
+      function pulse() {
+        pulseTime += 0.02;
+        clock.style.opacity =
+          0.35 + (Math.sin(pulseTime) + 1) * 0.15;
+        requestAnimationFrame(pulse);
+      }
+
+      updateClock();
+      setInterval(updateClock, 250);
+      pulse();
+
+      const authReadyTimer = setInterval(() => {
+        if (window.google?.accounts?.oauth2) {
+          clearInterval(authReadyTimer);
+          initializeGoogleAuth();
+        }
+      }, 50);
+    })();
+  </script>
+</body>
+
+</html>
