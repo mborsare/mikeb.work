@@ -6,7 +6,6 @@
   <title>Mike Borsare</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="Mike Borsare is a discretionary futures trader and maker" />
-  <link rel="preload" href="/backoffice/covers/too-big-to-fail.jpg" as="image" />
 
   <style>
     :root {
@@ -588,6 +587,7 @@
       <nav>
         <a href="#" id="sortNav">[ S O R T ] </a>
         <a href="#" id="randomNav">[ M I X - U P ]</a>
+        <a href="am.html" class="ascii">a.m.</a>
         <a href="jesse.html" class="ascii">Lefevre</a>
         <a href="teller.html" class="ascii">William Teller</a>
         <a href="timer.html" class="ascii">Timer</a>
@@ -812,13 +812,11 @@
         const response = await fetch('./backoffice/doctrine.json');
         if (response.ok) {
           const data = await response.json();
-          console.log('Loaded doctrine items from JSON file:', data.length);
           renderDoctrineItems(data);
           return;
         }
       } catch (error) {
         // Fall back to embedded data (works with file:// protocol)
-        console.log('Using embedded doctrine data (file:// protocol detected)');
       }
 
       // Use embedded data as fallback

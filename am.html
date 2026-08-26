@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#000000" />
+  <title>mikeb.work/am</title>
+  <style>
+    @font-face {
+      font-family: "ComicMono";
+      src: url("/fonts/ComicMono-Regular.woff") format("woff");
+      font-display: swap;
+    }
+
+    :root {
+      --bg: #000;
+      --ink: #eaffea;
+      --muted: #888;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100svh;
+      margin: 0;
+      padding: clamp(.75rem, 2vw, 1.5rem);
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "ComicMono", monospace;
+    }
+
+    main {
+      width: min(100%, 52rem);
+      min-height: calc(100svh - clamp(1.5rem, 4vw, 3rem));
+      margin: auto;
+      display: grid;
+      grid-template-rows: auto repeat(4, minmax(5.5rem, 1fr));
+      gap: clamp(.6rem, 1.5vw, 1rem);
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(.75rem, 1vw, .9rem);
+      font-weight: 400;
+      letter-spacing: .18em;
+      text-align: center;
+    }
+
+    a {
+      display: grid;
+      place-items: center;
+      min-height: 0;
+      border: 1px solid var(--muted);
+      color: var(--ink);
+      text-decoration: none;
+      transition: background-color 120ms ease, color 120ms ease, transform 120ms ease;
+    }
+
+    .brand {
+      max-width: 100%;
+      margin: 0;
+      font-size: clamp(.12rem, .55vw, .4rem);
+      line-height: 1.1;
+      text-align: left;
+      white-space: pre;
+    }
+
+    a:hover,
+    a:focus-visible {
+      background: var(--ink);
+      color: var(--bg);
+      outline: none;
+    }
+
+    a:active {
+      transform: scale(.98);
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <h1>AM</h1>
+    <a href="news-radio.html" aria-label="News radio"><pre class="brand">
+     ***** *     **                                                                                **
+  ******  **    **** *                                                                              **     *
+ **   *  * **    ****            **                                                                 **    ***
+*    *  *  **    * *             **                                                                 **     *
+    *  *    **   *                **    ***    ****        ****       ***  ****                     **              ****
+   ** **    **   *        ***      **    ***     ***  *   * **** *     **** **** *    ****      *** **   ***       * ***  *
+   ** **     **  *       * ***     **     ***     ****   **  ****       **   ****    * ***  *  *********  ***     *   ****
+   ** **     **  *      *   ***    **      **      **   ****            **          *   ****  **   ****    **    **    **
+   ** **      ** *     **    ***   **      **      **     ***           **         **    **   **    **     **    **    **
+   ** **      ** *     ********    **      **      **       ***         **         **    **   **    **     **    **    **
+   *  **       ***     *******     **      **      **         ***       **         **    **   **    **     **    **    **
+      *        ***     **          **      **      *     ****  **       **         **    **   **    **     **    **    **
+  ****          **     ****    *    ******* *******     * **** *        ***        **    **   **    **     **     ******
+ *  *****               *******      *****   *****         ****          ***        ***** **   *****       *** *   ****
+*     **                 *****                                                       ***   **   ***         ***
+*                                                                                                                           
+ **
+    </pre></a>
+    <a href="the-paper.html" aria-label="The paper"><pre class="brand">
+sdSS_SSSSSSbs   .S    S.     sSSs         .S_sSSs     .S_SSSs     .S_sSSs      sSSs   .S_sSSs
+YSSS~SSSSSSP  .SS    SS.   dSP        .SS~YSb   .SS~SSSSS   .SS~YSb    dSP  .SS~YSb
+     SS       SS    SS  dS'          SS   `Sb  SS   SSSS  SS   `Sb  dS'    SS   `Sb
+     SS       SS    SS  SS           SS    SS  SS    SS  SS    SS  SS     SS    SS
+     S&S       SS SSSSS  S&S           SS    d*S  SS SS1981  SS    d*S  S&S     SS    d*S
+     S&S       S&S  SSS&S  S&S_Ss        S&S   .S*S  S&S  SSSS  S&S   .S*S  S&S_Ss  S&S   .S*S
+     S&S       S&S    S&S  S&S~SP        S&S_sdSSS   S&S    S&S  S&S_sdSSS   S&S~SP  S&S_sdSSS
+     S&S       S&S    S&S  S&S           S&S~YSSY    S&S    S&S  S&S~YSSY    S&S     S&S~YSYb
+     S*S       S*S    S*S  S*b           S*S         S*S    S&S  S*S         S*b     S*S   `Sb
+     S*S       S*S    S*S  S*S.          S*S         S*S    S*S  S*S         S*S.    S*S    SS
+     S*S       S*S    S*S   SSSbs        MjB         S*S    S*S  S*S          SSSbs  S*S    S&S
+     S*S       SSS    S*S    YSSP        S*S         SSS    S*S  S*S           YSSP  S*S    SSS
+     SP               SP                 SP                 SP   SP                  SP
+     Y                Y                  Y                  Y    Y                   Y
+    </pre></a>
+    <a href="headlines.html" aria-label="Headlines"><pre class="brand">
+   _   _  ____    __    ____  __    ____  _  _  ____  ___
+  ( )_( )( ___)  /__\  (  _ \(  )  (_  _)( \( )( ___)/ __)
+   ) _ (  )__)  /(__)\  )(_) ))(__  _)(_  )  (  )__) \__ \
+  (_) (_)(____)(__)(__)(____/(____)(____)(_)\_)(____)(___/
+    </pre></a>
+    <a href="journal.html" aria-label="Journal"><pre class="brand">
+        ____         _____     ____   ____      _____  _____   ______          ____    ____        
+       |    |   ____|\    \   |    | |    | ___|\    \|\    \ |\     \    ____|\   \  |    |       
+       |    |  /     /\    \  |    | |    ||    |\    \\\    \| \     \  /    /\    \ |    |       
+       |    | /     /  \    \ |    | |    ||    | |    |\|    \  \     ||    |  |    ||    |       
+ ____  |    ||     |    |    ||    | |    ||    |/____/  |     \  |    ||    |__|    ||    |  ____ 
+|    | |    ||     |    |    ||    | |    ||    |\    \  |      \ |    ||    .--.    ||    | |    |
+|    | |    ||\     \  /    /||    | |    ||    | |    | |    |\ \|    ||    |  |    ||    | |    |
+|\____\|____|| \_____\/____/ ||\___\_|____||____| |____| |____||\_____/||____|  |____||____|/____/|
+| |    |    | \ |    ||    | /| |    |    ||    | |    | |    |/ \|   |||    |  |    ||    |     ||
+ \|____|____|  \|____||____|/  \|____|____||____| |____| |____|   |___|/|____|  |____||____|_____|/
+    \(   )/       \(    )/        \(   )/    \(     )/     \(       )/    \(      )/    \(    )/   
+     '   '         '    '          '   '      '     '       '       '      '      '      '    '    
+      
+    </pre></a>
+  </main>
+</body>
+
+</html>
