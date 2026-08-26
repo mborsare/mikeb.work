@@ -55,9 +55,9 @@
 
     .header {
       flex-shrink: 0;
-      padding: 0.45rem 0.65rem;
+      padding: 0.2rem 0;
       text-align: center;
-      border-bottom: 1px solid #1a1a1a;
+      border: 0;
     }
 
     h1 {
@@ -68,17 +68,19 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 1rem;
+      gap: 0;
       margin-top: 0;
     }
 
     .header pre {
-      max-width: 100%;
       margin: 0;
-      overflow: hidden;
-      font-size: 0.4rem;
-      line-height: 0.9;
+      font-size: clamp(0.18rem, 1.2vw, 0.4rem);
+      line-height: 1;
       white-space: pre;
+    }
+
+    .header-controls {
+      display: none;
     }
 
     .neon {
@@ -285,7 +287,7 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      justify-content: flex-start;
+      justify-content: stretch;
       gap: var(--row-gap);
       min-height: 0;
       overflow: hidden;
@@ -303,7 +305,7 @@
     }
 
     .marquee-stage {
-      flex: 0 0 auto;
+      flex: 1 1 0;
       display: flex;
       align-items: center;
       min-height: 0;
@@ -568,27 +570,24 @@
       }
 
       .header {
-        padding: clamp(0.4rem, 1.5vw, 0.9rem) clamp(0.75rem, 2vw, 1.25rem);
+        padding: 0.2rem 0;
       }
 
       .header-row {
-        flex-direction: row;
+        flex-direction: column;
         align-items: center;
-        justify-content: space-between;
-        gap: 1rem;
-        margin-top: 0.3rem;
+        justify-content: center;
+        gap: 0;
+        margin-top: 0;
       }
 
       .header pre {
-        font-size: 1rem;
-        line-height: normal;
+        font-size: clamp(0.18rem, 1.2vw, 0.4rem);
+        line-height: 1;
       }
 
       .header-controls {
-        width: auto;
-        display: inline-flex;
-        flex-wrap: nowrap;
-        gap: 0.5rem;
+        display: none;
       }
 
       .control-button,
@@ -711,8 +710,8 @@
 
     @media (max-width: 430px) {
       .header pre {
-        font-size: 0.32rem;
-        line-height: 0.76;
+        font-size: clamp(0.18rem, 1.2vw, 0.4rem);
+        line-height: 1;
       }
 
       .control-button,

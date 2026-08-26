@@ -36,8 +36,9 @@
       width: min(100%, 52rem);
       min-height: calc(100svh - clamp(1.5rem, 4vw, 3rem));
       margin: auto;
+      position: relative;
       display: grid;
-      grid-template-rows: auto repeat(4, minmax(5.5rem, 1fr));
+      grid-template-rows: auto repeat(5, minmax(5.5rem, 1fr));
       gap: clamp(.6rem, 1.5vw, 1rem);
     }
 
@@ -69,6 +70,29 @@
       white-space: pre;
     }
 
+    .timer-tile {
+      display: grid;
+      min-height: 0;
+      border: 1px solid var(--muted);
+    }
+
+    .timer-input {
+      width: 100%;
+      height: 100%;
+      padding: 0;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--ink);
+      font-family: inherit;
+      font-size: clamp(2rem, 10vw, 5rem);
+      line-height: 1;
+      text-align: center;
+      white-space: normal;
+    }
+
+    .timer-input::selection { color: var(--bg); background: var(--ink); }
+
     a:hover,
     a:focus-visible {
       background: var(--ink);
@@ -79,12 +103,25 @@
     a:active {
       transform: scale(.98);
     }
+
+    .home {
+      position: absolute;
+      top: 0;
+      right: 0;
+      display: block;
+      min-height: 0;
+      border: 0;
+      color: var(--muted);
+      font-size: clamp(.8rem, .9vw, .8rem);
+      line-height: 1;
+    }
   </style>
 </head>
 
 <body>
   <main>
     <h1>AM</h1>
+    <a href="//mikeb.work" class="home">mikeb.work</a>
     <a href="news-radio.html" aria-label="News radio"><pre class="brand">
      ***** *     **                                                                                **
   ******  **    **** *                                                                              **     *
@@ -141,7 +178,121 @@ YSSS~SSSSSSP  .SS    SS.   dSP        .SS~YSb   .SS~SSSSS   .SS~YSb    dSP  .SS~
      '   '         '    '          '   '      '     '       '       '      '      '      '    '    
       
     </pre></a>
+    <div class="timer-tile">
+      <input class="timer-input" value="1:00:00" aria-label="Timer — press Enter to start" autocomplete="off" spellcheck="false" />
+    </div>
   </main>
+  <script>
+    const timerInput = document.querySelector('.timer-input')
+    let remainingSeconds = 60 * 60
+    let running = false
+    let deadline = 0
+    let timerId = null
+
+    function parseCommand(value) {
+      const input = value.trim().toLowerCase().replaceAll(' ', '').replaceAll(';', ':')
+      if (!input) return null
+
+      const isClockTime = input.startsWith('@') || /(?:a|p|am|pm)$/.test(input)
+      if (isClockTime) {
+        const match = input.match(/^@?(\d{1,2}):(\d{2})(a|p|am|pm)?$/)
+        if (!match) return null
+        let hours = Number(match[1])
+        const minutes = Number(match[2])
+        const meridiem = match[3]
+        if (minutes > 59) return null
+        if (meridiem) {
+          if (hours < 1 || hours > 12) return null
+          if (meridiem.startsWith('p') && hours !== 12) hours += 12
+          if (meridiem.startsWith('a') && hours === 12) hours = 0
+        } else if (hours > 23) return null
+
+        const target = new Date()
+        target.setHours(hours, minutes, 0, 0)
+        if (target <= new Date()) target.setDate(target.getDate() + 1)
+        return Math.ceil((target - new Date()) / 1000)
+      }
+
+      const unitMatch = input.match(/^(\d+(?:\.\d+)?)(h|m|s)$/)
+      if (unitMatch) {
+        const amount = Number(unitMatch[1])
+        return Math.round(amount * (unitMatch[2] === 'h' ? 3600 : unitMatch[2] === 'm' ? 60 : 1))
+      }
+      if (/^\d+$/.test(input)) return Number(input) * 60
+
+      const parts = input.split(':').map(Number)
+      if (parts.some(Number.isNaN) || parts.length < 2 || parts.length > 3) return null
+      if (parts.length === 2) {
+        const [hours, minutes] = parts
+        return minutes > 59 ? null : hours * 3600 + minutes * 60
+      }
+      const [hours, minutes, seconds] = parts
+      return minutes > 59 || seconds > 59 ? null : hours * 3600 + minutes * 60 + seconds
+    }
+
+    function formatTime(total) {
+      const hours = Math.floor(total / 3600)
+      const minutes = Math.floor((total % 3600) / 60)
+      const seconds = total % 60
+      return `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+    }
+
+    function formatClock() {
+      const now = new Date()
+      return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`
+    }
+
+    function render() {
+      timerInput.value = running ? formatTime(remainingSeconds) : formatClock()
+      timerInput.readOnly = running
+    }
+
+    function pause() {
+      if (running) remainingSeconds = Math.max(0, Math.ceil((deadline - Date.now()) / 1000))
+      running = false
+      clearInterval(timerId)
+      timerId = null
+      render()
+    }
+
+    function tick() {
+      remainingSeconds = Math.max(0, Math.ceil((deadline - Date.now()) / 1000))
+      render()
+      if (remainingSeconds === 0) pause()
+    }
+
+    function start() {
+      if (remainingSeconds <= 0) return
+      running = true
+      deadline = Date.now() + remainingSeconds * 1000
+      clearInterval(timerId)
+      timerId = setInterval(tick, 200)
+      render()
+      timerInput.blur()
+    }
+
+    function startFromInput() {
+      const seconds = parseCommand(timerInput.value)
+      if (seconds === null || seconds <= 0) return timerInput.select()
+      remainingSeconds = seconds
+      start()
+    }
+
+    function selectTimer() {
+      if (running) pause()
+      requestAnimationFrame(() => { timerInput.focus(); timerInput.select() })
+    }
+
+    timerInput.addEventListener('click', selectTimer)
+    timerInput.addEventListener('focus', () => { if (!running) requestAnimationFrame(() => timerInput.select()) })
+    timerInput.addEventListener('keydown', event => {
+      if (event.key === 'Enter') { event.preventDefault(); startFromInput() }
+    })
+    setInterval(() => {
+      if (!running && document.activeElement !== timerInput) render()
+    }, 1000)
+    render()
+  </script>
 </body>
 
 </html>
