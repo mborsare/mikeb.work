@@ -904,7 +904,21 @@
       document.getElementById('downloadLease').addEventListener('click', event => {
         event.preventDefault();
 
-        const text = document.getElementById('leaseText').textContent;
+        const identifyingInformation = [
+          'Mike Borsare',
+          'Ashley Dunn',
+          'Alexis Rickmers',
+          'Connor McElroy',
+          '6 Glenvale Terrace, Unit 3',
+          '6 Glenvale Terrace, Unit 2',
+          'Jamaica Plain, MA 02130',
+          '6 Glenvale Terrace, Unit 2, Jamaica Plain, MA 02130',
+        ];
+        const redact = value => value.replace(/[^\s]/g, '█');
+        const text = identifyingInformation.reduce(
+          (lease, value) => lease.replaceAll(value, redact(value)),
+          document.getElementById('leaseText').textContent
+        );
         const blob = new Blob([text], {type: 'text/plain'});
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
