@@ -118,7 +118,7 @@
 
     .handwriting-paper {
       width: 100%;
-      min-height: 30rem;
+      min-height: 45rem;
       position: relative;
       background: transparent;
       background-image: none;
@@ -259,7 +259,9 @@
     }
 
     .soldier-avatar {
-      width: 60px;
+      /* The portraits are rendered at roughly a 7:10 ratio. Matching that
+         ratio keeps their illustrated frame intact without shrinking them. */
+      width: 63px;
       height: 90px;
       background-color: transparent;
       overflow: visible;
@@ -271,7 +273,7 @@
       inset: 0;
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: contain;
       display: block;
     }
 
@@ -503,13 +505,10 @@
         break-inside: avoid;
       }
 
-      .mission-lines-section .handwriting-paper {
-        min-height: 5in;
-      }
 
       .bottom-section {
         grid-template-columns: 0.9fr 1.35fr;
-        gap: 0.25in;
+        gap: 0.125in;
         align-items: start;
         font-size: 0.55rem;
         break-inside: avoid;
@@ -546,8 +545,12 @@
       }
 
       .secondary-pages,
-      .footer-ascii {
+      .bottom-section {
         break-before: page;
+      }
+
+      .footer-ascii {
+        display: none;
       }
 
       .games-section {
@@ -601,7 +604,6 @@
     <section class="rules-section mission-lines-section">
       <div class="handwriting-paper" aria-hidden="true"></div>
     </section>
-
     <section class="bottom-section">
       <div class="column">
         <section class="cursive-area">
@@ -611,8 +613,10 @@
             <p class="cursive-teacher">Lay siege</p>
             <p class="cursive-teacher">Restraint pays</p>
             <p class="cursive-teacher">Emotions are state</p>
-            <p class="cursive-teacher">Same canvas</p>
             <p class="cursive-teacher">Always cycling</p>
+            <p class="cursive-teacher">Watch the show</p>
+            <p class="cursive-teacher">Serve the market</p>
+            <p class="cursive-teacher">Expect the thief</p>
           </div>
         </section>
       </div>
@@ -629,10 +633,6 @@
           <div class="squad-stack" id="squad-stack"></div>
         </section>
       </div>
-    </section>
-
-    <section class="rules-section mission-lines-section">
-      <div class="handwriting-paper" aria-hidden="true"></div>
     </section>
 
     <div class="games-section">
