@@ -168,22 +168,39 @@
       color: var(--text);
     }
 
-    .mission-history {
+    #close-mission {
+      color: #c56a00;
+    }
+
+    #close-mission:hover,
+    #close-mission:focus-visible {
+      color: #c56a00;
+      border-color: #c56a00;
+    }
+
+    .gallery > #close-mission {
       display: flex;
-      flex-wrap: wrap;
+      align-items: center;
       justify-content: center;
-      gap: 0.55rem;
+      width: 100%;
+      aspect-ratio: 3 / 4;
+      border-radius: 0.86rem;
+    }
+
+    .mission-history {
+      display: block;
       margin-top: 0.9rem;
     }
 
     .mission-history-link {
-      min-width: 10rem;
+      display: block;
       padding: 0.55rem 0.7rem;
       border: 1px solid var(--line);
       color: var(--stamp);
       font-size: 0.72rem;
       line-height: 1.35;
       text-align: left;
+      margin-top: 0.55rem;
     }
 
     .mission-history-link:hover,
@@ -246,34 +263,63 @@
     }
 
     .mission-scheduler {
-      max-width: 38rem;
-      margin: 0 auto 1rem;
-      padding: 0.85rem;
-      border: 1px solid var(--line);
+      margin: 0.55rem 0 1rem;
       text-align: left;
     }
 
+    .mission-creation {
+      width: 100%;
+      margin: 0;
+      text-align: left;
+    }
+
+    .mission-creation summary {
+      color: var(--stamp);
+      cursor: pointer;
+      font-size: 0.78rem;
+      margin-bottom: 0.55rem;
+    }
+
+    .mission-creation:not([open]) summary {
+      margin-bottom: 1rem;
+    }
+
+    .mission-history-details {
+      width: 100%;
+      margin: 1rem 0 0;
+      text-align: left;
+    }
+
+    .mission-history-details summary {
+      color: var(--stamp);
+      cursor: pointer;
+      font-size: 0.78rem;
+    }
+
     .mission-scheduler-row {
-      display: grid;
-      grid-template-columns: auto minmax(10rem, 1fr) auto;
-      align-items: center;
-      gap: 0.55rem;
+      display: block;
     }
 
     .mission-scheduler-label {
+      display: block;
       color: var(--stamp);
       font-size: 0.72rem;
+      margin-bottom: 0.35rem;
     }
 
     .mission-date-input {
       width: 100%;
-      min-width: 0;
       border: 1px solid var(--line);
       background: var(--bg);
       color: var(--text);
       font: inherit;
       font-size: 0.78rem;
       padding: 0.58rem 0.65rem;
+    }
+
+    .mission-scheduler-row .mission-action {
+      display: block;
+      margin-top: 0.55rem;
     }
 
     .mission-schedule-copy,
@@ -296,10 +342,8 @@
       display: none;
     }
 
-    @media (max-width: 38rem) {
-      .mission-scheduler-row {
-        grid-template-columns: 1fr;
-      }
+    .participant-workspace {
+      margin-top: 1.25rem;
     }
 
     .participant-controls {
@@ -308,7 +352,7 @@
       justify-content: center;
       align-items: center;
       gap: 0.55rem;
-      margin: 1.25rem auto 0;
+      margin: 0 auto;
     }
 
     .participant-controls[hidden] {
@@ -318,7 +362,6 @@
     .participant-select {
       min-width: min(19rem, 100%);
       max-width: 100%;
-      min-height: 8.5rem;
       border: 1px solid var(--line);
       background: var(--bg);
       color: var(--text);
@@ -348,7 +391,7 @@
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 1.25rem;
-      margin: 2rem 0;
+      margin: 2rem 0 0;
       padding: 0.5rem;
     }
 
@@ -362,6 +405,37 @@
       .gallery {
         grid-template-columns: repeat(5, 1fr);
         gap: 1.5rem;
+      }
+    }
+
+    @media (min-width: 52rem) {
+      .participant-workspace {
+        display: grid;
+        grid-template-columns: 19rem minmax(0, 1fr);
+        align-items: start;
+        gap: 1.5rem;
+      }
+
+      .participant-controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .participant-select {
+        min-width: 0;
+      }
+
+      .participant-workspace .gallery {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        margin-top: 0;
+      }
+
+      .participant-workspace:has(.participant-controls[hidden]) {
+        grid-template-columns: 1fr;
+      }
+
+      .participant-workspace:has(.participant-controls[hidden]) .gallery {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
       }
     }
 
@@ -447,25 +521,23 @@
 
     .state-button {
       appearance: none;
-      border: 1px solid var(--line);
+      border: 0;
       background: transparent;
-      color: var(--stamp);
+      color: #b8b8b2;
       font: inherit;
       line-height: 1;
       padding: 0.5rem 0.8rem;
     }
 
-    .state-button:hover,
-    .state-button:focus-visible,
     .state-button.is-active {
-      color: var(--seal);
-      border: 0;
+      background: var(--text);
+      color: var(--bg);
     }
 
-    .card[data-state="KIA"] .state-button.is-active {
-      color: var(--stamp);
+    .state-button:disabled:not(.is-active) {
+      color: #b8b8b2;
       cursor: not-allowed;
-      border-color: none;
+      opacity: 1;
     }
 
     @media print {
@@ -484,6 +556,7 @@
       nav,
       #clock,
       .mission-actions,
+      .mission-creation,
       .mission-scheduler,
       .participant-controls,
       .confirm-panel,
@@ -549,110 +622,118 @@
 
     <header>
       <h1>Capital Army</h1>
-      <div class="subhead" id="participant-count">Active participants 0</div>
-      <div class="subhead" id="mission-strength">Mission strength 20</div>
-      <div class="subhead" id="patrol-strength">Patrol strength 2</div>
-      <div class="subhead" id="mission-state">Mission state loading</div>
     </header>
 
     <main>
       <section class="mission-ledger" aria-label="Mission ledger">
-        <form class="mission-scheduler" id="mission-scheduler">
-          <div class="mission-scheduler-row">
-            <label class="mission-scheduler-label" for="mission-start">
-              Mission begins
-            </label>
+        <details class="mission-creation">
+          <summary>Create mission</summary>
 
-            <input class="mission-date-input" id="mission-start" name="mission-start" type="date" required>
+          <form class="mission-scheduler" id="mission-scheduler">
+            <div class="mission-scheduler-row">
+              <label class="mission-scheduler-label" for="mission-start">
+                Mission begins
+              </label>
 
-            <button class="mission-action" id="schedule-mission" type="submit">
-              Schedule 2-week mission
-            </button>
-          </div>
+              <input class="mission-date-input" id="mission-start" name="mission-start" type="date" required>
 
-          <div class="mission-schedule-copy" id="mission-schedule-copy">
-            Choose a Monday. The mission ends on the second Friday.
-          </div>
+              <button class="mission-action" id="schedule-mission" type="submit">
+                Schedule 2-week mission
+              </button>
+            </div>
 
-          <div class="mission-schedule-status" id="mission-schedule-status" role="status" aria-live="polite" hidden>
-          </div>
-        </form>
+            <div class="mission-schedule-copy" id="mission-schedule-copy">
+              Choose a Monday. The mission ends on the second Friday.
+            </div>
 
-        <div class="mission-actions">
-          <button class="mission-action" id="close-mission" type="button">
-            Close mission
-          </button>
-
-          <button class="mission-action is-danger" id="delete-empty-mission" type="button" hidden>
-            Delete empty mission
-          </button>
-
-          <a class="mission-action" id="active-mission-link" href="capital-army.html" hidden>
-            Return to active mission
-          </a>
-        </div>
-
-        <div class="confirm-panel" id="close-mission-panel" hidden>
-          <p id="close-mission-copy"></p>
-
-          <div class="confirm-actions">
-            <button class="mission-action" id="cancel-close-mission" type="button">
-              Keep mission open
-            </button>
-
-            <button class="mission-action is-danger" id="confirm-close-mission" type="button">
-              Confirm mission close
-            </button>
-          </div>
-        </div>
-
-        <div class="confirm-panel" id="delete-mission-panel" hidden>
-          <p id="delete-mission-copy"></p>
-
-          <div class="confirm-actions">
-            <button class="mission-action" id="cancel-delete-mission" type="button">
-              Keep mission
-            </button>
-
-            <button class="mission-action is-danger" id="confirm-delete-mission" type="button">
-              Confirm empty mission delete
-            </button>
-          </div>
-        </div>
-
-        <div class="subhead" id="mission-ledger-summary">
-          Mission ledger loading
-        </div>
+            <div class="mission-schedule-status" id="mission-schedule-status" role="status" aria-live="polite" hidden>
+            </div>
+          </form>
+        </details>
 
         <div class="mission-readonly" id="mission-readonly" hidden>
           Closed mission · record is read only
         </div>
 
-        <div class="mission-history" id="mission-history" aria-label="Missions"></div>
+        <details class="mission-history-details">
+          <summary>Missions</summary>
+
+          <div class="subhead" id="mission-ledger-summary">
+            Mission ledger loading
+          </div>
+
+          <div class="mission-history" id="mission-history" aria-label="Past missions"></div>
+        </details>
       </section>
 
-      <section class="participant-controls" id="participant-controls" aria-label="Add mission participants">
-        <select class="participant-select" id="participant-select" aria-label="Choose soldiers" multiple
-          size="8"></select>
+      <div class="participant-workspace">
+        <section class="participant-controls" id="participant-controls" aria-label="Add mission participants">
+          <select class="participant-select" id="participant-select" aria-label="Choose soldiers" multiple
+            size="8"></select>
 
-        <button class="mission-action" id="add-participant-rtb" type="button">
-          Add selected as RTB
-        </button>
+          <button class="mission-action" id="add-participant-rtb" type="button">
+            Add selected as RTB
+          </button>
 
-        <button class="mission-action" id="add-participant-kia" type="button">
-          Add selected as KIA
-        </button>
+          <button class="mission-action" id="add-participant-kia" type="button">
+            Add selected as KIA
+          </button>
 
-        <div class="participant-selection-status" id="participant-selection-status" role="status" aria-live="polite">
-          Select one or more soldiers from the roster.
+          <div class="participant-selection-status" id="participant-selection-status" role="status" aria-live="polite">
+            Select one or more soldiers from the roster.
+          </div>
+        </section>
+
+        <div>
+          <div class="participant-empty" id="participant-empty" hidden>
+            No RTB or KIA participants in this mission.
+          </div>
+
+          <section class="gallery" id="gallery" aria-label="Mission participants"></section>
         </div>
-      </section>
-
-      <div class="participant-empty" id="participant-empty" hidden>
-        No RTB or KIA participants in this mission.
       </div>
 
-      <section class="gallery" id="gallery" aria-label="Mission participants"></section>
+      <button class="mission-action" id="close-mission" type="button" hidden>
+        Close mission
+      </button>
+
+      <div class="mission-actions">
+        <button class="mission-action is-danger" id="delete-empty-mission" type="button" hidden>
+          Delete empty mission
+        </button>
+
+        <a class="mission-action" id="active-mission-link" href="capital-army.html" hidden>
+          Return to active mission
+        </a>
+      </div>
+
+      <div class="confirm-panel" id="close-mission-panel" hidden>
+        <p id="close-mission-copy"></p>
+
+        <div class="confirm-actions">
+          <button class="mission-action" id="cancel-close-mission" type="button">
+            Keep mission open
+          </button>
+
+          <button class="mission-action is-danger" id="confirm-close-mission" type="button">
+            Confirm mission close
+          </button>
+        </div>
+      </div>
+
+      <div class="confirm-panel" id="delete-mission-panel" hidden>
+        <p id="delete-mission-copy"></p>
+
+        <div class="confirm-actions">
+          <button class="mission-action" id="cancel-delete-mission" type="button">
+            Keep mission
+          </button>
+
+          <button class="mission-action is-danger" id="confirm-delete-mission" type="button">
+            Confirm empty mission delete
+          </button>
+        </div>
+      </div>
     </main>
 
     <pre class="ascii" style="font-size:0.4rem; margin-top: 9rem;">
@@ -881,10 +962,6 @@
     // ---- Mission ledger, scheduling, and participants ----
     (() => {
       const gallery = document.getElementById('gallery');
-      const participantCountLabel = document.getElementById('participant-count');
-      const missionStrengthLabel = document.getElementById('mission-strength');
-      const patrolStrengthLabel = document.getElementById('patrol-strength');
-      const missionStateLabel = document.getElementById('mission-state');
       const missionLedgerSummary = document.getElementById('mission-ledger-summary');
       const missionReadonly = document.getElementById('mission-readonly');
       const missionHistory = document.getElementById('mission-history');
@@ -1402,26 +1479,6 @@
           )[0]?.missionId || null;
       }
 
-      function updateHeader(missionState) {
-        const counts = countStates(missionState);
-        const parameters = missionState?.parameters || {};
-        const status = missionStatus(missionState);
-
-        participantCountLabel.textContent =
-          `Active participants ${counts.marked}`;
-
-        missionStrengthLabel.textContent =
-          `Mission strength ${parameters.missionStrength || 20}`;
-
-        patrolStrengthLabel.textContent =
-          `Patrol strength ${parameters.patrolStrength || 2}`;
-
-        missionStateLabel.textContent =
-          `Mission ${formatMissionRange(missionState)} · ${status} · ` +
-          `${counts.rtb} RTB · ${counts.kia} KIA · ` +
-          `${formatMissionUpdatedAt(missionState?.updatedAt)}`;
-      }
-
       function renderMissionLedger() {
         const missions = missionLedger?.missions || [];
         const closedMissions = missions.filter(
@@ -1548,7 +1605,8 @@
         participantControls.hidden = !isParticipantEditable;
 
         gallery.querySelectorAll('.state-button').forEach(button => {
-          button.disabled = !isParticipantEditable;
+          button.disabled =
+            !isParticipantEditable || !button.classList.contains('is-active');
         });
       }
 
@@ -1584,6 +1642,7 @@
                 type="button"
                 data-state="RTB"
                 aria-pressed="${state === 'RTB'}"
+                ${state === 'RTB' ? '' : 'disabled'}
               >
                 RTB
               </button>
@@ -1593,6 +1652,7 @@
                 type="button"
                 data-state="KIA"
                 aria-pressed="${state === 'KIA'}"
+                ${state === 'KIA' ? '' : 'disabled'}
               >
                 KIA
               </button>
@@ -1666,6 +1726,8 @@
           );
         }).join('');
 
+        participantSelect.size = Math.max(1, available.length);
+
         const isEditable =
           missionStatus(missionState) !== 'closed';
         const disabled = !isEditable || available.length === 0;
@@ -1700,6 +1762,8 @@
           ))
           .join('');
 
+        gallery.append(closeMissionButton);
+
         // An editable mission with zero assigned soldiers is not an empty page:
         // the roster picker above is the working state. Only show the empty
         // record message for a closed mission with no participants.
@@ -1714,7 +1778,6 @@
       function applyMissionState(missionState) {
         selectedMissionState = missionState;
         renderParticipants(missionState);
-        updateHeader(missionState);
         updateMissionControls(missionState);
       }
 
@@ -1747,7 +1810,6 @@
           await refreshMissionState();
         } catch (error) {
           console.warn('Capital Army refresh failed.', error);
-          missionStateLabel.textContent = 'Mission state unavailable';
           missionLedgerSummary.textContent = 'Mission ledger unavailable';
         }
       }
@@ -2123,7 +2185,6 @@
             null;
 
           if (!selectedMissionId) {
-            missionStateLabel.textContent = 'No missions found';
             participantControls.hidden = true;
             closeMissionButton.disabled = true;
             deleteEmptyMissionButton.hidden = true;
@@ -2134,7 +2195,6 @@
           await refreshMissionState();
         } catch (error) {
           console.warn('Capital Army initialization failed.', error);
-          missionStateLabel.textContent = 'Mission state unavailable';
           missionLedgerSummary.textContent = 'Mission ledger unavailable';
           showScheduleStatus(error.message, true);
         }
