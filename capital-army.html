@@ -78,6 +78,35 @@
       margin-bottom: 0;
     }
 
+    h1 a {
+      color: inherit;
+      border-bottom: 0;
+    }
+
+    .private-roster {
+      display: none;
+    }
+
+    body.is-private-roster {
+      background: var(--bg);
+    }
+
+    body.is-private-roster .container > :not(.private-roster) {
+      display: none !important;
+    }
+
+    body.is-private-roster .private-roster {
+      display: block;
+      min-height: 100vh;
+      padding: clamp(0.9rem, 3vw, 2rem);
+      text-align: center;
+    }
+
+    .private-roster-card:nth-child(4n + 1) img { filter: sepia(1) saturate(4) hue-rotate(295deg); }
+    .private-roster-card:nth-child(4n + 2) img { filter: sepia(1) saturate(3) hue-rotate(155deg); }
+    .private-roster-card:nth-child(4n + 3) img { filter: sepia(1) saturate(3) hue-rotate(5deg); }
+    .private-roster-card:nth-child(4n) img { filter: sepia(1) saturate(3) hue-rotate(75deg); }
+
     .subhead {
       margin-top: 0.4rem;
       color: var(--stamp);
@@ -360,14 +389,90 @@
     }
 
     .participant-select {
-      min-width: min(19rem, 100%);
-      max-width: 100%;
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .participant-filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+
+    .roster-filter {
       border: 1px solid var(--line);
       background: var(--bg);
-      color: var(--text);
+      color: var(--stamp);
+      cursor: pointer;
       font: inherit;
-      font-size: 0.78rem;
+      font-size: 0.68rem;
+      padding: 0.35rem 0.5rem;
+    }
+
+    .roster-filter.is-active {
+      border-color: var(--seal);
+      color: var(--text);
+    }
+
+    .participant-picker {
+      min-width: min(19rem, 100%);
+      max-width: 100%;
+      max-height: 28rem;
+      overflow-y: auto;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.35rem;
+      border: 1px solid var(--line);
+      background: var(--bg);
       padding: 0.45rem;
+    }
+
+    .participant-choice {
+      display: grid;
+      grid-template-columns: 2.15rem minmax(0, 1fr);
+      align-items: center;
+      gap: 0.4rem;
+      width: 100%;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      font: inherit;
+      font-size: 0.68rem;
+      padding: 0.28rem;
+      text-align: left;
+    }
+
+    .participant-choice:hover,
+    .participant-choice:focus-visible {
+      border-color: var(--stamp);
+      outline: none;
+    }
+
+    .participant-choice[aria-pressed='true'] {
+      border-color: var(--seal);
+      background: color-mix(in srgb, var(--seal) 12%, transparent);
+    }
+
+    .participant-choice img {
+      width: 2.15rem;
+      height: 2.15rem;
+      object-fit: contain;
+      box-sizing: border-box;
+      filter: grayscale(1) contrast(1.12);
+    }
+
+    .participant-choice-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .participant-selection-status {
@@ -612,6 +717,11 @@
 </head>
 
 <body>
+  <script>
+    if (new URLSearchParams(window.location.search).has('privates')) {
+      document.body.classList.add('is-private-roster');
+    }
+  </script>
   <div class="container">
     <nav>
       <a href="index.html">mikeb.work</a>
@@ -621,7 +731,7 @@
     <time id="clock">--</time>
 
     <header>
-      <h1>Capital Army</h1>
+      <h1><a href="capital-army.html?privates" aria-label="Capital Army private roster">Capital Army</a></h1>
     </header>
 
     <main>
@@ -670,6 +780,13 @@
         <section class="participant-controls" id="participant-controls" aria-label="Add mission participants">
           <select class="participant-select" id="participant-select" aria-label="Choose soldiers" multiple
             size="8"></select>
+
+          <div class="participant-filter-bar" aria-label="Roster filters">
+            <button class="roster-filter is-active" type="button" data-roster-filter="az" aria-pressed="true">A to Z</button>
+            <button class="roster-filter" type="button" data-roster-filter="za" aria-pressed="false">Z to A</button>
+          </div>
+
+          <div class="participant-picker" id="participant-picker" aria-label="Choose soldiers"></div>
 
           <button class="mission-action" id="add-participant-rtb" type="button">
             Add selected as RTB
@@ -735,6 +852,13 @@
         </div>
       </div>
     </main>
+
+    <section class="private-roster" id="private-roster" aria-label="Capital Army private roster">
+      <a href="capital-army.html">← back</a>
+      <h1>All the privates</h1>
+      <p class="subhead">Classified roster. Do not circulate.</p>
+      <div class="private-roster-grid gallery" id="private-roster-grid"></div>
+    </section>
 
     <pre class="ascii" style="font-size:0.4rem; margin-top: 9rem;">
       ██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████ 
@@ -983,11 +1107,33 @@
       const confirmDeleteMissionButton = document.getElementById('confirm-delete-mission');
       const participantControls = document.getElementById('participant-controls');
       const participantSelect = document.getElementById('participant-select');
+      const participantPicker = document.getElementById('participant-picker');
+      const rosterFilterButtons = Array.from(document.querySelectorAll('.roster-filter'));
       const addParticipantRtbButton = document.getElementById('add-participant-rtb');
       const addParticipantKiaButton = document.getElementById('add-participant-kia');
       const participantSelectionStatus = document.getElementById('participant-selection-status');
       const participantEmpty = document.getElementById('participant-empty');
       const army = window.CapitalArmy || window.PrimeArmy;
+      const privateRoster = document.getElementById('private-roster');
+      const privateRosterGrid = document.getElementById('private-roster-grid');
+      const isPrivateRoster = new URLSearchParams(window.location.search).has('privates');
+
+      if (isPrivateRoster && army && privateRoster && privateRosterGrid) {
+        privateRosterGrid.innerHTML = army.soldiers.map(soldier => (
+          `<article class="card private-roster-card" style="--rot: 0deg; --drift: 0px">` +
+          `<img src="${army.avatarUrl(soldier)}" alt="${army.escapeHtml(army.fullName(soldier))}" loading="lazy">` +
+          `<div class="meta">` +
+          `<div class="name">${army.escapeHtml(army.fullName(soldier))}</div>` +
+          `<div class="cue">${army.escapeHtml(soldier.cue)}</div>` +
+          `</div>` +
+          `</article>`
+        )).join('');
+
+        if (window.CapitalArmyDither) {
+          window.CapitalArmyDither.queueDither(privateRosterGrid);
+        }
+        return;
+      }
 
       const CAPITAL_ARMY_ROOT =
         'https://capitalarmy.mborsare.workers.dev/api/capital-army';
@@ -1006,6 +1152,7 @@
         nextScheduledMissionId: null,
         missions: []
       };
+      let rosterSort = 'az';
 
       if (!gallery || !army) {
         console.warn('Capital Army soldier manifest unavailable.');
@@ -1710,9 +1857,7 @@
 
       function updateParticipantPicker(missionState) {
         const states = missionState?.soldiers || {};
-        const available = soldiers.filter(
-          soldier => !states[soldierId(soldier)]
-        );
+        const available = soldiers.filter(soldier => !states[soldierId(soldier)]);
         const selectedIds = new Set(selectedParticipantIds());
 
         participantSelect.innerHTML = available.map(soldier => {
@@ -1736,6 +1881,25 @@
         participantSelect.disabled = disabled;
         addParticipantRtbButton.disabled = disabled || noSelection;
         addParticipantKiaButton.disabled = disabled || noSelection;
+
+        const displayed = available
+          .sort((a, b) => {
+            const direction = rosterSort === 'az' ? 1 : -1;
+            return direction * fullName(a).localeCompare(fullName(b));
+          });
+
+        participantPicker.innerHTML = displayed.map(soldier => {
+          const id = soldierId(soldier);
+          const selected = selectedIds.has(id);
+          return (
+            `<button class="participant-choice" type="button" ` +
+            `data-soldier-id="${escapeHtml(id)}" aria-pressed="${selected}" ` +
+            `aria-label="${escapeHtml(fullName(soldier))}" ${disabled ? 'disabled' : ''}>` +
+            `<img src="${avatarUrl(soldier)}" alt="">` +
+            `<span class="participant-choice-name">${escapeHtml(fullName(soldier))}</span>` +
+            `</button>`
+          );
+        }).join('');
         updateParticipantSelectionStatus(available.length);
       }
 
@@ -2134,6 +2298,40 @@
         updateParticipantSelectionStatus();
       });
 
+      participantPicker.addEventListener('click', event => {
+        const choice = event.target.closest('.participant-choice');
+        if (!choice || choice.disabled) {
+          return;
+        }
+
+        const option = Array.from(participantSelect.options).find(
+          candidate => candidate.value === choice.dataset.soldierId
+        );
+
+        if (!option) {
+          return;
+        }
+
+        option.selected = !option.selected;
+        updateParticipantPicker(selectedMissionState);
+      });
+
+      rosterFilterButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          const filter = button.dataset.rosterFilter;
+
+          rosterSort = filter;
+
+          rosterFilterButtons.forEach(control => {
+            const value = control.dataset.rosterFilter;
+            const active = rosterSort === value;
+            control.classList.toggle('is-active', active);
+            control.setAttribute('aria-pressed', String(active));
+          });
+          updateParticipantPicker(selectedMissionState);
+        });
+      });
+
       addParticipantRtbButton.addEventListener('click', () => {
         addSelectedParticipants('RTB');
       });
@@ -2218,7 +2416,9 @@
 
     // ---- Gallery interaction ----
     (() => {
-      const gallery = document.getElementById('gallery');
+      const gallery = document.body.classList.contains('is-private-roster')
+        ? document.getElementById('private-roster-grid')
+        : document.getElementById('gallery');
 
       if (!gallery) {
         return;
