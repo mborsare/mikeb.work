@@ -1,0 +1,15 @@
+{
+  "name": "sand",
+  "version": "0.2.0",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "pack": "zsh pack.sh",
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "electron": "latest",
+    "@electron/packager": "latest"
+  }
+}

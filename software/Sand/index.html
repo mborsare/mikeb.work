@@ -1,0 +1,1648 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>mikeb.work/timer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    @font-face {
+      font-family: ComicMono;
+      src: url("/fonts/ComicMono-Regular.woff") format("woff");
+      font-display: swap;
+    }
+
+    :root {
+      --panel: #292929;
+      --border: #1f1f1f;
+      --text: #fff;
+      --quiet: #999;
+      --grip: #888;
+      --card: #333;
+      --label: #b8b8b8;
+      --label-on-light: #555;
+      --selection-flash: #111;
+      --dialog-overlay: rgb(0 0 0 / 0.6);
+      --dialog-shadow: rgb(0 0 0 / 0.35);
+    }
+
+    html,
+    body {
+      height: 100%;
+      color: var(--text);
+      font-family: ComicMono, monospace;
+      margin: 0;
+      background: var(--panel);
+      overflow: hidden;
+    }
+
+    .timer {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      box-sizing: border-box;
+      padding: 1.25rem;
+      background: var(--panel);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .grab-ring {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      pointer-events: none;
+    }
+
+    .grab-ring span {
+      position: absolute;
+      display: flex;
+      -webkit-app-region: drag;
+      user-select: none;
+      cursor: grab;
+      pointer-events: auto;
+    }
+
+    .grab-ring span:active {
+      cursor: grabbing;
+    }
+
+    .grab-ring .top,
+    .grab-ring .bottom {
+      right: 0;
+      left: 0;
+      height: 12px;
+    }
+
+    .grab-ring .top {
+      top: 0;
+    }
+
+    /* Visible window grip: the whole edge remains draggable, with a tactile
+       cluster of nubs marking the easiest place to grab it. */
+    .grab-ring .top::after,
+    .grab-ring .bottom::after {
+      content: "::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::";
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      left: 50%;
+      width: 100%;
+      height: 12px;
+      transform: translateX(-50%);
+      overflow: hidden;
+      color: var(--grip);
+      font: 700 12px/12px ComicMono, monospace;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+
+    .grab-ring .top::after {
+      top: 0;
+    }
+
+    .grab-ring .bottom::after {
+      bottom: 0;
+    }
+
+    .grab-ring .left::after,
+    .grab-ring .right::after {
+      content: "::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::";
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      top: 50%;
+      width: 12px;
+      height: 100%;
+      transform: translateY(-50%);
+      overflow: hidden;
+      color: var(--grip);
+      font: 700 12px/12px ComicMono, monospace;
+      letter-spacing: 0;
+      writing-mode: vertical-rl;
+      white-space: nowrap;
+    }
+
+    .grab-ring .left::after {
+      left: 0.15rem;
+    }
+
+    .grab-ring .right::after {
+      right: 0.15rem;
+    }
+
+    .grab-ring .bottom {
+      bottom: 0;
+    }
+
+    .grab-ring .left,
+    .grab-ring .right {
+      top: 12px;
+      bottom: 12px;
+      width: 12px;
+    }
+
+    .grab-ring .left {
+      left: 0;
+    }
+
+    .grab-ring .right {
+      right: 0;
+    }
+
+    #timer-list {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      gap: 10px;
+      /* Keeps drag outlines inside the scroll clip, including on the first
+         and last cards. */
+      padding: 4px;
+      box-sizing: border-box;
+      background: transparent;
+      overflow-y: auto;
+      overflow-x: hidden;
+      min-height: 0;
+      scrollbar-width: none;
+    }
+
+    #timer-list::-webkit-scrollbar {
+      display: none;
+    }
+
+    .timer-unit {
+      --timer-surface: var(--card);
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      min-height: 110px;
+      flex: 1 0 130px;
+      background: var(--timer-surface);
+      border-radius: 0.75rem;
+      padding: 0.5rem 1rem;
+      box-sizing: border-box;
+      overflow: hidden;
+      container-type: size;
+    }
+
+    /* Count-up timers are the active, open-ended mode. Give them a light
+       surface so they are immediately distinct from countdowns. */
+    .timer-unit.counting-up {
+      --timer-surface: var(--text);
+      background: var(--timer-surface);
+    }
+
+    /* A tiny-mode selection returns to a full card with a short visual
+       handoff, so the chosen timer is easy to find in the larger layout. */
+    .timer-unit.tiny-selection-flash {
+      animation: tiny-selection-flash 650ms ease-out;
+    }
+
+    @keyframes tiny-selection-flash {
+      0%, 75% {
+        background-color: var(--selection-flash);
+      }
+
+      100% {
+        background-color: var(--timer-surface);
+      }
+    }
+
+    .timer-unit.counting-up .command {
+      color: var(--panel);
+    }
+
+    .timer-unit.counting-up .timer-label {
+      color: var(--label-on-light);
+    }
+
+    .timer-unit.counting-up .timer-label:hover,
+    .timer-unit.counting-up .timer-label:focus,
+    .timer-unit.counting-up .remove:hover,
+    .timer-unit.counting-up .remove:focus-visible {
+      color: var(--panel);
+    }
+
+    .timer-label {
+      grid-column: 1;
+      grid-row: 1;
+      width: 100%;
+      box-sizing: border-box;
+      padding: 0 0 0.15rem;
+      border: 0;
+      border-bottom: 1px solid transparent;
+      outline: 0;
+      background: transparent;
+      color: var(--label);
+      opacity: var(--timer-label-opacity, 1);
+      font: inherit;
+      font-size: 0.9rem;
+      line-height: 1.25;
+      text-overflow: ellipsis;
+      transition: color 120ms ease, border-color 120ms ease, opacity 300ms ease;
+    }
+
+    .timer-label::placeholder {
+      color: var(--grip);
+      opacity: 1;
+    }
+
+    .timer-label:hover,
+    .timer-label:focus {
+      color: var(--text);
+    }
+
+    .timer-label:focus {
+      border-bottom-color: var(--quiet);
+    }
+
+    .timer-label::selection {
+      color: var(--panel);
+      background: var(--text);
+    }
+
+    .command {
+      grid-column: 1 / -1;
+      grid-row: 2;
+      align-self: center;
+      width: 100%;
+      box-sizing: border-box;
+      padding: 0;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--text);
+      font: inherit;
+      appearance: none;
+      /* Scale to this card, rather than the whole window, so several timers
+         cannot make the editable value overflow its own card. */
+      font-size: clamp(28px, min(17vw, 50cqh), 500px);
+      line-height: 1;
+      text-align: center;
+      transition: opacity 150ms ease;
+    }
+
+    .timer-unit.paused .command {
+      opacity: 0.45;
+    }
+
+    .command::selection {
+      color: var(--panel);
+      background: var(--text);
+    }
+
+    .input-hints {
+      grid-column: 1 / -1;
+      grid-row: 3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 1.75rem;
+      margin: 0.2rem 0.5rem 0.2rem;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 120ms ease;
+    }
+
+    .timer-unit:focus-within .input-hints,
+    .timer-unit.running .input-hints,
+    .timer-unit.paused .input-hints {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .intent-options,
+    .commit-hint,
+    .running-hint {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .intent-options[hidden],
+    .commit-hint[hidden],
+    .running-hint[hidden] {
+      display: none;
+    }
+
+    .hint-chip,
+    .enter-chip {
+      border: 0;
+      background: var(--border);
+      border-radius: 0.2rem;
+      outline: 0;
+      padding: 0.2rem 0.4rem;
+      color: var(--quiet);
+      font: inherit;
+      font-size: 0.8rem;
+      line-height: 1.2;
+    }
+
+    .hint-chip {
+      cursor: pointer;
+      transition: color 120ms ease;
+    }
+
+    .hint-chip:hover,
+    .hint-chip:focus-visible {
+      color: var(--text);
+    }
+
+    .hint-or {
+      color: var(--quiet);
+      font-size: 0.75rem;
+      opacity: 0.55;
+      user-select: none;
+    }
+
+    .input-render,
+    .running-render {
+      color: var(--quiet);
+      font-size: 0.8rem;
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+
+    .enter-chip {
+      color: var(--text);
+      user-select: none;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .pause {
+      padding: 0;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--text);
+      font: inherit;
+      font-size: 0.8rem;
+      line-height: 1.2;
+      white-space: nowrap;
+      text-decoration: underline;
+      text-underline-offset: 0.15em;
+      cursor: pointer;
+    }
+
+    .remove {
+      grid-column: 2;
+      grid-row: 1;
+      align-self: start;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: var(--quiet);
+      font: inherit;
+      font-size: 0.8rem;
+      opacity: 0;
+      transition: opacity 120ms ease, color 120ms ease;
+      cursor: pointer;
+    }
+
+    .remove:hover,
+    .remove:focus-visible {
+      color: var(--text);
+    }
+
+    .timer-unit:hover .remove,
+    .remove:focus-visible {
+      opacity: 1;
+    }
+
+    .timer-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+      margin-top: 0.4rem;
+    }
+
+    /* Tiny mode is a glanceable, read-only index of every timer. The cards
+       deliberately become plain inline text so a comma is the only separator
+       the eye needs to scan the list. */
+    .timer.tiny-mode {
+      padding: 0.75rem 1rem;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .timer.tiny-mode header,
+    .timer.tiny-mode .timer-actions,
+    .timer.tiny-mode .input-hints,
+    .timer.tiny-mode .pause,
+    .timer.tiny-mode .remove {
+      display: none;
+    }
+
+    .timer.tiny-mode #timer-list {
+      display: block;
+      flex: 0 0 auto;
+      min-height: 0;
+      width: 100%;
+      overflow: hidden;
+      white-space: nowrap;
+      text-align: center;
+    }
+
+    .timer.tiny-mode .timer-unit {
+      display: inline-block;
+      box-sizing: border-box;
+      flex: none;
+      /* Regular cards are size-contained so their command font can use cqh.
+         In tiny mode the card must instead derive its size from the summary;
+         size containment would make this inline box 0 × 0. */
+      container-type: normal;
+      min-height: 0;
+      max-width: 100%;
+      width: auto;
+      margin: 0 4px;
+      padding: 0 0 0.15rem;
+      border-bottom: 1px solid currentColor;
+      border-radius: 0;
+      background: transparent;
+      color: var(--quiet);
+      font-size: 0.8rem;
+      line-height: 1.25;
+      opacity: 1;
+      cursor: pointer;
+      transition: color 150ms ease, opacity 150ms ease;
+      vertical-align: baseline;
+    }
+
+    .timer.tiny-mode .timer-unit:not(:first-child)::before {
+      content: "";
+    }
+
+    .timer.tiny-mode .timer-unit::after {
+      display: none;
+    }
+
+    .timer.tiny-mode .timer-unit:hover,
+    .timer.tiny-mode .timer-unit:focus {
+      color: var(--text);
+    }
+
+    .tiny-summary {
+      display: none;
+    }
+
+    .timer.tiny-mode .timer-label,
+    .timer.tiny-mode .command {
+      display: none;
+    }
+
+    .timer.tiny-mode .tiny-summary {
+      /* The regular timer card is a column flex container. Make the only
+         remaining child a real flex item so it retains an intrinsic size
+         after the editable controls are hidden. */
+      display: block;
+      flex: 0 1 auto;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    #add,
+    #tiny-mode {
+      padding: 0.2rem 0.4rem;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--quiet);
+      font: inherit;
+      font-size: 1.25rem;
+      cursor: pointer;
+      transition: color 120ms ease;
+    }
+
+    #tiny-mode {
+      font-size: 0.8rem;
+    }
+
+    #add:hover,
+    #add:focus-visible,
+    #tiny-mode:hover,
+    #tiny-mode:focus-visible {
+      color: var(--text);
+    }
+
+    .timer-unit[draggable="true"] {
+      cursor: grab;
+    }
+
+    /* A small raised-dot grip makes the timer feel like a movable physical pad. */
+    .timer-unit[draggable="true"]::after {
+      content: "::::";
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      right: 0.5rem;
+      top: 50%;
+      z-index: 4;
+      width: 12px;
+      height: auto;
+      transform: translateY(-50%);
+      color: var(--grip);
+      font: 700 12px/12px ComicMono, monospace;
+      letter-spacing: 0;
+      writing-mode: vertical-rl;
+      pointer-events: none;
+    }
+
+    .timer-unit.dragging {
+      opacity: 0.45;
+    }
+
+    .timer-unit.drop-target {
+      box-shadow: 0 0 0 2px var(--text);
+    }
+
+    /* Dropping near a card edge (or in a gap) changes its order instead of
+       combining timers. The line marks exactly where it will land. */
+    .timer-unit.drop-before {
+      overflow: visible;
+    }
+
+    .timer-unit.drop-after {
+      overflow: visible;
+    }
+
+    .timer-unit.drop-before::before,
+    .timer-unit.drop-after::before {
+      content: "";
+      position: absolute;
+      right: 0;
+      left: 0;
+      z-index: 5;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--text);
+      pointer-events: none;
+    }
+
+    .timer-unit.drop-before::before {
+      top: -8px;
+    }
+
+    .timer-unit.drop-after::before {
+      bottom: -8px;
+    }
+
+    .merge-dialog {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      display: grid;
+      place-items: center;
+      padding: 1.25rem;
+      box-sizing: border-box;
+      background: var(--dialog-overlay);
+    }
+
+    .merge-dialog[hidden] {
+      display: none;
+    }
+
+    .merge-dialog__panel {
+      width: min(100%, 22rem);
+      padding: 1rem;
+      border: 1px solid var(--label-on-light);
+      border-radius: 0.75rem;
+      background: var(--card);
+      box-shadow: 0 1rem 3rem var(--dialog-shadow);
+    }
+
+    .merge-dialog__message {
+      margin: 0 0 1rem;
+      color: var(--text);
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+
+    .merge-dialog__actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+    }
+
+    .merge-dialog button {
+      border: 0;
+      border-radius: 0.25rem;
+      padding: 0.4rem 0.6rem;
+      background: var(--border);
+      color: var(--quiet);
+      font: inherit;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .merge-dialog button:hover,
+    .merge-dialog button:focus-visible {
+      color: var(--text);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="grab-ring" aria-hidden="true">
+    <span class="top"></span>
+    <span class="right"></span>
+    <span class="bottom"></span>
+    <span class="left"></span>
+  </div>
+  <div class="merge-dialog" id="merge-dialog" hidden role="dialog" aria-modal="true" aria-labelledby="merge-message">
+    <div class="merge-dialog__panel">
+      <p class="merge-dialog__message" id="merge-message"></p>
+      <div class="merge-dialog__actions">
+        <button type="button" data-merge-action="cancel">cancel</button>
+        <button type="button" data-merge-action="subtract">subtract</button>
+        <button type="button" data-merge-action="add">add</button>
+      </div>
+    </div>
+  </div>
+  <main class="timer">
+    <div id="timer-list"></div>
+    <div class="timer-actions">
+      <button id="tiny-mode" type="button">tiny mode</button>
+      <button id="add" type="button" aria-label="Add timer">＋</button>
+    </div>
+  </main>
+
+  <template id="timer-template">
+    <section class="timer-unit">
+      <input class="timer-label" aria-label="Timer label" placeholder="Label" autocomplete="off" spellcheck="false">
+      <input class="command" aria-label="Timer" autocomplete="off" spellcheck="false">
+      <span class="tiny-summary"></span>
+      <div class="input-hints">
+        <div class="intent-options">
+          <button type="button" class="hint-chip" data-value="45m">for 45m</button>
+          <span class="hint-or">or</span>
+          <button type="button" class="hint-chip" data-value="9:00pm">until 9:00pm</button>
+        </div>
+        <div class="commit-hint" hidden>
+          <span class="input-render"></span>
+          <span class="enter-chip">press enter ↵</span>
+        </div>
+        <div class="running-hint" hidden>
+          <span class="running-render"></span>
+          <button type="button" class="pause" hidden>pause</button>
+        </div>
+      </div>
+      <button class="remove" aria-label="Delete timer">remove</button>
+    </section>
+  </template>
+
+  <script>
+    const timerList = document.querySelector("#timer-list");
+    const timerTemplate = document.querySelector("#timer-template");
+    const timerActions = document.querySelector(".timer-actions");
+    const addButton = document.querySelector("#add");
+    const tinyModeButton = document.querySelector("#tiny-mode");
+    const shell = document.querySelector(".timer");
+    const mergeDialog = document.querySelector("#merge-dialog");
+    const mergeMessage = document.querySelector("#merge-message");
+    let mergeRequest = null;
+    let tinyMode = false;
+    let animateNextResize = false;
+
+    function formatTime(totalSeconds) {
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+
+      return `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    }
+
+    function formatClockTime(timestamp) {
+      const date = new Date(timestamp);
+      let hours = date.getHours();
+      const minutes = date.getMinutes();
+      const meridiem = hours >= 12 ? "pm" : "am";
+
+      hours = hours % 12;
+      hours = hours ? hours : 12;
+
+      return `${hours}:${String(minutes).padStart(2, "0")} ${meridiem.toUpperCase()}`;
+    }
+
+    function isCountUpCommand(value) {
+      return value.trim() === "+";
+    }
+
+    function parseCommand(value) {
+      const input = value
+        .trim()
+        .toLowerCase()
+        .replaceAll(" ", "")
+        .replaceAll(";", ":");
+
+      if (!input) return null;
+
+      if (input.startsWith(".")) {
+        const secondsPart = input.slice(1);
+        if (/^\d+$/.test(secondsPart)) return Number(secondsPart);
+        return null;
+      }
+
+      if (input.startsWith("@")) {
+        let timeInput = input.slice(1);
+        let minuteOffset = 0;
+        const offsetMatch = timeInput.match(/^(.*?)-(\d+)(?:m|min|mins|minute|minutes)?$/);
+
+        if (offsetMatch) {
+          timeInput = offsetMatch[1];
+          minuteOffset = Number(offsetMatch[2]);
+          if (!Number.isSafeInteger(minuteOffset)) return null;
+        }
+
+        const meridiemMatch = timeInput.match(/^(\d{1,2}):(\d{2})(am|pm)$/);
+
+        if (meridiemMatch) {
+          let hours = Number(meridiemMatch[1]);
+          const minutes = Number(meridiemMatch[2]);
+          const meridiem = meridiemMatch[3];
+
+          if (hours < 1 || hours > 12 || minutes > 59) return null;
+          if (meridiem === "pm" && hours !== 12) hours += 12;
+          if (meridiem === "am" && hours === 12) hours = 0;
+
+          const now = new Date();
+          const target = new Date();
+          target.setHours(hours, minutes, 0, 0);
+          target.setMinutes(target.getMinutes() - minuteOffset);
+
+          if (target <= now) target.setDate(target.getDate() + 1);
+          return Math.ceil((target - now) / 1000);
+        }
+
+        const match = timeInput.match(/^(\d{1,2}):(\d{2})$/);
+        if (!match) return null;
+
+        const hours = Number(match[1]);
+        const minutes = Number(match[2]);
+        if (hours > 23 || minutes > 59) return null;
+
+        const now = new Date();
+        const target = new Date();
+        target.setHours(hours, minutes, 0, 0);
+        target.setMinutes(target.getMinutes() - minuteOffset);
+
+        if (target <= now) target.setDate(target.getDate() + 1);
+        return Math.ceil((target - now) / 1000);
+      }
+
+      const meridiemMatch = input.match(/^(\d{1,2}):(\d{2})(am|pm)$/);
+      if (meridiemMatch) {
+        let hours = Number(meridiemMatch[1]);
+        const minutes = Number(meridiemMatch[2]);
+        const meridiem = meridiemMatch[3];
+
+        if (hours < 1 || hours > 12 || minutes > 59) return null;
+        if (meridiem === "pm" && hours !== 12) hours += 12;
+        if (meridiem === "am" && hours === 12) hours = 0;
+
+        const now = new Date();
+        const target = new Date();
+        target.setHours(hours, minutes, 0, 0);
+
+        if (target <= now) target.setDate(target.getDate() + 1);
+        return Math.ceil((target - now) / 1000);
+      }
+
+      const unitMatch = input.match(/^(\d+(?:\.\d+)?)(h|m|s)$/);
+      if (unitMatch) {
+        const amount = Number(unitMatch[1]);
+        const unit = unitMatch[2];
+
+        if (unit === "h") return Math.round(amount * 3600);
+        if (unit === "m") return Math.round(amount * 60);
+        return Math.round(amount);
+      }
+
+      if (/^\d+$/.test(input)) {
+        return Number(input) * 60;
+      }
+
+      const parts = input.split(":").map(Number);
+      if (parts.some(Number.isNaN) || parts.length < 2 || parts.length > 3) {
+        return null;
+      }
+
+      if (parts.length === 2) {
+        const [hours, minutes] = parts;
+        if (minutes > 59) return null;
+        return hours * 3600 + minutes * 60;
+      }
+
+      const [hours, minutes, seconds] = parts;
+      if (minutes > 59 || seconds > 59) return null;
+      return hours * 3600 + minutes * 60 + seconds;
+    }
+
+    function addTimer(initialMinutes = 0, autoStart = false, blank = false, landing = false) {
+      const timer = timerTemplate.content.firstElementChild.cloneNode(true);
+
+      if (blank) timer.classList.add("empty");
+      if (landing) timer.classList.add("landing");
+
+      const label = timer.querySelector(".timer-label");
+      const command = timer.querySelector(".command");
+      const tinySummary = timer.querySelector(".tiny-summary");
+      const inputHints = timer.querySelector(".input-hints");
+      const intentOptions = timer.querySelector(".intent-options");
+      const commitHint = timer.querySelector(".commit-hint");
+      const runningHint = timer.querySelector(".running-hint");
+      const inputRender = timer.querySelector(".input-render");
+      const runningRender = timer.querySelector(".running-render");
+      const enterChip = timer.querySelector(".enter-chip");
+      const pauseButton = timer.querySelector(".pause");
+      const removeButton = timer.querySelector(".remove");
+
+      let remainingSeconds = blank ? 0 : initialMinutes * 60;
+      let disposableIfEmpty = blank;
+      let running = false;
+      let countingUp = false;
+      let hasStarted = false;
+      let deadline = 0;
+      let timerId = null;
+
+      timer.draggable = !blank;
+
+      function clockTargetLabel(raw) {
+        const input = raw.trim().toLowerCase();
+        if (input.startsWith("@")) {
+          const value = input.slice(1);
+          if (/-\s*\d+\s*m?\s*$/.test(value)) {
+            const seconds = parseCommand(raw);
+            if (seconds !== null) return formatClockTime(Date.now() + seconds * 1000);
+          }
+          if (/^\d{1,2}:\d{2}(am|pm)$/.test(value)) {
+            return value.replace(/(am|pm)$/i, match => ` ${match.toUpperCase()}`);
+          }
+          return value;
+        }
+        if (/^\d{1,2}:\d{2}(am|pm)$/.test(input)) {
+          return input.replace(/(am|pm)$/i, match => ` ${match.toUpperCase()}`);
+        }
+        return null;
+      }
+
+      function updateInputAssist() {
+        if (running) {
+          intentOptions.hidden = true;
+          commitHint.hidden = true;
+          runningHint.hidden = false;
+          runningRender.textContent = countingUp
+            ? `started at ${formatClockTime(deadline)}`
+            : `ends at ${formatClockTime(deadline)}`;
+          return;
+        }
+
+        if (canResume()) {
+          intentOptions.hidden = true;
+          commitHint.hidden = true;
+          runningHint.hidden = false;
+          runningRender.textContent = "paused";
+          return;
+        }
+
+        const raw = command.value.trim();
+        if (!raw) {
+          intentOptions.hidden = false;
+          commitHint.hidden = true;
+          runningHint.hidden = true;
+          inputRender.textContent = "";
+          return;
+        }
+
+        intentOptions.hidden = true;
+        commitHint.hidden = false;
+        runningHint.hidden = true;
+
+        if (isCountUpCommand(raw)) {
+          inputRender.textContent = "→ count up";
+          return;
+        }
+
+        const seconds = parseCommand(raw);
+        if (seconds === null || seconds <= 0) {
+          inputRender.textContent = "";
+          return;
+        }
+
+        const clockLabel = clockTargetLabel(raw);
+        inputRender.textContent = clockLabel ? `→ until ${clockLabel}` : `→ ${formatTime(seconds)}`;
+      }
+
+      function render() {
+        command.value = formatTime(remainingSeconds);
+        const timerName = label.value.trim() || "untitled";
+        tinySummary.textContent = `${timerName} ${command.value}`;
+        const proximity = countingUp
+          ? 1
+          : 1 - Math.min(1, remainingSeconds / 3600);
+        timer.style.setProperty("--timer-label-opacity", String(0.45 + proximity * 0.55));
+        command.readOnly = running || tinyMode;
+        pauseButton.hidden = !running && !canResume();
+        pauseButton.textContent = running ? "pause" : "resume";
+        pauseButton.setAttribute("aria-label", running ? "Pause timer" : "Resume timer");
+        updateInputAssist();
+      }
+
+      function pause() {
+        if (running) {
+          remainingSeconds = countingUp
+            ? Math.max(0, Math.floor((Date.now() - deadline) / 1000))
+            : Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+        }
+
+        running = false;
+        timer.classList.remove("running");
+        timer.classList.toggle("paused", hasStarted);
+        clearTimeout(timerId);
+        timerId = null;
+
+        render();
+        syncAddButton();
+        persistTimerState();
+      }
+
+      function tick() {
+        remainingSeconds = countingUp
+          ? Math.max(0, Math.floor((Date.now() - deadline) / 1000))
+          : Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+        render();
+        persistTimerState();
+
+        if (!countingUp && remainingSeconds === 0) {
+          pause();
+          document.title = "Done";
+        } else {
+          timerId = setTimeout(tick, 1000 - Date.now() % 1000 + 5);
+        }
+      }
+
+      function start() {
+        if (!countingUp && remainingSeconds <= 0) return;
+
+        hasStarted = true;
+        running = true;
+        timer.classList.remove("paused");
+        timer.classList.add("running");
+        const now = Math.floor(Date.now() / 1000) * 1000;
+        deadline = countingUp ? now - remainingSeconds * 1000 : now + remainingSeconds * 1000;
+        timerId = setTimeout(tick, 1000 - Date.now() % 1000 + 5);
+
+        document.title = "Block";
+        render();
+        syncAddButton();
+        command.blur();
+        persistTimerState();
+      }
+
+      function startFromInput() {
+        if (isCountUpCommand(command.value)) {
+          remainingSeconds = 0;
+          countingUp = true;
+          disposableIfEmpty = false;
+
+          timer.classList.remove("empty", "landing");
+          timer.classList.add("counting-up");
+          timer.draggable = true;
+          updateDeleteButtons();
+          start();
+          return;
+        }
+
+        const seconds = parseCommand(command.value);
+        if (seconds === null || seconds <= 0) {
+          command.select();
+          return;
+        }
+
+        remainingSeconds = seconds;
+        countingUp = false;
+        disposableIfEmpty = false;
+
+        timer.classList.remove("empty", "landing", "counting-up");
+        timer.draggable = true;
+        updateDeleteButtons();
+        start();
+      }
+
+      function currentSeconds() {
+        if (!running) return remainingSeconds;
+        return countingUp
+          ? Math.max(0, Math.floor((Date.now() - deadline) / 1000))
+          : Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+      }
+
+      function canResume() {
+        return hasStarted && !timer.classList.contains("empty") && (countingUp || remainingSeconds > 0);
+      }
+
+      function setMergedSeconds(seconds, shouldRun) {
+        pause();
+        remainingSeconds = Math.max(0, seconds);
+        countingUp = false;
+        disposableIfEmpty = false;
+        timer.classList.remove("empty", "landing", "counting-up");
+        timer.draggable = true;
+        render();
+        updateDeleteButtons();
+        if (shouldRun && remainingSeconds > 0) start();
+        persistTimerState();
+      }
+
+      function snapshot() {
+        return {
+          label: label.value,
+          remainingSeconds: currentSeconds(),
+          running,
+          countingUp,
+          hasStarted,
+          deadline,
+          empty: timer.classList.contains("empty"),
+          landing: timer.classList.contains("landing")
+        };
+      }
+
+      function restore(state) {
+        label.value = typeof state.label === "string" ? state.label : "";
+        countingUp = Boolean(state.countingUp);
+        hasStarted = Boolean(state.hasStarted || state.running);
+        const isEmpty = Boolean(state.empty);
+        disposableIfEmpty = isEmpty;
+        timer.classList.toggle("empty", isEmpty);
+        timer.classList.toggle("landing", Boolean(state.landing));
+        timer.classList.toggle("counting-up", countingUp);
+        timer.classList.toggle("paused", hasStarted && !state.running);
+        timer.draggable = !isEmpty;
+
+        if (state.running && Number.isFinite(state.deadline)) {
+          remainingSeconds = countingUp
+            ? Math.max(0, Math.floor((Date.now() - state.deadline) / 1000))
+            : Math.max(0, Math.ceil((state.deadline - Date.now()) / 1000));
+        } else {
+          remainingSeconds = Math.max(0, Number(state.remainingSeconds) || 0);
+        }
+
+        render();
+        if (isEmpty) {
+          command.value = "";
+          tinySummary.textContent = `${label.value.trim() || "untitled"} —`;
+          updateInputAssist();
+        }
+        if (state.running && (countingUp || remainingSeconds > 0)) start();
+      }
+
+      function destroy() {
+        clearTimeout(timerId);
+        timer.remove();
+      }
+
+      timer.timerState = { currentSeconds, pause, setMergedSeconds, destroy, snapshot, restore, isRunning: () => running };
+
+      timer.addEventListener("click", event => {
+        if (!tinyMode) return;
+        event.preventDefault();
+        leaveTinyMode(timer);
+      });
+
+      inputHints.querySelectorAll(".hint-chip").forEach(chip => {
+        chip.addEventListener("mousedown", event => event.preventDefault());
+        chip.addEventListener("click", () => {
+          command.value = chip.dataset.value;
+          updateInputAssist();
+          requestAnimationFrame(() => {
+            command.focus();
+            command.select();
+          });
+        });
+      });
+
+      command.addEventListener("focus", () => {
+        if (running) pause();
+        requestAnimationFrame(() => {
+          command.select();
+          updateInputAssist();
+        });
+      });
+
+      command.addEventListener("input", () => {
+        updateInputAssist();
+        syncAddButton();
+      });
+
+      function discardDraftIfEmpty(nextTarget) {
+        if (!disposableIfEmpty || command.value.trim() || label.value.trim()) return false;
+        if (nextTarget && timer.contains(nextTarget)) return false;
+
+        if (timerList.children.length > 1) {
+          clearTimeout(timerId);
+          timer.remove();
+          updateDeleteButtons();
+          return true;
+        }
+
+        return false;
+      }
+
+      command.addEventListener("blur", event => {
+        if (running) return;
+
+        if (discardDraftIfEmpty(event.relatedTarget)) return;
+
+        if (!timer.classList.contains("empty") && command.value.trim()) {
+          startFromInput();
+        }
+      });
+
+      label.addEventListener("blur", event => {
+        discardDraftIfEmpty(event.relatedTarget);
+      });
+
+      label.addEventListener("input", () => {
+        const timerName = label.value.trim() || "untitled";
+        tinySummary.textContent = `${timerName} ${command.value}`;
+        updateDeleteButtons();
+        persistTimerState();
+      });
+
+      // A label is optional, but it is the natural first field for a new
+      // timer. Escape lets someone skip it and go straight to the duration.
+      label.addEventListener("keydown", event => {
+        if (event.key === "Escape") {
+          event.preventDefault();
+          command.focus();
+          command.select();
+        }
+      });
+
+      function commitInput() {
+        if (isCountUpCommand(command.value)) {
+          startFromInput();
+          return;
+        }
+
+        const seconds = parseCommand(command.value);
+        if (seconds === null || seconds <= 0) {
+          command.focus();
+          command.select();
+          updateInputAssist();
+          return;
+        }
+        startFromInput();
+      }
+
+      command.addEventListener("keydown", event => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          commitInput();
+        }
+      });
+
+      enterChip.addEventListener("mousedown", event => event.preventDefault());
+      enterChip.addEventListener("click", commitInput);
+
+      pauseButton.addEventListener("mousedown", event => event.preventDefault());
+      pauseButton.addEventListener("click", () => {
+        if (running) {
+          pause();
+        } else {
+          start();
+        }
+      });
+
+      removeButton.addEventListener("mousedown", event => event.preventDefault());
+      removeButton.addEventListener("click", () => {
+        if (timer.classList.contains("empty") && !label.value.trim()) return;
+        clearTimeout(timerId);
+
+        if (timerList.children.length === 1) {
+          running = false;
+          timer.classList.remove("running", "paused");
+          deadline = 0;
+          timerId = null;
+          remainingSeconds = 0;
+          hasStarted = false;
+          disposableIfEmpty = true;
+
+          timer.classList.add("empty", "landing");
+          label.value = "";
+          command.readOnly = false;
+          command.value = "";
+          updateInputAssist();
+          updateDeleteButtons();
+          persistTimerState();
+
+          requestAnimationFrame(() => command.focus());
+          return;
+        }
+
+        timer.remove();
+        updateDeleteButtons();
+        persistTimerState();
+      });
+
+      timerList.appendChild(timer);
+      render();
+
+      if (blank) {
+        command.value = "";
+        tinySummary.textContent = "untitled —";
+        updateInputAssist();
+      }
+
+      updateDeleteButtons();
+      if (autoStart) start();
+
+      return timer;
+    }
+
+    function getDraftTimer() {
+      return timerList.querySelector(".timer-unit.empty");
+    }
+
+    function persistTimerState() {
+      if (!window.timerWindow) return;
+
+      const timers = [...timerList.querySelectorAll(".timer-unit")]
+        .map(timer => timer.timerState.snapshot());
+      const hasRunningTimer = timers.some(timer => timer.running);
+
+      window.timerWindow.saveTimerState(hasRunningTimer ? { timers } : null);
+    }
+
+    function syncAddButton() {
+      addButton.hidden = Boolean(getDraftTimer());
+    }
+
+    function updateDeleteButtons() {
+      timerList.querySelectorAll(".timer-unit").forEach(timer => {
+        const button = timer.querySelector(".remove");
+        const hasLabel = Boolean(timer.querySelector(".timer-label").value.trim());
+        button.hidden = timer.classList.contains("empty") && !hasLabel;
+      });
+
+      syncAddButton();
+      syncWindowSize();
+    }
+
+    function syncWindowSize() {
+      if (!window.timerWindow) return;
+
+      const shellStyle = getComputedStyle(shell);
+      const paddingTop = parseFloat(shellStyle.paddingTop) || 0;
+      const paddingBottom = parseFloat(shellStyle.paddingBottom) || 0;
+
+      let timersHeight = 0;
+      const timerUnits = timerList.querySelectorAll(".timer-unit");
+      timerUnits.forEach(unit => {
+        timersHeight += unit.offsetHeight;
+      });
+
+      const listStyle = getComputedStyle(timerList);
+      const gap = parseFloat(listStyle.gap) || 0;
+      const totalGap = timerUnits.length > 1 ? (timerUnits.length - 1) * gap : 0;
+      const listPaddingY = (parseFloat(listStyle.paddingTop) || 0) + (parseFloat(listStyle.paddingBottom) || 0);
+
+      const actionsHeight = timerActions.getBoundingClientRect().height;
+      const actionsStyle = getComputedStyle(timerActions);
+      const actionsMarginY = (parseFloat(actionsStyle.marginTop) || 0) + (parseFloat(actionsStyle.marginBottom) || 0);
+
+      const totalContentHeight = paddingTop + paddingBottom + listPaddingY + timersHeight + totalGap + actionsHeight + actionsMarginY;
+
+      window.timerWindow.resizeToContent(
+        totalContentHeight,
+        tinyMode || animateNextResize,
+        tinyMode || animateNextResize ? "bottom-left" : "top-left"
+      );
+      animateNextResize = false;
+    }
+
+    function setInputsForTinyMode(enabled) {
+      timerList.querySelectorAll(".timer-unit").forEach(timer => {
+        const label = timer.querySelector(".timer-label");
+        const command = timer.querySelector(".command");
+        const remove = timer.querySelector(".remove");
+
+        label.readOnly = enabled;
+        label.tabIndex = enabled ? -1 : 0;
+        command.readOnly = enabled || timer.timerState.isRunning();
+        command.tabIndex = enabled ? -1 : 0;
+        remove.tabIndex = enabled ? -1 : 0;
+        timer.tabIndex = enabled ? 0 : -1;
+      });
+    }
+
+    function enterTinyMode() {
+      if (tinyMode) return;
+      tinyMode = true;
+      animateNextResize = true;
+      shell.classList.add("tiny-mode");
+      setInputsForTinyMode(true);
+      tinyModeButton.textContent = "full mode";
+      tinyModeButton.setAttribute("aria-label", "Exit tiny mode");
+      // Blur after applying the compact layout. A blur can commit a timer and
+      // request a resize; doing it first produced a full-size resize followed
+      // by a second compact one.
+      document.activeElement?.blur();
+      requestAnimationFrame(() => requestAnimationFrame(syncWindowSize));
+    }
+
+    function leaveTinyMode(selectedTimer) {
+      if (!tinyMode) return;
+      tinyMode = false;
+      animateNextResize = true;
+      shell.classList.remove("tiny-mode");
+      setInputsForTinyMode(false);
+      tinyModeButton.textContent = "tiny mode";
+      tinyModeButton.setAttribute("aria-label", "Enter tiny mode");
+
+      // Let the normal cards lay out before measuring and center the timer the
+      // user chose, rather than returning them to the top of a long list.
+      requestAnimationFrame(() => {
+        selectedTimer?.scrollIntoView({ behavior: "smooth", block: "center" });
+        requestAnimationFrame(() => {
+          syncWindowSize();
+
+          // Let the full card become visible before calling attention to it.
+          if (selectedTimer) {
+            setTimeout(() => {
+              selectedTimer.classList.remove("tiny-selection-flash");
+              // Force a fresh animation if the same timer is selected twice.
+              void selectedTimer.offsetWidth;
+              selectedTimer.classList.add("tiny-selection-flash");
+              setTimeout(() => selectedTimer.classList.remove("tiny-selection-flash"), 700);
+            }, 80);
+          }
+        });
+      });
+    }
+
+    function closeMergeDialog() {
+      mergeDialog.hidden = true;
+      mergeRequest = null;
+    }
+
+    function requestMerge(source, target) {
+      const sourceSeconds = source.timerState.currentSeconds();
+      const targetSeconds = target.timerState.currentSeconds();
+
+      if (!sourceSeconds || !targetSeconds || source === target) return;
+
+      mergeRequest = { source, target, sourceSeconds, targetSeconds };
+      mergeMessage.textContent = `Merge ${formatTime(sourceSeconds)} into ${formatTime(targetSeconds)}?`;
+      mergeDialog.hidden = false;
+      mergeDialog.querySelector('[data-merge-action="add"]').focus();
+    }
+
+    mergeDialog.addEventListener("click", event => {
+      if (event.target === mergeDialog) closeMergeDialog();
+
+      const action = event.target.dataset.mergeAction;
+      if (!action || !mergeRequest) return;
+
+      const { source, target, sourceSeconds, targetSeconds } = mergeRequest;
+      closeMergeDialog();
+      if (action === "cancel" || !source.isConnected || !target.isConnected) return;
+
+      const targetWasRunning = target.timerState.isRunning();
+      const mergedSeconds = action === "add"
+        ? targetSeconds + sourceSeconds
+        : Math.max(0, targetSeconds - sourceSeconds);
+
+      source.timerState.pause();
+      target.timerState.setMergedSeconds(mergedSeconds, targetWasRunning);
+      source.timerState.destroy();
+      updateDeleteButtons();
+    });
+
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape" && !mergeDialog.hidden) closeMergeDialog();
+    });
+
+    function clearDropHints() {
+      timerList.querySelectorAll(".drop-target, .drop-before, .drop-after").forEach(timer => {
+        timer.classList.remove("drop-target", "drop-before", "drop-after");
+      });
+    }
+
+    function insertionPoint(clientY, source) {
+      const timers = [...timerList.querySelectorAll(".timer-unit")]
+        .filter(timer => timer !== source && !timer.classList.contains("empty"));
+      const before = timers.find(timer => {
+        const rect = timer.getBoundingClientRect();
+        return clientY < rect.top + rect.height / 2;
+      });
+
+      return before || getDraftTimer();
+    }
+
+    function dropIntent(event, source) {
+      const target = event.target.closest(".timer-unit");
+
+      // The middle of a timer is reserved for the existing add/subtract
+      // action. Its outer quarters are reorder zones, so a timer can be
+      // placed naturally between its neighbours.
+      if (target && target !== source && !target.classList.contains("empty")) {
+        const rect = target.getBoundingClientRect();
+        const relativeY = (event.clientY - rect.top) / rect.height;
+
+        if (relativeY > 0.25 && relativeY < 0.75) {
+          return { type: "merge", target };
+        }
+
+        return {
+          type: "insert",
+          before: relativeY <= 0.5 ? target : target.nextElementSibling,
+          indicator: target,
+          indicatorPosition: relativeY <= 0.5 ? "before" : "after"
+        };
+      }
+
+      if (target === source) return null;
+
+      const before = insertionPoint(event.clientY, source);
+      const timers = [...timerList.querySelectorAll(".timer-unit")]
+        .filter(timer => timer !== source && !timer.classList.contains("empty"));
+      const previous = before
+        ? before.previousElementSibling
+        : timers[timers.length - 1];
+
+      return {
+        type: "insert",
+        before,
+        indicator: before || previous,
+        indicatorPosition: before ? "before" : "after"
+      };
+    }
+
+    function showDropIntent(intent) {
+      clearDropHints();
+      if (!intent) return;
+
+      if (intent.type === "merge") {
+        intent.target.classList.add("drop-target");
+      } else if (intent.indicator) {
+        intent.indicator.classList.add(intent.indicatorPosition === "before" ? "drop-before" : "drop-after");
+      }
+    }
+
+    function moveTimerIntoPlace(source, before, dropY) {
+      const positions = new Map(
+        [...timerList.querySelectorAll(".timer-unit")]
+          .map(timer => [timer, timer.getBoundingClientRect()])
+      );
+
+      timerList.insertBefore(source, before);
+
+      const sourceRect = source.getBoundingClientRect();
+      const sourceOffsetY = Math.max(
+        -sourceRect.height,
+        Math.min(sourceRect.height, dropY - (sourceRect.top + sourceRect.height / 2))
+      );
+      source.animate(
+        [
+          { transform: `translateY(${sourceOffsetY}px)` },
+          { transform: "translateY(0)" }
+        ],
+        { duration: 240, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)" }
+      );
+
+      timerList.querySelectorAll(".timer-unit").forEach(timer => {
+        // The dragged card has its own cursor-to-slot arrival above. These
+        // cards only need the smaller push created by that arrival.
+        if (timer === source) return;
+
+        const previous = positions.get(timer);
+        if (!previous) return;
+
+        const deltaY = previous.top - timer.getBoundingClientRect().top;
+        if (!deltaY) return;
+        const pushY = deltaY * 0.22;
+
+        timer.animate(
+          [
+            { transform: `translateY(${pushY}px) scaleY(0.98)` },
+            { transform: "translateY(0)" }
+          ],
+          { duration: 140, easing: "linear" }
+        );
+      });
+    }
+
+    timerList.addEventListener("dragstart", event => {
+      const source = event.target.closest(".timer-unit");
+      if (!source || source.classList.contains("empty") || !source.timerState.currentSeconds()) {
+        event.preventDefault();
+        return;
+      }
+
+      event.dataTransfer.effectAllowed = "move";
+      event.dataTransfer.setData("text/plain", "timer");
+      source.classList.add("dragging");
+    });
+
+    timerList.addEventListener("dragend", event => {
+      event.target.closest(".timer-unit")?.classList.remove("dragging");
+      clearDropHints();
+    });
+
+    timerList.addEventListener("dragover", event => {
+      const source = timerList.querySelector(".dragging");
+      if (!source) return;
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "move";
+      showDropIntent(dropIntent(event, source));
+    });
+
+    timerList.addEventListener("dragleave", event => {
+      if (!timerList.contains(event.relatedTarget)) clearDropHints();
+    });
+
+    timerList.addEventListener("drop", event => {
+      const source = timerList.querySelector(".dragging");
+      if (!source) return;
+      event.preventDefault();
+      source.classList.remove("dragging");
+      const intent = dropIntent(event, source);
+      clearDropHints();
+
+      if (!intent) return;
+      if (intent.type === "merge") {
+        requestMerge(source, intent.target);
+        return;
+      }
+
+      // Keep a blank draft at the bottom while moving completed timers.
+      const before = intent.before || getDraftTimer();
+      if (before !== source) moveTimerIntoPlace(source, before, event.clientY);
+      updateDeleteButtons();
+    });
+
+    async function initializeTimers() {
+      const savedState = await window.timerWindow?.loadTimerState();
+      const savedTimers = savedState?.timers;
+
+      if (Array.isArray(savedTimers) && savedTimers.length) {
+        savedTimers.forEach(state => {
+          const timer = addTimer();
+          timer.timerState.restore(state);
+        });
+        updateDeleteButtons();
+        return;
+      }
+
+      const landingTimer = addTimer(0, false, true, true);
+      const landingLabel = landingTimer.querySelector(".timer-label");
+      requestAnimationFrame(() => landingLabel.focus());
+    }
+
+    initializeTimers();
+    window.addEventListener("beforeunload", persistTimerState);
+
+    tinyModeButton.addEventListener("click", () => {
+      if (tinyMode) {
+        leaveTinyMode();
+      } else {
+        enterTinyMode();
+      }
+    });
+
+    document.addEventListener("keydown", event => {
+      if (tinyMode && event.key === "Escape") {
+        event.preventDefault();
+        leaveTinyMode();
+      }
+    });
+
+    addButton.addEventListener("click", () => {
+      const existingEmpty = getDraftTimer();
+
+      if (existingEmpty) {
+        const label = existingEmpty.querySelector(".timer-label");
+        existingEmpty.scrollIntoView({behavior: "smooth", block: "nearest"});
+        requestAnimationFrame(() => label.focus());
+        return;
+      }
+
+      const timer = addTimer(0, false, true, false);
+      const label = timer.querySelector(".timer-label");
+
+      timer.scrollIntoView({behavior: "smooth", block: "nearest"});
+      requestAnimationFrame(() => label.focus());
+    });
+  </script>
+</body>
+
+</html>
