@@ -13,24 +13,13 @@
       border: 1px solid rgba(255, 255, 255, 0.12);
     }
 
-    .upload-box {
-      cursor: pointer;
-      display: inline-block;
-      border: 1px solid rgb(255, 255, 255);
-      margin-top: 1rem;
-      padding: 1rem;
-    }
-
-    .upload-box:active {
-      border-color: var(--stamp);
-    }
-
     :root {
       --bg: #000000;
       --text: #c0c0c0;
       --stamp: #888888;
       --seal: #eaffea;
       --line-color: rgba(210, 210, 210, 0.22);
+      --button-contrast: var(--seal);
     }
 
     html {
@@ -187,18 +176,30 @@
     }
 
     .button {
-      color: var(--seal);
+      color: var(--button-contrast);
       background: transparent;
-      border: 0;
-      border-bottom: 1px solid transparent;
+      border: 1px solid currentColor;
       font: inherit;
       cursor: pointer;
+      padding: .5rem;
     }
 
     .button:hover,
-    .button:focus-visible {
-      border-bottom-color: var(--seal);
+    .button:focus-visible,
+    .button:focus-within {
+      color: var(--bg);
+      background: var(--button-contrast);
       outline: 0;
+    }
+
+    .button:disabled {
+      cursor: not-allowed;
+      opacity: 0.45;
+    }
+
+    .upload-box {
+      display: inline-block;
+      margin-top: 1rem;
     }
 
     ul {
@@ -627,10 +628,11 @@
             <h2>Date:
               <span id="ticket-date">Thu Jul 2</span>
             </h2>
-            <span>Up to 1r per day, r=200t, 100exp, 50pt</span>
-            <button class="button" id="new-pair-button" type="button">New soldiers 🔄</button>
+            <p>Up to 1r per day, r=200t, 100tkn, 50pt</p>
+            <p>Scout trooper, if rtb send attack</p>
           </div>
           <div class="squad-stack" id="squad-stack"></div>
+          <button class="button" id="new-pair-button" type="button">Cycle troopers</button>
         </section>
       </div>
     </section>
@@ -638,7 +640,7 @@
     <div class="games-section">
       <section data-store="jumble">
         <img class="upload-preview" alt="place Jumble image here" hidden />
-        <label class="upload-box">
+        <label class="button upload-box">
           <input type="file" accept="image/*" hidden />
           <span>Upload</span>
         </label>
@@ -646,7 +648,7 @@
 
       <section data-store="color">
         <img class="upload-preview" alt="coloring page goes here" hidden />
-        <label class="upload-box">
+        <label class="button upload-box">
           <input type="file" accept="image/*" hidden />
           <span>Upload</span>
         </label>
@@ -681,6 +683,52 @@
   <script src="/backoffice/the-stacks/capital-army-soldiers.js"></script>
 
   <script>
+    (() => {
+      function colorToRgb(color) {
+        const value = color.trim();
+        const hex = value.match(/^#([\da-f]{3}|[\da-f]{6})$/i);
+
+        if (hex) {
+          const digits = hex[1].length === 3
+            ? [...hex[1]].map(digit => digit + digit).join("")
+            : hex[1];
+          const number = Number.parseInt(digits, 16);
+
+          return [number >> 16, (number >> 8) & 255, number & 255];
+        }
+
+        const rgb = value.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+        return rgb ? rgb.slice(1).map(Number) : null;
+      }
+
+      function setButtonContrast() {
+        const root = document.documentElement;
+        const background = getComputedStyle(root).getPropertyValue("--bg");
+        const rgb = colorToRgb(background);
+
+        if (!rgb) return;
+
+        const luminance = rgb
+          .map(channel => {
+            const normalized = channel / 255;
+            return normalized <= 0.04045
+              ? normalized / 12.92
+              : ((normalized + 0.055) / 1.055) ** 2.4;
+          })
+          .reduce((total, channel, index) =>
+            total + channel * [0.2126, 0.7152, 0.0722][index], 0);
+
+        root.style.setProperty(
+          "--button-contrast",
+          luminance > 0.179 ? "#000000" : "#ffffff"
+        );
+      }
+
+      window.refreshJournalButtonContrast = setButtonContrast;
+      setButtonContrast();
+      window.addEventListener("journalbackgroundchange", setButtonContrast);
+    })();
+
     (() => {
       const SVG_NS = "http://www.w3.org/2000/svg";
 
