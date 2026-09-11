@@ -548,6 +548,10 @@
         break-inside: avoid;
       }
 
+      .soldier-copy ul {
+        font-size: 0.48rem;
+      }
+
       .soldier-name {
         color: var(--text);
         line-height: 1;
@@ -639,10 +643,6 @@
 
       <div class="column">
         <section aria-label="today's squad">
-          <div class="ticket-date-row">
-            <h3>Send trooper. Accept reality. End the day</h3>
-            <p>1r per day, r=200t, 50pt, 100usd expense</p>
-          </div>
 
           <div id="squad-stack"></div>
 
@@ -1180,6 +1180,7 @@
                   >${escapeHtml(name)}</a>
                 </div>
                 <div class="soldier-cue">${escapeHtml(soldier.cue)}</div>
+                  <p>Send trooper. Accept reality. End the day</p> 
                 <button class="button" id="new-pair-button" type="button">Cycle trooper</button>
               </div>
             </article>
