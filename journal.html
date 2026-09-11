@@ -168,7 +168,7 @@
     .bottom-section {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 2rem;
+      gap: 8rem;
       font-size: 0.85rem;
       margin-top: 3rem;
     }
@@ -404,7 +404,7 @@
       }
 
       .ascii-journal {
-        font-size: 0.3rem;
+        font-size: 0.4rem;
       }
 
       .container {
@@ -519,8 +519,8 @@
 
 
       .bottom-section {
-        grid-template-columns: 0.9fr 1.35fr;
-        gap: 0.125in;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.25in;
         align-items: start;
         font-size: 0.55rem;
         break-inside: avoid;
@@ -627,6 +627,27 @@
     </section>
     <section class="bottom-section">
       <div class="column">
+        <section aria-label="today's squad">
+          <pre class="ascii-journal">
+   ▄▄▄▄▀ ████▄ ██▄   ██  ▀▄    ▄  ▄▄▄▄▄        
+▀▀▀ █    █   █ █  █  █ █   █  █  █     ▀▄      
+    █    █   █ █   █ █▄▄█   ▀█ ▄  ▀▀▀▀▄        
+   █     ▀████ █  █  █  █   █   ▀▄▄▄▄▀         
+  ▀            ███▀     █ ▄▀                   
+                       █                       
+                      ▀                        
+   ▄▄▄▄▀ █▄▄▄▄ ████▄ ████▄ █ ▄▄  ▄███▄   █▄▄▄▄ 
+▀▀▀ █    █  ▄▀ █   █ █   █ █   █ █▀   ▀  █  ▄▀ 
+    █    █▀▀▌  █   █ █   █ █▀▀▀  ██▄▄    █▀▀▌  
+   █     █  █  ▀████ ▀████ █     █▄   ▄▀ █  █  
+  ▀        █                █    ▀███▀     █   
+          ▀                  ▀            ▀    
+            </pre>
+          <div id="squad-stack"></div>
+        </section>
+      </div>
+
+      <div class="column">
         <section class="cursive-area">
           <div>
             <p class="cursive-teacher">Protect the mission</p>
@@ -638,14 +659,6 @@
             <p class="cursive-teacher">Serve the market</p>
             <p class="cursive-teacher">Expect the thief</p>
           </div>
-        </section>
-      </div>
-
-      <div class="column">
-        <section aria-label="today's squad">
-
-          <div id="squad-stack"></div>
-
         </section>
       </div>
     </section>
