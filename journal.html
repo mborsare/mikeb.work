@@ -13,6 +13,34 @@
       border: 1px solid rgba(255, 255, 255, 0.12);
     }
 
+    .oath {
+      align-items: center;
+      flex-direction: row-reverse;
+      justify-content: space-between;
+      display: flex;
+      font-size: .81rem;
+      width: 100%;
+    }
+
+
+    .punch-guides {
+      display: block;
+      position: fixed;
+      z-index: 1;
+      top: 1in;
+      left: 0.25in;
+      width: 0.25in;
+      height: 9in;
+      pointer-events: none;
+      overflow: visible;
+    }
+
+    .punch-guides circle {
+      fill: none;
+      stroke: #c8c8c8;
+      stroke-width: 1.3;
+    }
+
     :root {
       --bg: #000000;
       --text: #c0c0c0;
@@ -88,11 +116,9 @@
     }
 
     .sign-here {
-      align-self: flex-end;
       font-size: 0.6rem;
       color: var(--stamp);
       opacity: 0.5;
-      margin-right: 2rem;
     }
 
     #clock {
@@ -136,7 +162,7 @@
       gap: 2rem;
       font-size: 0.85rem;
       text-align: center;
-      margin-top: 2rem;
+      margin-top: 6rem;
     }
 
     .bottom-section {
@@ -144,13 +170,11 @@
       grid-template-columns: 1fr 1fr;
       gap: 2rem;
       font-size: 0.85rem;
+      margin-top: 3rem;
     }
 
     h2 {
       margin: 0 0 1rem 0;
-      text-transform: uppercase;
-      font-size: 0.7rem;
-      letter-spacing: 0.3rem;
       font-weight: normal;
     }
 
@@ -182,6 +206,7 @@
       font: inherit;
       cursor: pointer;
       padding: .5rem;
+      margin-top: 1rem;
     }
 
     .button:hover,
@@ -218,25 +243,14 @@
       gap: 1.5rem;
     }
 
-    .squad-stack {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-
     .soldier-card {
-      flex: 1;
-      display: grid;
-      grid-template-columns: 4rem minmax(0, 1fr);
       align-items: center;
-      gap: 1.25rem;
+      display: flex;
       background: transparent;
       color: var(--text);
+      gap: 1rem;
       min-height: 4.35rem;
       padding: 0.35rem 0.5rem;
-      line-height: 1.5;
-      text-decoration: none;
-      cursor: default;
     }
 
     .soldier-card:hover .soldier-link {
@@ -259,21 +273,10 @@
       text-decoration: underline;
     }
 
-    .soldier-avatar {
+    .avatar-img {
       /* The portraits are rendered at roughly a 7:10 ratio. Matching that
          ratio keeps their illustrated frame intact without shrinking them. */
-      width: 63px;
-      height: 90px;
-      background-color: transparent;
-      overflow: visible;
-      position: relative;
-    }
-
-    .soldier-avatar .avatar-img {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
+      width: 33%;
       object-fit: contain;
       display: block;
     }
@@ -296,7 +299,7 @@
       margin-bottom: 0.5rem;
     }
 
-    .soldier-card[data-state="KIA"] .soldier-avatar,
+    .soldier-card[data-state="KIA"] .avatar-img,
     .soldier-card[data-state="KIA"] .soldier-name,
     .soldier-card[data-state="KIA"] .soldier-cue {
       opacity: 0.45;
@@ -419,7 +422,7 @@
 
     @page {
       size: letter;
-      margin: 0.42in;
+      margin: 0;
     }
 
     @media print {
@@ -448,9 +451,17 @@
         line-height: 1.2;
       }
 
+      /* Positioned in the physical page margin, outside journal content. */
+      .punch-guides {
+        position: absolute;
+        top: 1in;
+        left: 0.375in;
+      }
+
       .container {
         max-width: none;
-        padding: 0;
+        padding: 0.42in 0.42in 0.42in 0.75in;
+        box-sizing: border-box;
       }
 
       nav,
@@ -517,7 +528,6 @@
 
       h2 {
         font-size: 0.54rem;
-        letter-spacing: 0.18rem;
         margin-bottom: 0.08in;
       }
 
@@ -562,6 +572,11 @@
 </head>
 
 <body>
+  <svg class="punch-guides" viewBox="0 0 18 648" aria-hidden="true">
+    <circle cx="9" cy="5" r="8"></circle>
+    <circle cx="9" cy="315" r="8"></circle>
+    <circle cx="9" cy="630" r="8"></circle>
+  </svg>
   <div class="container">
     <nav style="padding: 2em 0; text-align: center;">
       <a href="/" style="color: var(--seal)">mikeb.work</a>
@@ -596,10 +611,11 @@
     \(   )/       \(    )/        \(   )/    \(     )/     \(       )/    \(      )/    \(    )/   
      '   '         '    '          '   '      '     '       '       '      '      '      '    '    
       </pre>
-
-      <div class="sign-here">✕ SIGN HERE</div>
-
-      <time id="clock"></time>
+      <div class="oath">
+        <div class="sign-here">✕ SIGN HERE</div>
+        <time id="clock"></time>
+        <p id="ticket-date"> Thu Jul 2 </p>
+      </div>
     </header>
 
     <section class="rules-section mission-lines-section">
@@ -609,7 +625,6 @@
       <div class="column">
         <section class="cursive-area">
           <div>
-            <h2>Doctrine</h2>
             <p class="cursive-teacher">Protect the mission</p>
             <p class="cursive-teacher">Lay siege</p>
             <p class="cursive-teacher">Restraint pays</p>
@@ -625,58 +640,39 @@
       <div class="column">
         <section aria-label="today's squad">
           <div class="ticket-date-row">
-            <h2>Date:
-              <span id="ticket-date">Thu Jul 2</span>
-            </h2>
-            <p>Up to 1r per day, r=200t, 100tkn, 50pt</p>
-            <p>Scout trooper, if rtb send attack</p>
+            <h3>Send trooper. Accept reality. End the day</h3>
+            <p>1r per day, r=200t, 50pt, 100usd expense</p>
           </div>
-          <div class="squad-stack" id="squad-stack"></div>
-          <button class="button" id="new-pair-button" type="button">Cycle troopers</button>
+
+          <div id="squad-stack"></div>
+
         </section>
       </div>
     </section>
 
     <div class="games-section">
       <section data-store="jumble">
-        <img class="upload-preview" alt="place Jumble image here" hidden />
+        <img class="upload-preview" alt="" hidden />
         <label class="button upload-box">
           <input type="file" accept="image/*" hidden />
-          <span>Upload</span>
+          <span>Upload jumble</span>
         </label>
       </section>
 
       <section data-store="color">
-        <img class="upload-preview" alt="coloring page goes here" hidden />
+        <img class="upload-preview" alt="" hidden />
         <label class="button upload-box">
           <input type="file" accept="image/*" hidden />
-          <span>Upload</span>
+          <span>Upload img</span>
         </label>
       </section>
     </div>
 
-    <pre class="ascii-journal footer-ascii" style="padding-top: 2rem;">
-
-     ***** **                                                           *                                     
-  ******  ***                                                         **                                *     
- **   *  * **                                                         **                               **     
-*    *  *  **                                                         **                               **     
-    *  *   *    **   ****     ***  ****                       ****    **                             ******** 
-   ** **  *      **    ***  *  **** **** * ***  ****         * **** * **  ***      ***       ***    ********  
-   ** ** *       **     ****    **   ****   **** **** *     **  ****  ** * ***    * ***     * ***      **     
-   ** ***        **      **     **           **   ****     ****       ***   ***  *   ***   *   ***     **     
-   ** ** ***     **      **     **           **    **        ***      **     ** **    *** **    ***    **     
-   ** **   ***   **      **     **           **    **          ***    **     ** ********  ********     **     
-   *  **     **  **      **     **           **    **            ***  **     ** *******   *******      **     
-      *      **  **      **     **           **    **       ****  **  **     ** **        **           **     
-  ****     ***    ******* **    ***          **    **      * **** *   **     ** ****    * ****    *    **     
- *  ********       *****   **    ***         ***   ***        ****    **     **  *******   *******      **    
-*     ****                                    ***   ***                **    **   *****     *****             
-*                                                                            *                                
- **                                                                         *                                 
-                                                                           *                                  
-                                                                          *                                   
-                                                                                                              
+    <pre class="ascii-journal footer-ascii" style="padding-top: 81rem;">
+ ___                      
+  | |_   _     _  ._   _| 
+  | | | (/_   (/_ | | (_| 
+                          
       </pre>
   </div>
 
@@ -825,13 +821,12 @@
     (() => {
       const title = document.getElementById("ticket-date");
       const stack = document.getElementById("squad-stack");
-      const newPairButton = document.getElementById("new-pair-button");
 
       const CAPITAL_ARMY_ROOT =
         "https://capitalarmy.mborsare.workers.dev/api/capital-army";
       const STATE_API = `${CAPITAL_ARMY_ROOT}/state`;
       const SQUAD_STORAGE_PREFIX = "capitalArmySquad";
-      const SOLDIERS_PER_DAY = 2;
+      const SOLDIERS_PER_DAY = 1;
       const ARMY_PAGE_URL = "/capital-army.html";
 
       const army = window.CapitalArmy || window.PrimeArmy;
@@ -998,8 +993,8 @@
           return null;
         }
 
-        // Prefer a visibly new pair. Current unmarked soldiers remain
-        // eligible again when fewer than two alternatives exist.
+        // Prefer a visibly new soldier. Current unmarked soldiers remain
+        // eligible again when no alternative exists.
         const currentIds = new Set(currentSquad.map(soldierId));
         const alternatives = available.filter(
           soldier => !currentIds.has(soldierId(soldier))
@@ -1072,6 +1067,18 @@
         });
       }
 
+      function updateCycleButton(missionState) {
+        const button = stack?.querySelector("#new-pair-button");
+
+        if (!button) {
+          return;
+        }
+
+        button.disabled =
+          missionState.status === "closed" ||
+          availableSoldiers(missionState).length < SOLDIERS_PER_DAY;
+      }
+
       function renderNoMission(message) {
         currentMissionId = null;
         currentSquad = [];
@@ -1094,9 +1101,6 @@
           );
         }
 
-        if (newPairButton) {
-          newPairButton.disabled = true;
-        }
       }
 
       function renderSquad(
@@ -1124,13 +1128,9 @@
           if (stack) {
             stack.innerHTML = (
               '<p class="soldier-cue">' +
-              "Fewer than two unmarked soldiers remain in this mission." +
+              "No unmarked soldiers remain in this mission." +
               "</p>"
             );
-          }
-
-          if (newPairButton) {
-            newPairButton.disabled = true;
           }
 
           return;
@@ -1165,15 +1165,13 @@
               data-soldier-id="${id}"
               aria-label="${escapeHtml(name)}, ${escapeHtml(soldier.cue)}"
             >
-              <div class="soldier-avatar">
-                <img
-                  class="avatar-img"
-                  alt=""
-                  loading="lazy"
-                  src="${avatarUrl(soldier)}"
-                  onerror="this.remove()"
-                />
-              </div>
+              <img
+                class="avatar-img"
+                alt=""
+                loading="lazy"
+                src="${avatarUrl(soldier)}"
+                onerror="this.remove()"
+              />
               <div class="soldier-copy">
                 <div class="soldier-name">
                   <a
@@ -1182,6 +1180,7 @@
                   >${escapeHtml(name)}</a>
                 </div>
                 <div class="soldier-cue">${escapeHtml(soldier.cue)}</div>
+                <button class="button" id="new-pair-button" type="button">Cycle trooper</button>
               </div>
             </article>
           `;
@@ -1189,11 +1188,7 @@
 
         applyMissionState(missionState);
 
-        if (newPairButton) {
-          newPairButton.disabled =
-            missionState.status === "closed" ||
-            availableSoldiers(missionState).length < SOLDIERS_PER_DAY;
-        }
+        updateCycleButton(missionState);
       }
 
       async function refreshActiveMission() {
@@ -1213,54 +1208,52 @@
           lastMissionState = missionState;
           applyMissionState(missionState);
 
-          if (newPairButton) {
-            newPairButton.disabled =
-              missionState.status === "closed" ||
-              availableSoldiers(missionState).length < SOLDIERS_PER_DAY;
-          }
+          updateCycleButton(missionState);
         } catch (error) {
           console.warn("Capital Army state unavailable.", error);
         }
       }
 
-      if (newPairButton) {
-        newPairButton.addEventListener("click", async () => {
-          newPairButton.disabled = true;
+      stack?.addEventListener("click", async event => {
+        const button = event.target.closest("#new-pair-button");
 
-          try {
-            const missionState = await readMissionStateForDate(currentDate);
+        if (!button || !stack.contains(button)) {
+          return;
+        }
 
-            if (!missionState) {
-              renderNoMission("No active mission.");
-              return;
-            }
+        button.disabled = true;
 
-            if (missionState.missionId !== currentMissionId) {
-              currentSquad = [];
-            }
+        try {
+          const missionState = await readMissionStateForDate(currentDate);
 
-            const squad = randomAvailableSquad(missionState);
-
-            if (!squad) {
-              window.alert(
-                "Fewer than two unmarked soldiers remain in this mission."
-              );
-              return;
-            }
-
-            renderSquad(currentDate, missionState, squad);
-          } catch (error) {
-            console.warn("Capital Army state unavailable.", error);
-            window.alert("Could not read the active mission.");
-          } finally {
-            if (lastMissionState) {
-              newPairButton.disabled =
-                lastMissionState.status === "closed" ||
-                availableSoldiers(lastMissionState).length < SOLDIERS_PER_DAY;
-            }
+          if (!missionState) {
+            renderNoMission("No active mission.");
+            return;
           }
-        });
-      }
+
+          if (missionState.missionId !== currentMissionId) {
+            currentSquad = [];
+          }
+
+          const squad = randomAvailableSquad(missionState);
+
+          if (!squad) {
+            window.alert(
+              "No unmarked soldiers remain in this mission."
+            );
+            return;
+          }
+
+          renderSquad(currentDate, missionState, squad);
+        } catch (error) {
+          console.warn("Capital Army state unavailable.", error);
+          window.alert("Could not read the active mission.");
+        } finally {
+          if (lastMissionState) {
+            updateCycleButton(lastMissionState);
+          }
+        }
+      });
 
       const params = new URLSearchParams(window.location.search);
       const testDate = params.get("date");
@@ -1299,6 +1292,12 @@
 
         const input = section.querySelector('input[type="file"]');
         const img = section.querySelector(".upload-preview");
+
+        img.addEventListener("error", () => {
+          img.hidden = true;
+          img.removeAttribute("src");
+          localStorage.removeItem(storageKey);
+        });
 
         const saved = localStorage.getItem(storageKey);
         if (saved) {
