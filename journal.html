@@ -182,6 +182,24 @@
       margin: 0 0 0.75rem 0;
     }
 
+    #ticket-date {
+      display: inline-flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: center;
+      gap: 0.45rem;
+    }
+
+    #market-prints {
+      color: var(--stamp);
+      font-size: 0.68rem;
+      opacity: 0.8;
+    }
+
+    #market-prints:empty {
+      display: none;
+    }
+
     .field-report {
       color: var(--seal);
       display: block;
@@ -618,7 +636,10 @@
       <div class="oath">
         <div class="sign-here">✕ SIGN HERE</div>
         <time id="clock"></time>
-        <p id="ticket-date"> Thu Jul 2 </p>
+        <p id="ticket-date">
+          <span id="journal-date">Thu Jul 2</span>
+          <span id="market-prints" aria-live="polite"></span>
+        </p>
       </div>
     </header>
 
@@ -832,7 +853,7 @@
     })();
 
     (() => {
-      const title = document.getElementById("ticket-date");
+      const title = document.getElementById("journal-date");
       const stack = document.getElementById("squad-stack");
 
       const CAPITAL_ARMY_ROOT =
@@ -841,6 +862,29 @@
       const SQUAD_STORAGE_PREFIX = "capitalArmySquad";
       const SOLDIERS_PER_DAY = 1;
       const ARMY_PAGE_URL = "/capital-army.html";
+      const marketPrints = document.getElementById("market-prints");
+
+      // Deliberately narrow: these are the releases that routinely move U.S.
+      // index futures. Keep this calendar short rather than turning the header
+      // into a general-purpose economic calendar.
+      const MARKET_MOVING_PRINTS = {
+        "2026-09-04": ["NFP 08:30"],
+        "2026-09-11": ["CPI 08:30"],
+        "2026-09-16": ["FOMC 14:00"],
+        "2026-09-25": ["PCE 08:30"],
+        "2026-10-02": ["NFP 08:30"],
+        "2026-10-14": ["CPI 08:30"],
+        "2026-10-28": ["FOMC 14:00"],
+        "2026-10-29": ["GDP 08:30"],
+        "2026-10-30": ["PCE 08:30", "ECI 08:30"],
+        "2026-11-06": ["NFP 08:30"],
+        "2026-11-10": ["CPI 08:30"],
+        "2026-11-25": ["PCE 08:30"],
+        "2026-12-04": ["NFP 08:30"],
+        "2026-12-09": ["FOMC 14:00"],
+        "2026-12-10": ["CPI 08:30"],
+        "2026-12-23": ["PCE 08:30"]
+      };
 
       const army = window.CapitalArmy || window.PrimeArmy;
 
@@ -886,6 +930,15 @@
         const month = String(date.getMonth() + 1).padStart(2, "0");
         const day = String(date.getDate()).padStart(2, "0");
         return `${year}-${month}-${day}`;
+      }
+
+      function renderMarketPrints(date) {
+        if (!marketPrints) {
+          return;
+        }
+
+        const prints = MARKET_MOVING_PRINTS[ymd(startOfDay(date))] || [];
+        marketPrints.textContent = prints.slice(0, 2).join("  ·  ");
       }
 
       function displayName(soldier) {
@@ -1107,6 +1160,7 @@
             .replace(",", "");
           title.title = "No active mission";
         }
+        renderMarketPrints(currentDate);
 
         if (stack) {
           stack.innerHTML = (
@@ -1162,6 +1216,7 @@
             .replace(",", "");
           title.title = `Mission ${currentMissionId}`;
         }
+        renderMarketPrints(date);
 
         if (!stack) {
           return;
