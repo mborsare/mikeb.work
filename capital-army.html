@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8" />
-  <title>mikeb.work/capital-army</title>
+  <title>Capital Army demobilized · mikeb.work</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
@@ -100,6 +100,41 @@
       min-height: 100vh;
       padding: clamp(0.9rem, 3vw, 2rem);
       text-align: center;
+    }
+
+    .private-roster > .mission-history {
+      width: 100%;
+      margin: 4rem 0 0;
+      text-align: left;
+    }
+
+    .private-roster > .mission-history h2 {
+      margin: 0 0 1rem;
+      font-size: 1rem;
+      font-weight: normal;
+    }
+
+    .private-roster .mission {
+      width: 100%;
+      padding: 0.7rem 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .private-roster .mission span {
+      display: block;
+    }
+
+    .private-roster .mission .status {
+      color: var(--stamp);
+      font-size: 0.75rem;
+    }
+
+    .mission-history-footer {
+      margin-top: 1.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+      color: var(--stamp);
+      font-size: 0.8rem;
     }
 
     .private-roster-card:nth-child(4n + 1) img { filter: sepia(1) saturate(4) hue-rotate(295deg); }
@@ -718,9 +753,7 @@
 
 <body>
   <script>
-    if (new URLSearchParams(window.location.search).has('privates')) {
-      document.body.classList.add('is-private-roster');
-    }
+    document.body.classList.add('is-private-roster');
   </script>
   <div class="container">
     <nav>
@@ -853,11 +886,60 @@
       </div>
     </main>
 
-    <section class="private-roster" id="private-roster" aria-label="Capital Army private roster">
-      <a href="capital-army.html">← back</a>
-      <h1>All the privates</h1>
-      <p class="subhead">Classified roster. Do not circulate.</p>
+    <section class="private-roster" id="private-roster" aria-label="Capital Army memorial roster">
+      <nav>
+        <a href="index.html">mikeb.work</a>
+        <a href="journal.html">journal</a>
+      </nav>
+
+      <h1>Capital Army demobilized</h1>
+      <p class="subhead">Honor the soldiers</p>
       <div class="private-roster-grid gallery" id="private-roster-grid"></div>
+
+      <section class="mission-history">
+        <h2>Mission History</h2>
+
+        <div class="mission">
+          <span class="dates">Sep 21, 2026 – Sep 24, 2026</span>
+          <span class="status">closed · 1 RTB · 2 KIA</span>
+        </div>
+
+        <div class="mission">
+          <span class="dates">Sep 07, 2026 – Sep 21, 2026</span>
+          <span class="status">closed · 2 RTB · 8 KIA</span>
+        </div>
+
+        <div class="mission">
+          <span class="dates">Aug 24, 2026 – Sep 02, 2026</span>
+          <span class="status">closed · 7 RTB · 4 KIA</span>
+        </div>
+
+        <div class="mission">
+          <span class="dates">Aug 10, 2026 – Aug 24, 2026</span>
+          <span class="status">closed · 7 RTB · 1 KIA</span>
+        </div>
+
+        <div class="mission">
+          <span class="dates">Jul 27, 2026 – Aug 07, 2026</span>
+          <span class="status">closed · 3 RTB · 27 KIA</span>
+        </div>
+
+        <div class="mission">
+          <span class="dates">Jul 14, 2026 – Jul 22, 2026</span>
+          <span class="status">closed · 11 RTB · 3 KIA</span>
+        </div>
+
+        <div class="mission">
+          <span class="dates">Jul 06, 2026 – Jul 13, 2026</span>
+          <span class="status">closed · 3 RTB · 7 KIA</span>
+        </div>
+
+        <footer class="mission-history-footer">
+          <strong>Jul 06 – Sep 24, 2026</strong><br>
+          34 RTB · 52 KIA<br><br>
+          <em>This was the language and operating model I used then. It is no longer active.</em>
+        </footer>
+      </section>
     </section>
 
     <pre class="ascii" style="font-size:0.4rem; margin-top: 9rem;">
@@ -1116,7 +1198,7 @@
       const army = window.CapitalArmy || window.PrimeArmy;
       const privateRoster = document.getElementById('private-roster');
       const privateRosterGrid = document.getElementById('private-roster-grid');
-      const isPrivateRoster = new URLSearchParams(window.location.search).has('privates');
+      const isPrivateRoster = document.body.classList.contains('is-private-roster');
 
       if (isPrivateRoster && army && privateRoster && privateRosterGrid) {
         privateRosterGrid.innerHTML = army.soldiers.map(soldier => (
