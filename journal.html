@@ -165,14 +165,6 @@
       margin-top: 6rem;
     }
 
-    .bottom-section {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8rem;
-      font-size: 0.85rem;
-      margin-top: 3rem;
-    }
-
     h2 {
       margin: 0 0 1rem 0;
       font-weight: normal;
@@ -259,82 +251,6 @@
       display: flex;
       flex-direction: column;
       gap: 1.5rem;
-    }
-
-    .soldier-card {
-      align-items: center;
-      display: flex;
-      background: transparent;
-      color: var(--text);
-      gap: 1rem;
-      min-height: 4.35rem;
-      padding: 0.35rem 0.5rem;
-    }
-
-    .soldier-card:hover .soldier-link {
-      color: white;
-    }
-
-    .soldier-card:focus-within {
-      outline: 1px solid var(--seal);
-      outline-offset: 0.25rem;
-    }
-
-    .soldier-link {
-      text-decoration: none;
-      color: var(--text);
-    }
-
-    .soldier-link:hover,
-    .soldier-link:focus-visible {
-      color: var(--seal);
-      text-decoration: underline;
-    }
-
-    .avatar-img {
-      /* The portraits are rendered at roughly a 7:10 ratio. Matching that
-         ratio keeps their illustrated frame intact without shrinking them. */
-      width: 33%;
-      object-fit: contain;
-      display: block;
-    }
-
-    .soldier-copy {
-      min-width: 0;
-      line-height: 1.3;
-    }
-
-    .soldier-cue {
-      opacity: 75%;
-      white-space: pre-line;
-    }
-
-    .soldier-name {
-      color: #fff;
-      overflow: visible;
-      font-size: 150%;
-      text-overflow: ellipsis;
-      margin-bottom: 0.5rem;
-    }
-
-    .soldier-card[data-state="KIA"] .avatar-img,
-    .soldier-card[data-state="KIA"] .soldier-name,
-    .soldier-card[data-state="KIA"] .soldier-cue {
-      opacity: 0.45;
-    }
-
-    .soldier-card[data-state="KIA"] .soldier-link {
-      text-decoration: line-through;
-    }
-
-    .soldier-card[data-state="RTB"] .soldier-name::after,
-    .soldier-card[data-state="KIA"] .soldier-name::after {
-      content: " " attr(data-state);
-      color: var(--seal);
-      font-size: 0.65rem;
-      letter-spacing: 0.08rem;
-      margin-left: 0.5rem;
-      vertical-align: middle;
     }
 
     .draw-grid {
@@ -427,10 +343,6 @@
 
       .container {
         padding: 3rem;
-      }
-
-      .bottom-section {
-        grid-template-columns: 1fr;
       }
 
       .games-section {
@@ -536,14 +448,6 @@
       }
 
 
-      .bottom-section {
-        grid-template-columns: 1fr 1fr;
-        gap: 0.25in;
-        align-items: start;
-        font-size: 0.55rem;
-        break-inside: avoid;
-      }
-
       h2 {
         font-size: 0.54rem;
         margin-bottom: 0.08in;
@@ -557,29 +461,6 @@
         font-size: 2rem;
         letter-spacing: 0.04rem;
         line-height: 0.43in;
-      }
-
-      .soldier-card {
-        grid-template-columns: 0.75in minmax(0, 1fr);
-        min-height: 0;
-        color: var(--text) !important;
-        break-inside: avoid;
-      }
-
-      .soldier-copy ul {
-        font-size: 0.48rem;
-      }
-
-      .soldier-name {
-        color: var(--text);
-        line-height: 1;
-        white-space: nowrap;
-        text-overflow: clip;
-      }
-
-      .secondary-pages,
-      .bottom-section {
-        break-before: page;
       }
 
       .footer-ascii {
@@ -646,41 +527,16 @@
     <section class="rules-section mission-lines-section">
       <div class="handwriting-paper" aria-hidden="true"></div>
     </section>
-    <section class="bottom-section">
-      <div class="column">
-        <section aria-label="today's squad">
-          <pre class="ascii-journal">
-   ▄▄▄▄▀ ████▄ ██▄   ██  ▀▄    ▄  ▄▄▄▄▄        
-▀▀▀ █    █   █ █  █  █ █   █  █  █     ▀▄      
-    █    █   █ █   █ █▄▄█   ▀█ ▄  ▀▀▀▀▄        
-   █     ▀████ █  █  █  █   █   ▀▄▄▄▄▀         
-  ▀            ███▀     █ ▄▀                   
-                       █                       
-                      ▀                        
-   ▄▄▄▄▀ █▄▄▄▄ ████▄ ████▄ █ ▄▄  ▄███▄   █▄▄▄▄ 
-▀▀▀ █    █  ▄▀ █   █ █   █ █   █ █▀   ▀  █  ▄▀ 
-    █    █▀▀▌  █   █ █   █ █▀▀▀  ██▄▄    █▀▀▌  
-   █     █  █  ▀████ ▀████ █     █▄   ▄▀ █  █  
-  ▀        █                █    ▀███▀     █   
-          ▀                  ▀            ▀    
-            </pre>
-          <div id="squad-stack"></div>
-        </section>
-      </div>
-
-      <div class="column">
-        <section class="cursive-area">
-          <div>
-            <p class="cursive-teacher">Protect the mission</p>
-            <p class="cursive-teacher">Lay siege</p>
-            <p class="cursive-teacher">Restraint pays</p>
-            <p class="cursive-teacher">Emotions are state</p>
-            <p class="cursive-teacher">Always cycling</p>
-            <p class="cursive-teacher">Watch the show</p>
-            <p class="cursive-teacher">Serve the market</p>
-            <p class="cursive-teacher">Expect the thief</p>
-          </div>
-        </section>
+    <section class="cursive-area">
+      <div>
+        <p class="cursive-teacher">Protect the mission</p>
+        <p class="cursive-teacher">Lay siege</p>
+        <p class="cursive-teacher">Restraint pays</p>
+        <p class="cursive-teacher">Emotions are state</p>
+        <p class="cursive-teacher">Always cycling</p>
+        <p class="cursive-teacher">Watch the show</p>
+        <p class="cursive-teacher">Serve the market</p>
+        <p class="cursive-teacher">Expect the thief</p>
       </div>
     </section>
 
@@ -709,8 +565,6 @@
                           
       </pre>
   </div>
-
-  <script src="/backoffice/the-stacks/capital-army-soldiers.js"></script>
 
   <script>
     (() => {
@@ -854,14 +708,6 @@
 
     (() => {
       const title = document.getElementById("journal-date");
-      const stack = document.getElementById("squad-stack");
-
-      const CAPITAL_ARMY_ROOT =
-        "https://capitalarmy.mborsare.workers.dev/api/capital-army";
-      const STATE_API = `${CAPITAL_ARMY_ROOT}/state`;
-      const SQUAD_STORAGE_PREFIX = "capitalArmySquad";
-      const SOLDIERS_PER_DAY = 1;
-      const ARMY_PAGE_URL = "/capital-army.html";
       const marketPrints = document.getElementById("market-prints");
 
       // Deliberately narrow: these are the releases that routinely move U.S.
@@ -886,45 +732,6 @@
         "2026-12-23": ["PCE 08:30"]
       };
 
-      const army = window.CapitalArmy || window.PrimeArmy;
-
-      if (!army) {
-        console.warn("Capital Army soldier manifest unavailable.");
-        return;
-      }
-
-      const soldiers = army.soldiers || [];
-      const shortName = army.shortName || (
-        soldier => `${soldier.first} ${soldier.last[0]}.`
-      );
-      const avatarUrl = army.avatarUrl || (
-        soldier =>
-          `/backoffice/the-stacks/soldiers/` +
-          `soldier_${String(soldier.id).padStart(2, "0")}.jpg`
-      );
-      const escapeHtml = army.escapeHtml || (
-        value => String(value).replace(/[&<>'"]/g, char => ({
-          "&": "&amp;",
-          "<": "&lt;",
-          ">": "&gt;",
-          "'": "&#39;",
-          '"': "&quot;"
-        }[char]))
-      );
-
-      let currentMissionId = null;
-      let currentDate = new Date();
-      let currentSquad = [];
-      let lastMissionState = null;
-
-      function startOfDay(date) {
-        return new Date(
-          date.getFullYear(),
-          date.getMonth(),
-          date.getDate()
-        );
-      }
-
       function ymd(date) {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -932,424 +739,21 @@
         return `${year}-${month}-${day}`;
       }
 
-      function renderMarketPrints(date) {
-        if (!marketPrints) {
-          return;
-        }
-
-        const prints = MARKET_MOVING_PRINTS[ymd(startOfDay(date))] || [];
-        marketPrints.textContent = prints.slice(0, 2).join("  ·  ");
-      }
-
-      function displayName(soldier) {
-        return shortName(soldier);
-      }
-
-      function soldierId(soldier) {
-        return String(soldier.id).padStart(2, "0");
-      }
-
-      function soldierHref(soldier) {
-        return `${ARMY_PAGE_URL}#soldier-${soldierId(soldier)}`;
-      }
-
-      function storageDateKey(date) {
-        return ymd(startOfDay(date));
-      }
-
-      function squadStorageKey(missionId, date) {
-        return (
-          `${SQUAD_STORAGE_PREFIX}-` +
-          `${missionId}-` +
-          `${storageDateKey(date)}`
-        );
-      }
-
-      function readStorageJson(key, fallback) {
-        try {
-          const value = localStorage.getItem(key);
-          return value ? JSON.parse(value) : fallback;
-        } catch {
-          return fallback;
-        }
-      }
-
-      function writeStorageJson(key, value) {
-        try {
-          localStorage.setItem(key, JSON.stringify(value));
-        } catch (error) {
-          console.warn("Capital Army local storage failed.", error);
-        }
-      }
-
-      function shuffle(values) {
-        const next = [...values];
-
-        for (let i = next.length - 1; i > 0; i -= 1) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [next[i], next[j]] = [next[j], next[i]];
-        }
-
-        return next;
-      }
-
-      function soldiersFromIds(ids) {
-        return ids
-          .map(id => soldiers.find(
-            soldier => soldierId(soldier) === String(id).padStart(2, "0")
-          ))
-          .filter(Boolean);
-      }
-
-      function savedSquadFor(missionId, date) {
-        if (!missionId) {
-          return null;
-        }
-
-        const ids = readStorageJson(
-          squadStorageKey(missionId, date),
-          []
-        );
-        const squad = soldiersFromIds(ids);
-
-        return squad.length === SOLDIERS_PER_DAY
-          ? squad
-          : null;
-      }
-
-      function saveSquadFor(missionId, date, squad) {
-        if (!missionId) {
-          return;
-        }
-
-        writeStorageJson(
-          squadStorageKey(missionId, date),
-          squad.map(soldierId)
-        );
-      }
-
-      function markedSoldierIds(missionState) {
-        const marked = new Set();
-        const states = missionState?.soldiers || {};
-
-        Object.entries(states).forEach(([id, record]) => {
-          if (
-            record?.state === "RTB" ||
-            record?.state === "KIA"
-          ) {
-            marked.add(String(id).padStart(2, "0"));
-          }
-        });
-
-        return marked;
-      }
-
-      function availableSoldiers(missionState) {
-        const marked = markedSoldierIds(missionState);
-
-        return soldiers.filter(
-          soldier => !marked.has(soldierId(soldier))
-        );
-      }
-
-      function randomAvailableSquad(missionState) {
-        const available = availableSoldiers(missionState);
-
-        if (available.length < SOLDIERS_PER_DAY) {
-          return null;
-        }
-
-        // Prefer a visibly new soldier. Current unmarked soldiers remain
-        // eligible again when no alternative exists.
-        const currentIds = new Set(currentSquad.map(soldierId));
-        const alternatives = available.filter(
-          soldier => !currentIds.has(soldierId(soldier))
-        );
-        const pool = alternatives.length >= SOLDIERS_PER_DAY
-          ? alternatives
-          : available;
-
-        return shuffle(pool).slice(0, SOLDIERS_PER_DAY);
-      }
-
-      async function apiJson(url) {
-        const response = await fetch(url, {
-          cache: "no-store"
-        });
-
-        if (!response.ok) {
-          const message = await response.text();
-          throw new Error(`${response.status} ${message}`);
-        }
-
-        return response.json();
-      }
-
-      async function readMissionStateForDate(date) {
-        const dateKey = ymd(startOfDay(date));
-
-        const response = await fetch(
-          `${STATE_API}?date=${encodeURIComponent(dateKey)}`,
-          {
-            cache: "no-store"
-          }
-        );
-
-        if (response.status === 404) {
-          return null;
-        }
-
-        if (!response.ok) {
-          const message = await response.text();
-          throw new Error(`${response.status} ${message}`);
-        }
-
-        return response.json();
-      }
-
-      function applyMissionState(missionState) {
-        if (!stack) {
-          return;
-        }
-
-        const states = missionState?.soldiers || {};
-
-        stack.querySelectorAll(".soldier-card").forEach(card => {
-          const id = card.dataset.soldierId;
-          const state = states[id]?.state || "";
-          const name = card.querySelector(".soldier-name");
-
-          if (state === "RTB" || state === "KIA") {
-            card.dataset.state = state;
-            if (name) {
-              name.dataset.state = state;
-            }
-          } else {
-            delete card.dataset.state;
-            if (name) {
-              delete name.dataset.state;
-            }
-          }
-        });
-      }
-
-      function updateCycleButton(missionState) {
-        const button = stack?.querySelector("#new-pair-button");
-
-        if (!button) {
-          return;
-        }
-
-        button.disabled =
-          missionState.status === "closed" ||
-          availableSoldiers(missionState).length < SOLDIERS_PER_DAY;
-      }
-
-      function renderNoMission(message) {
-        currentMissionId = null;
-        currentSquad = [];
-        lastMissionState = null;
-
-        if (title) {
-          title.textContent = currentDate
-            .toLocaleDateString("en-US", {
-              weekday: "short",
-              month: "short",
-              day: "numeric"
-            })
-            .replace(",", "");
-          title.title = "No active mission";
-        }
-        renderMarketPrints(currentDate);
-
-        if (stack) {
-          stack.innerHTML = (
-            `<p class="soldier-cue">${escapeHtml(message)}</p>`
-          );
-        }
-
-      }
-
-      function renderSquad(
-        date,
-        missionState,
-        squadOverride = null
-      ) {
-        if (!missionState?.missionId || !soldiers.length) {
-          renderNoMission("No active mission.");
-          return;
-        }
-
-        currentDate = date;
-        currentMissionId = missionState.missionId;
-        lastMissionState = missionState;
-
-        const squad =
-          squadOverride ||
-          savedSquadFor(currentMissionId, date) ||
-          randomAvailableSquad(missionState);
-
-        if (!squad) {
-          currentSquad = [];
-
-          if (stack) {
-            stack.innerHTML = (
-              '<p class="soldier-cue">' +
-              "No unmarked soldiers remain in this mission." +
-              "</p>"
-            );
-          }
-
-          return;
-        }
-
-        currentSquad = squad;
-        saveSquadFor(currentMissionId, date, squad);
-
-        if (title) {
-          title.textContent = date
-            .toLocaleDateString("en-US", {
-              weekday: "short",
-              month: "short",
-              day: "numeric"
-            })
-            .replace(",", "");
-          title.title = `Mission ${currentMissionId}`;
-        }
-        renderMarketPrints(date);
-
-        if (!stack) {
-          return;
-        }
-
-        stack.innerHTML = squad.map(soldier => {
-          const id = soldierId(soldier);
-          const name = displayName(soldier);
-
-          return `
-            <article
-              class="soldier-card"
-              id="journal-soldier-${id}"
-              data-soldier-id="${id}"
-              aria-label="${escapeHtml(name)}, ${escapeHtml(soldier.cue)}"
-            >
-              <img
-                class="avatar-img"
-                alt=""
-                loading="lazy"
-                src="${avatarUrl(soldier)}"
-                onerror="this.remove()"
-              />
-              <div class="soldier-copy">
-                <div class="soldier-name">
-                  <a
-                    class="soldier-link"
-                    href="${soldierHref(soldier)}"
-                  >${escapeHtml(name)}</a>
-                </div>
-                <div class="soldier-cue">${escapeHtml(soldier.cue)}</div>
-                  <p>Send trooper. Accept reality. End the day</p> 
-                <button class="button" id="new-pair-button" type="button">Cycle trooper</button>
-              </div>
-            </article>
-          `;
-        }).join("");
-
-        applyMissionState(missionState);
-
-        updateCycleButton(missionState);
-      }
-
-      async function refreshActiveMission() {
-        try {
-          const missionState = await readMissionStateForDate(currentDate);
-
-          if (!missionState) {
-            renderNoMission("No active mission.");
-            return;
-          }
-
-          if (missionState.missionId !== currentMissionId) {
-            renderSquad(currentDate, missionState);
-            return;
-          }
-
-          lastMissionState = missionState;
-          applyMissionState(missionState);
-
-          updateCycleButton(missionState);
-        } catch (error) {
-          console.warn("Capital Army state unavailable.", error);
-        }
-      }
-
-      stack?.addEventListener("click", async event => {
-        const button = event.target.closest("#new-pair-button");
-
-        if (!button || !stack.contains(button)) {
-          return;
-        }
-
-        button.disabled = true;
-
-        try {
-          const missionState = await readMissionStateForDate(currentDate);
-
-          if (!missionState) {
-            renderNoMission("No active mission.");
-            return;
-          }
-
-          if (missionState.missionId !== currentMissionId) {
-            currentSquad = [];
-          }
-
-          const squad = randomAvailableSquad(missionState);
-
-          if (!squad) {
-            window.alert(
-              "No unmarked soldiers remain in this mission."
-            );
-            return;
-          }
-
-          renderSquad(currentDate, missionState, squad);
-        } catch (error) {
-          console.warn("Capital Army state unavailable.", error);
-          window.alert("Could not read the active mission.");
-        } finally {
-          if (lastMissionState) {
-            updateCycleButton(lastMissionState);
-          }
-        }
-      });
-
-      const params = new URLSearchParams(window.location.search);
-      const testDate = params.get("date");
-      currentDate = testDate
+      const testDate = new URLSearchParams(window.location.search).get("date");
+      const date = testDate
         ? new Date(`${testDate}T12:00:00`)
         : new Date();
 
-      readMissionStateForDate(currentDate)
-        .then(missionState => {
-          if (!missionState) {
-            renderNoMission("No active mission.");
-            return;
-          }
-
-          renderSquad(currentDate, missionState);
+      title.textContent = date
+        .toLocaleDateString("en-US", {
+          weekday: "short",
+          month: "short",
+          day: "numeric"
         })
-        .catch(error => {
-          console.warn("Capital Army initialization failed.", error);
-          renderNoMission("Capital Army state unavailable.");
-        });
+        .replace(",", "");
 
-      window.addEventListener("focus", refreshActiveMission);
-      document.addEventListener("visibilitychange", () => {
-        if (!document.hidden) {
-          refreshActiveMission();
-        }
-      });
+      const prints = MARKET_MOVING_PRINTS[ymd(date)] || [];
+      marketPrints.textContent = prints.slice(0, 2).join("  ·  ");
     })();
 
     (() => {
