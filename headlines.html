@@ -79,10 +79,6 @@
       white-space: pre;
     }
 
-    .header-controls {
-      display: none;
-    }
-
     .neon {
       color: var(--seal);
       text-shadow:
@@ -103,10 +99,15 @@
     .control-button,
     .toggle-label,
     .speed-control {
+      display: inline-flex;
+      align-items: center;
+      min-height: 2.75rem;
+      padding-inline: 0.35rem;
       color: var(--stamp);
-      font-size: 0.62rem;
+      font-size: 0.8rem;
       line-height: 1;
       letter-spacing: 0.035rem;
+      touch-action: manipulation;
       user-select: none;
       white-space: nowrap;
     }
@@ -114,11 +115,10 @@
     .control-button {
       appearance: none;
       -webkit-appearance: none;
-      padding: 0;
       border: 0;
       background: transparent;
       cursor: pointer;
-      font: inherit;
+      font-family: inherit;
     }
 
     .control-button:hover,
@@ -129,8 +129,6 @@
 
     .toggle-label,
     .speed-control {
-      display: inline-flex;
-      align-items: center;
       gap: 0.35rem;
     }
 
@@ -150,8 +148,8 @@
       position: relative;
       top: 0;
       flex-shrink: 0;
-      width: 0.72rem;
-      height: 0.72rem;
+      width: 1.35rem;
+      height: 1.35rem;
       border: 1px solid var(--stamp);
       background: transparent;
       cursor: pointer;
@@ -177,7 +175,7 @@
       appearance: none;
       -webkit-appearance: none;
       width: min(52vw, 10rem);
-      height: 1rem;
+      height: 2.75rem;
       background: transparent;
       accent-color: var(--seal);
       cursor: pointer;
@@ -185,7 +183,7 @@
 
     #speedSlider::-webkit-slider-runnable-track,
     #rowPadSlider::-webkit-slider-runnable-track {
-      height: 1px;
+      height: 2px;
       background: var(--stamp);
       opacity: 0.65;
     }
@@ -194,9 +192,9 @@
     #rowPadSlider::-webkit-slider-thumb {
       appearance: none;
       -webkit-appearance: none;
-      width: 0.75rem;
-      height: 0.75rem;
-      margin-top: -0.35rem;
+      width: 1.5rem;
+      height: 1.5rem;
+      margin-top: -0.6875rem;
       border: 1px solid var(--seal);
       border-radius: 999px;
       background: var(--bg);
@@ -205,15 +203,15 @@
 
     #speedSlider::-moz-range-track,
     #rowPadSlider::-moz-range-track {
-      height: 1px;
+      height: 2px;
       background: var(--stamp);
       opacity: 0.65;
     }
 
     #speedSlider::-moz-range-thumb,
     #rowPadSlider::-moz-range-thumb {
-      width: 0.75rem;
-      height: 0.75rem;
+      width: 1.5rem;
+      height: 1.5rem;
       border: 1px solid var(--seal);
       border-radius: 999px;
       background: var(--bg);
@@ -234,8 +232,8 @@
       top: 0;
       display: none;
       flex-shrink: 0;
-      width: 1.45rem;
-      height: 1.45rem;
+      width: 2.75rem;
+      height: 2.75rem;
       padding: 0;
       overflow: hidden;
       border: 1px solid var(--stamp);
@@ -555,6 +553,32 @@
       opacity: 0.3;
     }
 
+    body.colorized .row-1 .headline,
+    body.colorized .marquee-item:hover .headline,
+    body.colorized #status.err,
+    body.colorized .sep {
+      color: var(--text);
+    }
+
+    body.colorized #status,
+    body.colorized .row-3 .headline,
+    body.colorized .src-badge,
+    body.colorized #speedValue,
+    body.colorized #rowPadValue,
+    body.colorized #clock,
+    body.colorized .feed-pill,
+    body.colorized .feed-pill.ok,
+    body.colorized .feed-pill.err,
+    body.colorized .feed-pill.loading {
+      opacity: 1;
+      filter: none;
+    }
+
+    body.colorized #stage.answer-cut {
+      opacity: 1;
+      filter: none;
+    }
+
     @media (prefers-reduced-motion: reduce) {
 
       .footer-track,
@@ -574,27 +598,22 @@
       }
 
       .header-row {
-        flex-direction: column;
+        flex-direction: row;
         align-items: center;
-        justify-content: center;
-        gap: 0;
-        margin-top: 0;
-      }
-
-      .header pre {
-        font-size: clamp(0.18rem, 1.2vw, 0.4rem);
-        line-height: 1;
+        justify-content: space-between;
+        gap: 1rem;
+        padding-inline: clamp(0.75rem, 2vw, 1.25rem);
       }
 
       .header-controls {
-        display: none;
+        width: auto;
+        min-width: 0;
+        justify-content: flex-end;
       }
 
       .control-button,
       .toggle-label,
       .speed-control {
-        font-size: 0.75rem;
-        line-height: normal;
         letter-spacing: 0.05rem;
       }
 
@@ -608,21 +627,12 @@
         gap: 0.35rem;
       }
 
-      .toggle-label input[type='checkbox'] {
-        top: 0.05rem;
-        width: 0.65rem;
-        height: 0.65rem;
-      }
-
       #speedSlider,
       #rowPadSlider {
         width: clamp(5.5rem, 12vw, 9rem);
       }
 
       #colorSwatch {
-        top: 0.1rem;
-        width: 2rem;
-        height: 2rem;
         border-radius: 0.4rem;
       }
 
@@ -714,11 +724,6 @@
         line-height: 1;
       }
 
-      .control-button,
-      .toggle-label {
-        font-size: 0.58rem;
-      }
-
       #feed-pills {
         max-width: 58vw;
       }
@@ -754,7 +759,7 @@
         </label>
         <label class="toggle-label" style="position: relative;">
           <input type="checkbox" id="colorToggle" /> color
-          <input type="color" id="colorSwatch" value="#00ff88" title="pick a hue" />
+          <input type="color" id="colorSwatch" value="#00ff88" title="pick a background color" />
         </label>
       </div>
     </div>
@@ -930,81 +935,33 @@
       dim: '#1a1a1a',
     }
 
-    function hexToHsl(hex) {
-      const r = parseInt(hex.slice(1, 3), 16) / 255
-      const g = parseInt(hex.slice(3, 5), 16) / 255
-      const b = parseInt(hex.slice(5, 7), 16) / 255
-      const max = Math.max(r, g, b)
-      const min = Math.min(r, g, b)
-      let h = 0
-      let s = 0
-      const l = (max + min) / 2
-
-      if (max !== min) {
-        const d = max - min
-        s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
-
-        switch (max) {
-          case r:
-            h = ((g - b) / d + (g < b ? 6 : 0)) / 6
-            break
-          case g:
-            h = ((b - r) / d + 2) / 6
-            break
-          default:
-            h = ((r - g) / d + 4) / 6
-        }
-      }
-
-      return {
-        h: Math.round(h * 360),
-        s: Math.round(s * 100),
-        l: Math.round(l * 100),
-      }
-    }
-
-    function hsl(h, s, l) {
-      return `hsl(${h}, ${s}%, ${l}%)`
-    }
-
     function paletteFromHex(hex) {
-      const {h} = hexToHsl(hex)
+      const channels = [1, 3, 5].map(index => {
+        const channel = parseInt(hex.slice(index, index + 2), 16) / 255
+        return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4
+      })
+      const luminance = channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722
+      const blackContrast = (luminance + 0.05) / 0.05
+      const whiteContrast = 1.05 / (luminance + 0.05)
+      const ink = blackContrast >= whiteContrast ? '#000000' : '#ffffff'
 
       return {
-        bg: hsl(h, 18, 3),
-        text: hsl(h, 22, 72),
-        stamp: hsl(h, 20, 48),
-        seal: hsl(h, 55, 88),
-        dim: hsl(h, 14, 9),
+        bg: hex,
+        text: ink,
+        stamp: ink,
+        seal: ink,
+        dim: ink,
       }
-    }
-
-    function updateRow1Color(palette) {
-      let sheet = document.getElementById('dynamic-row1')
-      if (!sheet) {
-        sheet = document.createElement('style')
-        sheet.id = 'dynamic-row1'
-        document.head.appendChild(sheet)
-      }
-
-      const hueMatch = palette.seal.match(/hsl\((\d+)/)
-      const hue = hueMatch ? parseInt(hueMatch[1], 10) : 120
-      sheet.textContent = `.row-1 .headline { color: hsl(${hue}, 28%, 64%) !important; }`
-    }
-
-    function clearRow1Override() {
-      const sheet = document.getElementById('dynamic-row1')
-      if (sheet) sheet.textContent = ''
     }
 
     function applyPalette(palette) {
       for (const [key, value] of Object.entries(palette)) root.style.setProperty(`--${key}`, value)
-      updateRow1Color(palette)
+      document.body.classList.add('colorized')
     }
 
     function applyDefaultPalette() {
       for (const [key, value] of Object.entries(DEFAULT_PALETTE)) root.style.setProperty(`--${key}`, value)
-      clearRow1Override()
+      document.body.classList.remove('colorized')
     }
 
     const savedColor = localStorage.getItem('paper:color')
@@ -1012,7 +969,7 @@
 
     if (savedColor && colorSwatch) colorSwatch.value = savedColor
     if (colorToggle) colorToggle.checked = savedColorOn
-    if (savedColorOn && savedColor) applyPalette(paletteFromHex(savedColor))
+    if (savedColorOn && colorSwatch) applyPalette(paletteFromHex(colorSwatch.value))
 
     colorToggle?.addEventListener('change', () => {
       const on = colorToggle.checked

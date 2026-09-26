@@ -115,6 +115,25 @@
       font-size: clamp(.8rem, .9vw, .8rem);
       line-height: 1;
     }
+
+    @media (max-width: 600px) {
+      body {
+        padding: .25rem;
+      }
+
+      main {
+        min-height: calc(100svh - .5rem);
+        gap: .25rem;
+      }
+
+      .art-tile {
+        container-type: inline-size;
+      }
+
+      .brand {
+        font-size: min(1.3rem, calc(100cqw / var(--fit-width)), calc(100svh / var(--fit-height)));
+      }
+    }
   </style>
 </head>
 
@@ -122,7 +141,7 @@
   <main>
     <h1>AM</h1>
     <a href="//mikeb.work" class="home">mikeb.work</a>
-    <a href="news-radio.html" aria-label="News radio"><pre class="brand">
+    <a href="news-radio.html" class="art-tile" aria-label="News radio"><pre class="brand" style="--fit-width: 81; --fit-height: 136;">
      ***** *     **                                                                                **
   ******  **    **** *                                                                              **     *
  **   *  * **    ****            **                                                                 **    ***
@@ -141,7 +160,7 @@
 *                                                                                                                           
  **
     </pre></a>
-    <a href="the-paper.html" aria-label="The paper"><pre class="brand">
+    <a href="the-paper.html" class="art-tile" aria-label="The paper"><pre class="brand" style="--fit-width: 62; --fit-height: 114;">
 sdSS_SSSSSSbs   .S    S.     sSSs         .S_sSSs     .S_SSSs     .S_sSSs      sSSs   .S_sSSs
 YSSS~SSSSSSP  .SS    SS.   dSP        .SS~YSb   .SS~SSSSS   .SS~YSb    dSP  .SS~YSb
      SS       SS    SS  dS'          SS   `Sb  SS   SSSS  SS   `Sb  dS'    SS   `Sb
@@ -157,13 +176,13 @@ YSSS~SSSSSSP  .SS    SS.   dSP        .SS~YSb   .SS~SSSSS   .SS~YSb    dSP  .SS~
      SP               SP                 SP                 SP   SP                  SP
      Y                Y                  Y                  Y    Y                   Y
     </pre></a>
-    <a href="headlines.html" aria-label="Headlines"><pre class="brand">
+    <a href="headlines.html" class="art-tile" aria-label="Headlines"><pre class="brand" style="--fit-width: 38; --fit-height: 43;">
    _   _  ____    __    ____  __    ____  _  _  ____  ___
   ( )_( )( ___)  /__\  (  _ \(  )  (_  _)( \( )( ___)/ __)
    ) _ (  )__)  /(__)\  )(_) ))(__  _)(_  )  (  )__) \__ \
   (_) (_)(____)(__)(__)(____/(____)(____)(_)\_)(____)(___/
     </pre></a>
-    <a href="journal.html" aria-label="Journal"><pre class="brand">
+    <a href="journal.html" class="art-tile" aria-label="Journal"><pre class="brand" style="--fit-width: 65; --fit-height: 107;">
         ____         _____     ____   ____      _____  _____   ______          ____    ____        
        |    |   ____|\    \   |    | |    | ___|\    \|\    \ |\     \    ____|\   \  |    |       
        |    |  /     /\    \  |    | |    ||    |\    \\\    \| \     \  /    /\    \ |    |       
