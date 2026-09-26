@@ -23,11 +23,16 @@ function loadTimerInputHelpers() {
   assert.notEqual(end, -1, "timer setup function should exist");
 
   const context = vm.createContext({ Date: FixedDate });
-  vm.runInContext(`${html.slice(start, end)}; this.parseCommand = parseCommand; this.isCountUpCommand = isCountUpCommand;`, context);
+  vm.runInContext(`${html.slice(start, end)}; this.formatTime = formatTime; this.parseCommand = parseCommand; this.isCountUpCommand = isCountUpCommand;`, context);
   return context;
 }
 
-const { parseCommand, isCountUpCommand } = loadTimerInputHelpers();
+const { formatTime, parseCommand, isCountUpCommand } = loadTimerInputHelpers();
+
+test("can omit seconds from timer displays", () => {
+  assert.equal(formatTime(3723, false), "1:02");
+  assert.equal(formatTime(3723), "1:02:03");
+});
 
 test("recognizes + as a count-up timer command", () => {
   assert.equal(isCountUpCommand("+"), true);

@@ -441,13 +441,16 @@
     }
 
     .timer.tiny-mode #timer-list {
-      display: block;
+      display: flex;
       flex: 0 0 auto;
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: baseline;
+      gap: 0.35rem 0.5rem;
       min-height: 0;
       width: 100%;
       overflow: hidden;
-      white-space: nowrap;
-      text-align: center;
     }
 
     .timer.tiny-mode .timer-unit {
@@ -461,7 +464,7 @@
       min-height: 0;
       max-width: 100%;
       width: auto;
-      margin: 0 4px;
+      margin: 0;
       padding: 0 0 0.15rem;
       border-bottom: 1px solid currentColor;
       border-radius: 0;
@@ -510,7 +513,8 @@
     }
 
     #add,
-    #tiny-mode {
+    #tiny-mode,
+    #seconds-toggle {
       padding: 0.2rem 0.4rem;
       border: 0;
       outline: 0;
@@ -522,15 +526,23 @@
       transition: color 120ms ease;
     }
 
-    #tiny-mode {
+    #tiny-mode,
+    #seconds-toggle {
       font-size: 0.8rem;
     }
 
     #add:hover,
     #add:focus-visible,
     #tiny-mode:hover,
-    #tiny-mode:focus-visible {
+    #tiny-mode:focus-visible,
+    #seconds-toggle:hover,
+    #seconds-toggle:focus-visible {
       color: var(--text);
+    }
+
+    .timer-display-options {
+      display: flex;
+      align-items: center;
     }
 
     .timer-unit[draggable="true"] {
@@ -671,7 +683,10 @@
   <main class="timer">
     <div id="timer-list"></div>
     <div class="timer-actions">
-      <button id="tiny-mode" type="button">tiny mode</button>
+      <div class="timer-display-options">
+        <button id="tiny-mode" type="button">tiny mode</button>
+        <button id="seconds-toggle" type="button" aria-pressed="false">show seconds</button>
+      </div>
       <button id="add" type="button" aria-label="Add timer">＋</button>
     </div>
   </main>
@@ -706,19 +721,28 @@
     const timerActions = document.querySelector(".timer-actions");
     const addButton = document.querySelector("#add");
     const tinyModeButton = document.querySelector("#tiny-mode");
+    const secondsToggleButton = document.querySelector("#seconds-toggle");
     const shell = document.querySelector(".timer");
     const mergeDialog = document.querySelector("#merge-dialog");
     const mergeMessage = document.querySelector("#merge-message");
     let mergeRequest = null;
     let tinyMode = false;
     let animateNextResize = false;
+    let tinyResizeFrame = null;
+    let showSeconds = false;
 
-    function formatTime(totalSeconds) {
+    try {
+      showSeconds = localStorage.getItem("showSeconds") === "true";
+    } catch { }
+
+    function formatTime(totalSeconds, includeSeconds = true) {
       const hours = Math.floor(totalSeconds / 3600);
       const minutes = Math.floor((totalSeconds % 3600) / 60);
       const seconds = totalSeconds % 60;
 
-      return `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+      return includeSeconds
+        ? `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
+        : `${hours}:${String(minutes).padStart(2, "0")}`;
     }
 
     function formatClockTime(timestamp) {
@@ -939,11 +963,11 @@
         }
 
         const clockLabel = clockTargetLabel(raw);
-        inputRender.textContent = clockLabel ? `→ until ${clockLabel}` : `→ ${formatTime(seconds)}`;
+        inputRender.textContent = clockLabel ? `→ until ${clockLabel}` : `→ ${formatTime(seconds, showSeconds)}`;
       }
 
       function render() {
-        command.value = formatTime(remainingSeconds);
+        command.value = formatTime(remainingSeconds, showSeconds);
         const timerName = label.value.trim() || "untitled";
         tinySummary.textContent = `${timerName} ${command.value}`;
         const proximity = countingUp
@@ -1109,7 +1133,7 @@
         timer.remove();
       }
 
-      timer.timerState = { currentSeconds, pause, setMergedSeconds, destroy, snapshot, restore, isRunning: () => running };
+      timer.timerState = { currentSeconds, pause, setMergedSeconds, destroy, snapshot, restore, render, isRunning: () => running };
 
       timer.addEventListener("click", event => {
         if (!tinyMode) return;
@@ -1304,22 +1328,31 @@
       const paddingTop = parseFloat(shellStyle.paddingTop) || 0;
       const paddingBottom = parseFloat(shellStyle.paddingBottom) || 0;
 
-      let timersHeight = 0;
       const timerUnits = timerList.querySelectorAll(".timer-unit");
-      timerUnits.forEach(unit => {
-        timersHeight += unit.offsetHeight;
-      });
+      let listContentHeight;
+      if (tinyMode) {
+        // Tiny summaries wrap onto additional lines as the user narrows the
+        // window, so measure the laid-out list instead of treating every
+        // timer as though it occupies a single vertical row.
+        listContentHeight = timerList.getBoundingClientRect().height;
+      } else {
+        let timersHeight = 0;
+        timerUnits.forEach(unit => {
+          timersHeight += unit.offsetHeight;
+        });
 
-      const listStyle = getComputedStyle(timerList);
-      const gap = parseFloat(listStyle.gap) || 0;
-      const totalGap = timerUnits.length > 1 ? (timerUnits.length - 1) * gap : 0;
-      const listPaddingY = (parseFloat(listStyle.paddingTop) || 0) + (parseFloat(listStyle.paddingBottom) || 0);
+        const listStyle = getComputedStyle(timerList);
+        const gap = parseFloat(listStyle.gap) || 0;
+        const totalGap = timerUnits.length > 1 ? (timerUnits.length - 1) * gap : 0;
+        const listPaddingY = (parseFloat(listStyle.paddingTop) || 0) + (parseFloat(listStyle.paddingBottom) || 0);
+        listContentHeight = listPaddingY + timersHeight + totalGap;
+      }
 
       const actionsHeight = timerActions.getBoundingClientRect().height;
       const actionsStyle = getComputedStyle(timerActions);
       const actionsMarginY = (parseFloat(actionsStyle.marginTop) || 0) + (parseFloat(actionsStyle.marginBottom) || 0);
 
-      const totalContentHeight = paddingTop + paddingBottom + listPaddingY + timersHeight + totalGap + actionsHeight + actionsMarginY;
+      const totalContentHeight = paddingTop + paddingBottom + listContentHeight + actionsHeight + actionsMarginY;
 
       window.timerWindow.resizeToContent(
         totalContentHeight,
@@ -1328,6 +1361,14 @@
       );
       animateNextResize = false;
     }
+
+    window.addEventListener("resize", () => {
+      if (!tinyMode || tinyResizeFrame !== null) return;
+      tinyResizeFrame = requestAnimationFrame(() => {
+        tinyResizeFrame = null;
+        syncWindowSize();
+      });
+    });
 
     function setInputsForTinyMode(enabled) {
       timerList.querySelectorAll(".timer-unit").forEach(timer => {
@@ -1401,7 +1442,7 @@
       if (!sourceSeconds || !targetSeconds || source === target) return;
 
       mergeRequest = { source, target, sourceSeconds, targetSeconds };
-      mergeMessage.textContent = `Merge ${formatTime(sourceSeconds)} into ${formatTime(targetSeconds)}?`;
+      mergeMessage.textContent = `Merge ${formatTime(sourceSeconds, showSeconds)} into ${formatTime(targetSeconds, showSeconds)}?`;
       mergeDialog.hidden = false;
       mergeDialog.querySelector('[data-merge-action="add"]').focus();
     }
@@ -1618,6 +1659,22 @@
         enterTinyMode();
       }
     });
+
+    function syncSecondsToggle() {
+      secondsToggleButton.textContent = showSeconds ? "hide seconds" : "show seconds";
+      secondsToggleButton.setAttribute("aria-pressed", String(showSeconds));
+    }
+
+    secondsToggleButton.addEventListener("click", () => {
+      showSeconds = !showSeconds;
+      try {
+        localStorage.setItem("showSeconds", String(showSeconds));
+      } catch { }
+      syncSecondsToggle();
+      timerList.querySelectorAll(".timer-unit").forEach(timer => timer.timerState.render());
+    });
+
+    syncSecondsToggle();
 
     document.addEventListener("keydown", event => {
       if (tinyMode && event.key === "Escape") {

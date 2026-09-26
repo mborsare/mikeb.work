@@ -5,7 +5,6 @@ const path = require("node:path");
 let win;
 let saveTimer;
 
-const MIN_WIDTH = 420;
 const SCREEN_EDGE_BUFFER = 24;
 const TRANSPARENT_BACKGROUND = "#00000000";
 
@@ -25,8 +24,7 @@ function loadState() {
   return {
     width: 760,
     height: 180,
-    ...saved,
-    width: Math.max(saved.width || 760, MIN_WIDTH)
+    ...saved
   };
 }
 
@@ -47,7 +45,6 @@ function saveState() {
 function createWindow() {
   win = new BrowserWindow({
     ...loadState(),
-    minWidth: MIN_WIDTH,
     frame: false,
     transparent: true,
     backgroundColor: TRANSPARENT_BACKGROUND,
