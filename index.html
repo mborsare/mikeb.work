@@ -24,11 +24,11 @@
       --type-xl: clamp(1.4rem, 1.08rem + 1.35vw, 2rem);
       --type-ascii: clamp(0.62rem, 0.46rem + 0.7vw, 1rem);
 
-      /* derived button colors */
+      /* palette contrast colors */
       --btn-fill: color-mix(in hsl,
           var(--bg),
           var(--seal) 20%);
-      --btn-text: #ffffff;
+      --aaa-text: #ffffff;
     }
 
     html {
@@ -91,6 +91,32 @@
 
     .list-item {
       padding: 0.5rem 1rem;
+    }
+
+    .list-item.is-highlighted {
+      color: var(--aaa-text);
+    }
+
+    .doctrine-highlight {
+      position: relative;
+      display: inline-block;
+      isolation: isolate;
+      max-width: 100%;
+      padding: 0.1rem 0.45rem;
+    }
+
+    .doctrine-highlight::before {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      inset: -0.15rem -0.2rem;
+      background:
+        radial-gradient(circle, color-mix(in srgb, var(--seal) 24%, transparent) 0 0.35px, transparent 0.7px) 0 0 / 3px 3px,
+        color-mix(in srgb, var(--seal) 10%, var(--bg));
+      clip-path: polygon(1% 12%, 7% 3%, 24% 5%, 43% 1%, 69% 4%, 94% 1%, 99% 14%, 97% 36%, 100% 53%, 98% 81%, 95% 97%, 73% 93%, 54% 99%, 32% 94%, 11% 98%, 2% 89%, 3% 68%, 0 46%);
+      mask-image: radial-gradient(ellipse 82% 90% at center, #000 62%, transparent 100%);
+      transform: rotate(-0.4deg);
+      pointer-events: none;
     }
 
     .list-item::after {
@@ -296,6 +322,31 @@
       line-height: 1.4;
       margin: 0;
     }
+
+    .missive-text {
+      position: relative;
+      display: inline-block;
+      max-width: 100%;
+    }
+
+    .missive-text::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -0.12em;
+      height: 0.242em;
+      background:
+        radial-gradient(circle, color-mix(in srgb, var(--seal) 24%, transparent) 0 0.35px, transparent 0.7px) 0 0 / 3px 3px,
+        color-mix(in srgb, var(--seal) 10%, var(--bg));
+      clip-path: polygon(0 24%, 6% 14%, 19% 30%, 36% 8%, 53% 26%, 71% 12%, 88% 27%, 100% 18%, 100% 84%, 81% 96%, 61% 77%, 44% 100%, 25% 79%, 8% 94%, 0 82%);
+      transform: rotate(var(--underline-angle));
+      pointer-events: none;
+    }
+
+    .missive:nth-child(1) { --underline-angle: -1.2deg; }
+    .missive:nth-child(2) { --underline-angle: 0.8deg; }
+    .missive:nth-child(3) { --underline-angle: -0.5deg; }
 
     .currently-reading {
       max-width: 42rem;
@@ -619,9 +670,9 @@
 ▗▄▄▞▘▝▚▄▞▘▝▚▄▄▖▝▚▄▄▖▐▙▄▄▖▗▄▄▞▘▗▄▄▞▘    ▗▄█▄▖▗▄▄▞▘
       </pre>
       <div class="missives">
-        <div class="missive">Show up</div>
-        <div class="missive">Participate up to 3 trades</div>
-        <div class="missive">Build, improve, and make</div>
+        <div class="missive"><span class="missive-text">Show up</span></div>
+        <div class="missive"><span class="missive-text">Participate up to 3 trades</span></div>
+        <div class="missive"><span class="missive-text">Build, improve, and make</span></div>
       </div>
     </div>
     <h2 class="sr-only">Doctrine</h2>
@@ -758,6 +809,12 @@
     ];
 
     // ---- Load doctrine items from JSON ----
+    const highlightedDoctrineItems = new Set([
+      'Show up',
+      'Participate up to 3 trades',
+      'Build, improve, and make'
+    ]);
+
     function renderDoctrineItems(data) {
       const container = document.getElementById('doctrine');
       if (!container) {
@@ -778,7 +835,13 @@
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;');
-          return `<div class="list-item">${escaped}</div>`;
+          const className = highlightedDoctrineItems.has(text)
+            ? 'list-item is-highlighted'
+            : 'list-item';
+          const content = highlightedDoctrineItems.has(text)
+            ? `<span class="doctrine-highlight">${escaped}</span>`
+            : escaped;
+          return `<div class="${className}">${content}</div>`;
         })
         .join('');
 
@@ -1308,7 +1371,7 @@
       );
 
       root.style.setProperty(
-        '--btn-text',
+        '--aaa-text',
         bgLight < 50 ? '#ffffff' : '#000000'
       );
       root.style.setProperty(
