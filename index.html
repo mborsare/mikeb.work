@@ -278,10 +278,7 @@
     }
 
     #palette-score {
-      background: var(--text);
-      color: var(--bg);
       padding: .5rem 3rem;
-      border-radius: .5rem;
       cursor: pointer;
       touch-action: manipulation;
       user-select: none;
@@ -509,8 +506,30 @@
       box-shadow: 0 0 0 1px color-mix(in srgb, var(--seal) 45%, transparent);
     }
 
-    nav a {
+    nav a,
+    nav button {
       justify-self: center;
+    }
+
+    :is(nav button, #palette-score, #prime-tv-maximize) {
+      border: 0.12em solid currentColor;
+      border-radius: 0.8em;
+      font: inherit;
+      cursor: pointer;
+      color: var(--seal);
+      background: transparent;
+      box-shadow: none;
+      transition: background-color 0.15s ease, filter 0.15s ease;
+    }
+
+    nav button {
+      padding: 0.4rem 0.75rem;
+    }
+
+    :is(nav button, #palette-score, #prime-tv-maximize):hover,
+    :is(nav button, #palette-score, #prime-tv-maximize):focus-visible {
+      background: color-mix(in srgb, var(--seal) 12%, transparent);
+      filter: brightness(1.25);
     }
 
     .resource-link {
@@ -529,7 +548,8 @@
       color: var(--text);
     }
 
-    a:focus-visible {
+    a:focus-visible,
+    :is(nav button, #palette-score, #prime-tv-maximize):focus-visible {
       outline: 1px solid var(--seal);
       outline-offset: 2px;
     }
@@ -673,6 +693,11 @@
       color: var(--seal);
     }
 
+    .bio-ascii {
+      font-size: min(var(--type-ascii), 1.6vw);
+      margin-bottom: 1.5rem;
+    }
+
     .site-controls {
       position: sticky;
       top: 0.5rem;
@@ -734,7 +759,7 @@
     <div class="site-controls">
       <div class="arcade-action">
         <span id="palette-score" role="button" tabindex="0">1 credit</span>
-        <span id="arcade-hint" class="arcade-hint">Tap to play for points</span>
+        <span id="arcade-hint" class="arcade-hint">Tap to play!</span>
       </div>
 
       <label class="sound-mute-label">
@@ -754,8 +779,8 @@
                                      ▀     
 </pre>
       <nav>
-        <a href="#" id="sortNav">[ S O R T ] </a>
-        <a href="#" id="randomNav">[ M I X - U P ]</a>
+        <button type="button" id="sortNav" aria-label="Sort links">SORT</button>
+        <button type="button" id="randomNav" aria-label="Mix up links">MIX-UP</button>
         <a href="am.html" class="ascii">a.m.</a>
         <a href="jesse.html" class="ascii">Lefevre</a>
         <a href="teller.html" class="ascii">William Teller</a>
@@ -786,6 +811,14 @@
       </nav>
 
       <header class="site-intro">
+        <!-- prettier-ignore -->
+        <pre class="ascii-heading bio-ascii" aria-hidden="true"> ▄▀▀█▀▄    ▄▀▀█▄▄   ▄▀▀█▄▄▄▄  ▄▀▀▄ ▀▄  ▄▀▀▀█▀▀▄  ▄▀▀█▀▄    ▄▀▀▀█▀▀▄  ▄▀▀▄ ▀▀▄
+█   █  █  █ ▄▀   █ ▐  ▄▀   ▐ █  █ █ █ █    █  ▐ █   █  █  █    █  ▐ █   ▀▄ ▄▀
+▐   █  ▐  ▐ █    █   █▄▄▄▄▄  ▐  █  ▀█ ▐   █     ▐   █  ▐  ▐   █     ▐     █
+    █       █    █   █    ▌    █   █     █          █        █            █
+ ▄▀▀▀▀▀▄   ▄▀▄▄▄▄▀  ▄▀▄▄▄▄   ▄▀   █    ▄▀        ▄▀▀▀▀▀▄   ▄▀           ▄▀
+█       █ █     ▐   █    ▐   █    ▐   █         █       █ █             █
+▐       ▐ ▐         ▐        ▐        ▐         ▐       ▐ ▐             ▐</pre>
         <h1>mikeb.work is Mike Borsare, Mike Borsare is:</h1>
         <p>
           Operator &gt; Trader &gt; Gambler &gt; Lost &gt; Product designer &gt;
@@ -1861,9 +1894,7 @@
         );
       }
 
-      sortBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-
+      sortBtn.addEventListener('click', () => {
         const links = getLinks();
 
         links.sort((a, b) =>
@@ -1876,9 +1907,7 @@
         asc = !asc;
       });
 
-      randomBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-
+      randomBtn.addEventListener('click', () => {
         const links = getLinks();
 
         for (let i = links.length - 1; i > 0; i--) {
