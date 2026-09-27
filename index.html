@@ -95,28 +95,74 @@
 
     .list-item.is-highlighted {
       color: var(--aaa-text);
+      font-weight: 700;
     }
 
-    .doctrine-highlight {
+    .list-item.is-highlighted:nth-child(3n) {
+      --scribble-angle: 1.5deg;
+      --scribble-angle-2: -1deg;
+    }
+
+    .list-item.is-highlighted:nth-child(3n + 1) {
+      --scribble-angle: -2.2deg;
+      --scribble-angle-2: 1.8deg;
+    }
+
+    .doctrine-scribble {
       position: relative;
       display: inline-block;
-      isolation: isolate;
       max-width: 100%;
-      padding: 0.1rem 0.45rem;
     }
 
-    .doctrine-highlight::before {
+    .doctrine-scribble::before,
+    .doctrine-scribble::after {
       content: "";
       position: absolute;
-      z-index: -1;
-      inset: -0.15rem -0.2rem;
-      background:
-        radial-gradient(circle, color-mix(in srgb, var(--seal) 24%, transparent) 0 0.35px, transparent 0.7px) 0 0 / 3px 3px,
-        color-mix(in srgb, var(--seal) 10%, var(--bg));
-      clip-path: polygon(1% 12%, 7% 3%, 24% 5%, 43% 1%, 69% 4%, 94% 1%, 99% 14%, 97% 36%, 100% 53%, 98% 81%, 95% 97%, 73% 93%, 54% 99%, 32% 94%, 11% 98%, 2% 89%, 3% 68%, 0 46%);
-      mask-image: radial-gradient(ellipse 82% 90% at center, #000 62%, transparent 100%);
-      transform: rotate(-0.4deg);
+      left: -0.1em;
+      width: calc(100% + 0.2em);
+      background: currentColor;
       pointer-events: none;
+    }
+
+    .doctrine-scribble::before {
+      bottom: -0.15em;
+      height: 0.18em;
+      opacity: 0.7;
+      clip-path: polygon(0 42%, 7% 16%, 15% 54%, 24% 11%, 34% 47%, 43% 22%, 53% 58%, 62% 13%, 72% 45%, 81% 18%, 91% 55%, 100% 27%, 100% 66%, 91% 86%, 81% 49%, 72% 78%, 62% 43%, 53% 88%, 43% 53%, 34% 77%, 24% 40%, 15% 84%, 7% 47%, 0 73%);
+      transform: rotate(var(--scribble-angle, -1.4deg));
+    }
+
+    .doctrine-scribble::after {
+      bottom: -0.2em;
+      height: 0.12em;
+      clip-path: polygon(0 58%, 9% 34%, 19% 69%, 29% 22%, 38% 64%, 49% 31%, 60% 71%, 70% 27%, 80% 65%, 90% 36%, 100% 61%, 100% 88%, 90% 63%, 80% 91%, 70% 54%, 60% 96%, 49% 57%, 38% 89%, 29% 49%, 19% 95%, 9% 60%, 0 85%);
+      transform: rotate(var(--scribble-angle-2, 1.1deg));
+    }
+
+    .doctrine-scribble-edge::before,
+    .doctrine-scribble-edge::after {
+      content: "";
+      position: absolute;
+      background: currentColor;
+      pointer-events: none;
+    }
+
+    .doctrine-scribble-edge::before {
+      bottom: var(--edge-left-bottom, -0.26em);
+      left: var(--edge-left-offset, -0.55em);
+      width: var(--edge-left-size, 0.5em);
+      height: var(--edge-left-size, 0.5em);
+      clip-path: var(--edge-left-shape, polygon(0 10%, 18% 3%, 43% 36%, 53% 0, 67% 5%, 57% 52%, 100% 31%, 100% 48%, 55% 72%, 77% 97%, 62% 100%, 37% 67%, 6% 90%, 0 74%, 32% 51%));
+      transform: rotate(var(--edge-left-tilt, -14deg));
+    }
+
+    .doctrine-scribble-edge::after {
+      bottom: var(--edge-right-bottom, -0.26em);
+      right: var(--edge-right-offset, -0.55em);
+      width: var(--edge-right-size, 0.5em);
+      height: var(--edge-right-size, 0.5em);
+      clip-path: var(--edge-right-shape, polygon(0 10%, 18% 3%, 43% 36%, 53% 0, 67% 5%, 57% 52%, 100% 31%, 100% 48%, 55% 72%, 77% 97%, 62% 100%, 37% 67%, 6% 90%, 0 74%, 32% 51%));
+      transform: rotate(var(--edge-right-tilt, 162deg));
     }
 
     .list-item::after {
@@ -147,43 +193,29 @@
       color: var(--seal);
     }
 
-    .glitch-clock {
-      position: relative;
-      display: inline-block;
+    .footer-ascii {
+      font-size: 0.4rem;
+      margin-top: 9rem;
+      font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+    }
+
+    .clock {
       color: var(--seal);
-      opacity: 0.35;
-      filter: blur(0.25px);
-      will-change: opacity, transform, filter;
-      text-shadow:
-        1px 0 var(--stamp),
-        -1px 0 var(--bg);
     }
 
-    .glitch-clock::before,
-    .glitch-clock::after {
-      content: attr(data-text);
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      opacity: 0;
-      white-space: nowrap;
+    .webring {
+      display: flex;
+      justify-content: center;
+      margin-top: 10rem;
     }
 
-    .glitch-clock::before {
-      color: var(--stamp);
-      clip-path: inset(0 0 52% 0);
-      transform: translate(var(--glitch-x1, 2px), var(--glitch-y1, 0));
+    .webring a {
+      font-size: 0.8rem;
     }
 
-    .glitch-clock::after {
+    .webring span {
       color: var(--seal);
-      clip-path: inset(48% 0 0 0);
-      transform: translate(var(--glitch-x2, -2px), var(--glitch-y2, 0));
-    }
-
-    .glitch-clock.is-glitching::before,
-    .glitch-clock.is-glitching::after {
-      opacity: 0.75;
+      padding: 0 2em;
     }
 
     /* ---- MOBILE TAP FIX ---- */
@@ -257,6 +289,20 @@
 
     #palette-score:active {
       scale: 0.9;
+    }
+
+    .arcade-action {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .arcade-hint {
+      color: var(--seal);
+      font-size: var(--type-xs);
+      line-height: 1.2;
+      margin-top: 0.8rem;
+      transform: rotate(var(--mjb-tilt, -7deg));
     }
 
     /* ---- Boomshakalaka slam ---- */
@@ -344,9 +390,17 @@
       pointer-events: none;
     }
 
-    .missive:nth-child(1) { --underline-angle: -1.2deg; }
-    .missive:nth-child(2) { --underline-angle: 0.8deg; }
-    .missive:nth-child(3) { --underline-angle: -0.5deg; }
+    .missive:nth-child(1) {
+      --underline-angle: -1.2deg;
+    }
+
+    .missive:nth-child(2) {
+      --underline-angle: 0.8deg;
+    }
+
+    .missive:nth-child(3) {
+      --underline-angle: -0.5deg;
+    }
 
     .currently-reading {
       max-width: 42rem;
@@ -436,6 +490,39 @@
 
     a {
       color: var(--seal);
+      text-decoration: none;
+      padding: 0.15rem 0.4rem;
+      background:
+        radial-gradient(circle, color-mix(in srgb, var(--seal) 28%, transparent) 0 0.35px, transparent 0.7px) 0 0 / 3px 3px,
+        color-mix(in srgb, var(--seal) 16%, var(--bg));
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--seal) 20%, transparent);
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+      transition: box-shadow 0.15s ease;
+    }
+
+    a:hover,
+    a:focus-visible {
+      background:
+        radial-gradient(circle, color-mix(in srgb, var(--seal) 35%, transparent) 0 0.35px, transparent 0.7px) 0 0 / 3px 3px,
+        color-mix(in srgb, var(--seal) 30%, var(--bg));
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--seal) 45%, transparent);
+    }
+
+    nav a {
+      justify-self: center;
+    }
+
+    .resource-link {
+      display: block;
+      width: fit-content;
+      margin: 0 auto;
+    }
+
+    .parts-heading {
+      text-transform: uppercase;
+      letter-spacing: .2rem;
+      font-size: 1rem;
     }
 
     a:active {
@@ -575,10 +662,44 @@
 
     .ascii-heading {
       display: block;
+      width: fit-content;
+      margin-inline: auto;
       white-space: pre;
+      text-align: left;
+      font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+      font-variant-ligatures: none;
       font-size: var(--type-ascii);
       line-height: 1;
       color: var(--seal);
+    }
+
+    .site-controls {
+      position: sticky;
+      top: 0.5rem;
+      background: var(--bg);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem 2rem;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      padding: 0.5rem 0;
+    }
+
+    .sound-mute-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    #sound-mute {
+      margin: 0;
+    }
+
+    .workshop {
+      padding: 1rem;
     }
   </style>
 </head>
@@ -598,16 +719,30 @@
     <div id="prime-tv-status" class="prime-tv__status">checking broadcast…</div>
   </section>
   <div class="container">
-    <div
-      style="position: sticky; top: 0.5rem; background: var(--bg); display: flex; flex-wrap: wrap; gap: 1rem 2rem; align-items: center; justify-content: center; z-index: 999; padding: 0.5rem 0px;">
-      <span id="palette-score" role="button" tabindex="0">Keep score</span>
+    <h2 class="sr-only">Arcade</h2>
+    <!-- prettier-ignore -->
+    <pre class="ascii-heading" aria-hidden="true"> ▄▄▄       ██▀███   ▄████▄   ▄▄▄      ▓█████▄ ▓█████
+▒████▄    ▓██ ▒ ██▒▒██▀ ▀█  ▒████▄    ▒██▀ ██▌▓█   ▀
+▒██  ▀█▄  ▓██ ░▄█ ▒▒▓█    ▄ ▒██  ▀█▄  ░██   █▌▒███
+░██▄▄▄▄██ ▒██▀▀█▄  ▒▓▓▄ ▄██▒░██▄▄▄▄██ ░▓█▄   ▌▒▓█  ▄
+ ▓█   ▓██▒░██▓ ▒██▒▒ ▓███▀ ░ ▓█   ▓██▒░▒████▓ ░▒████▒
+ ▒▒   ▓▒█░░ ▒▓ ░▒▓░░ ░▒ ▒  ░ ▒▒   ▓▒█░ ▒▒▓  ▒ ░░ ▒░ ░
+  ▒   ▒▒ ░  ░▒ ░ ▒░  ░  ▒     ▒   ▒▒ ░ ░ ▒  ▒  ░ ░  ░
+  ░   ▒     ░░   ░ ░          ░   ▒    ░ ░  ░    ░
+      ░  ░   ░     ░ ░            ░  ░   ░       ░  ░
+                   ░                   ░</pre>
+    <div class="site-controls">
+      <div class="arcade-action">
+        <span id="palette-score" role="button" tabindex="0">1 credit</span>
+        <span id="arcade-hint" class="arcade-hint">Tap to play for points</span>
+      </div>
 
-      <label style="display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; line-height: 1;">
-        <input style="margin: 0;" type="checkbox" id="sound-mute">
+      <label class="sound-mute-label">
+        <input type="checkbox" id="sound-mute">
         <span>Mute sounds</span>
       </label>
     </div>
-    <div style="padding:1rem;">
+    <div class="workshop">
       <h2 class="sr-only">Workshop</h2>
       <!-- prettier-ignore -->
       <pre class="ascii-heading" aria-hidden="true">
@@ -647,7 +782,7 @@
         <a href="posters.html" class="ascii">Posters</a>
         <a href="netflix.html" class="ascii">Netfix</a>
         <a href="jumble.html" class="ascii">Jumble</a>
-        <a href="mailto:mb@mikeb.work" style="color: var(--seal);">💌 Email Mike</a>
+        <a href="mailto:mb@mikeb.work">💌 Email Mike</a>
       </nav>
 
       <header class="site-intro">
@@ -683,15 +818,15 @@
 ████▀ ▀███▀ ▀████   ██   ██ ██ ██ ██ ▀██ ██▄▄▄ 
 </pre>
     <div id="doctrine"></div>
-    <h2 style="text-transform: uppercase; letter-spacing: .2rem; font-size: 1rem;">Parts and pieces</h2>
-    <a href="/backoffice/doctrine.json" style="color: var(--stamp); display: block;">Raw doctrine:
+    <h2 class="parts-heading">Parts and pieces</h2>
+    <a href="/backoffice/doctrine.json" class="resource-link">Raw doctrine:
       /backoffice/doctrine.json</a>
-    <a href="//github.com/mborsare/mikeb.work" style="color: var(--stamp); display: block;">Open source and version
+    <a href="//github.com/mborsare/mikeb.work" class="resource-link">Open source and version
       controlled</a>
     <a href="//patorjk.com/software/taag/#p=testall&f=Graffiti&t=mikeb.work&x=none&v=4&h=4&w=80&we=true"
-      style="color: var(--stamp); display: block;">Ascii made with taag</a>
+      class="resource-link">Ascii made with taag</a>
     <!-- prettier-ignore -->
-    <pre class="ascii" style="font-size:0.4rem; margin-top: 9rem;">
+    <pre class="ascii footer-ascii">
       ██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████ 
       ▓██░  ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█   ▀ 
       ▓██░ ██▓▒▓██ ░▄█ ▒▒██▒▓██    ▓██░▒███   
@@ -702,12 +837,10 @@
       ░░         ░░   ░  ▒ ░░      ░      ░   
                   ░      ░         ░      ░  ░
     </pre>
-    <time id="clock" class="glitch-clock" data-nosnippet></time>
-    <div>
-      <a href="https://hotlinewebring.club/mikeb/previous" style="color: var(--seal); font-size: 0.8rem;">
-        < Previous</a>
-          <span style="color: var(--seal); padding: 0 2em;">Proud member of Hotline Webring</span>
-          <a href="https://hotlinewebring.club/mikeb/next" style="color: var(--seal); font-size: 0.8rem;">Next ></a>
+    <time id="clock" class="clock" data-nosnippet></time>
+    <div class="webring"><a href="https://hotlinewebring.club/mikeb/previous">Previous</a>
+      <span>Proud member of Hotline Webring</span>
+      <a href="https://hotlinewebring.club/mikeb/next">Next</a>
     </div>
   </div>
 
@@ -839,7 +972,7 @@
             ? 'list-item is-highlighted'
             : 'list-item';
           const content = highlightedDoctrineItems.has(text)
-            ? `<span class="doctrine-highlight">${escaped}</span>`
+            ? `<span class="doctrine-scribble"><span class="doctrine-scribble-edge">${escaped}</span></span>`
             : escaped;
           return `<div class="${className}">${content}</div>`;
         })
@@ -869,6 +1002,12 @@
     // ---- Stamp jitter ----
     function randomizeStamps() {
       const items = document.querySelectorAll('.list-item');
+      const edgeShapes = [
+        'polygon(0 10%, 18% 3%, 43% 36%, 53% 0, 67% 5%, 57% 52%, 100% 31%, 100% 48%, 55% 72%, 77% 97%, 62% 100%, 37% 67%, 6% 90%, 0 74%, 32% 51%)',
+        'polygon(8% 0, 42% 27%, 28% 4%, 53% 30%, 78% 0, 91% 11%, 63% 48%, 100% 59%, 94% 75%, 52% 63%, 35% 100%, 18% 92%, 41% 55%, 0 34%)',
+        'polygon(0 42%, 31% 30%, 6% 7%, 19% 0, 49% 25%, 76% 0, 89% 11%, 67% 42%, 100% 54%, 95% 70%, 61% 58%, 79% 93%, 65% 100%, 47% 65%, 16% 91%, 5% 78%, 32% 53%)',
+        'polygon(0 17%, 16% 2%, 41% 32%, 56% 0, 71% 8%, 59% 45%, 98% 24%, 100% 41%, 62% 63%, 85% 89%, 70% 100%, 47% 72%, 19% 100%, 7% 86%, 35% 56%)'
+      ];
 
       function disciplined() {
         const e = Math.pow(Math.random(), 3);
@@ -883,13 +1022,34 @@
         return {x: Math.random() * 70 - 35, y: Math.random() * 70 - 35, tilt: Math.random() * 80 - 40};
       }
 
-      items.forEach(item => {
+      function mjbJitter() {
         const r = Math.random();
-        const s = r < 0.9 ? disciplined() : r < 0.98 ? sloppy() : unhinged();
+        return r < 0.9 ? disciplined() : r < 0.98 ? sloppy() : unhinged();
+      }
+
+      items.forEach(item => {
+        const s = mjbJitter();
         item.style.setProperty('--mjb-x', `${s.x}px`);
         item.style.setProperty('--mjb-y', `${s.y}px`);
         item.style.setProperty('--mjb-tilt', `${s.tilt}deg`);
+
+        const doodle = item.querySelector('.doctrine-scribble-edge');
+        if (!doodle) return;
+        for (const side of ['left', 'right']) {
+          const size = 0.35 + Math.random() * 0.3;
+          const tilt = (side === 'left' ? -14 : 162) + Math.random() * 60 - 30;
+          doodle.style.setProperty(`--edge-${side}-shape`, edgeShapes[Math.floor(Math.random() * edgeShapes.length)]);
+          doodle.style.setProperty(`--edge-${side}-size`, `${size}em`);
+          doodle.style.setProperty(`--edge-${side}-offset`, `${-size - 0.05}em`);
+          doodle.style.setProperty(`--edge-${side}-bottom`, `${-0.18 - Math.random() * 0.16}em`);
+          doodle.style.setProperty(`--edge-${side}-tilt`, `${tilt}deg`);
+        }
       });
+
+      const arcadeHint = document.getElementById('arcade-hint');
+      if (arcadeHint) {
+        arcadeHint.style.setProperty('--mjb-tilt', `${mjbJitter().tilt}deg`);
+      }
     }
 
     // Load doctrine items on page load
@@ -1390,13 +1550,14 @@
     (() => {
       const btn = document.getElementById('palette-btn');
       const scoreEl = document.getElementById('palette-score');
+      const arcadeHint = document.getElementById('arcade-hint');
       const toast = document.getElementById('toast');
       const soundMute = document.getElementById('sound-mute');
       const disabledOverlay = document.getElementById('palette-disabled-overlay');
 
       if (!scoreEl) return;
 
-      const SCORE_IDLE_TEXT = 'Keep score';
+      const SCORE_IDLE_TEXT = '1 credit';
       const SCORE_ACTIVE_MS = 5000;
       const SCORE_RESET_GRACE_MS = 3000;
 
@@ -1410,6 +1571,11 @@
       let pendingUpdates = 0;
 
       scoreEl.textContent = SCORE_IDLE_TEXT;
+
+      function showScore() {
+        scoreEl.textContent = `${score} ${score === 1 ? 'point' : 'points'}`;
+        if (arcadeHint) arcadeHint.textContent = score >= 99 ? 'BOOM SHAKA LAKA' : 'Keep tapping to score';
+      }
 
       const SOUND_PATHS_PREUNLOCK = [
         '/backoffice/the-stacks/reset.wav',
@@ -1426,6 +1592,7 @@
         previousScore = 0;
         pendingUpdates = 0;
         scoreEl.textContent = SCORE_IDLE_TEXT;
+        if (arcadeHint) arcadeHint.textContent = 'Tap to play for points';
       }
 
       function preventZoom(e) {
@@ -1546,7 +1713,7 @@
 
         previousScore = score;
         score += pointsEarned;
-        scoreEl.textContent = score;
+        showScore();
 
         requestAnimationFrame(() => {
           applyRandomPalette();
@@ -1609,7 +1776,7 @@
             showToast('Next checkpoint +30');
           } else if (score >= 1 && previousScore < 1) {
             playSound('/backoffice/the-stacks/checkpoint.m4a');
-            showToast('+1! Next checkpoint +15');
+            showToast(`Credit used · +${pointsEarned} ${pointsEarned === 1 ? 'point' : 'points'} · next 15`);
           }
 
           startResetTimer();
@@ -1658,107 +1825,24 @@
         addPoints();
       });
     })();
-    // ---- Clocks + glitch ----
+    // ---- Clock ----
     (() => {
-      const liveClock = document.getElementById('clock');
-      const glitchClocks = [...document.querySelectorAll('.glitch-clock')];
-
-      if (!liveClock && glitchClocks.length === 0) return;
-
-      let clockTimerId;
-      const restoreTimers = new WeakMap();
-
-      function primeTvIsPlaying() {
-        const video = document.getElementById('prime-tv-video');
-        return Boolean(video && !video.paused && !video.ended && video.readyState >= 3);
-      }
-
-      function setClockText(el, text) {
-        if (!el) return;
-        el.textContent = text;
-        el.dataset.text = text;
-      }
+      const clock = document.getElementById('clock');
+      if (!clock) return;
 
       function updateClock() {
-        if (!liveClock) return;
-
         const now = new Date();
         const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        const text =
+        clock.textContent =
           `${days[now.getDay()]} ${months[now.getMonth()]} ${now.getDate()} ` +
           `${String(now.getHours()).padStart(2, '0')}:` +
           `${String(now.getMinutes()).padStart(2, '0')}:` +
-          `${String(now.getSeconds()).padStart(2, '0')}:` +
-          `${String(now.getMilliseconds()).padStart(3, '0')}`;
-
-        setClockText(liveClock, text);
-
-        clearTimeout(clockTimerId);
-        clockTimerId = setTimeout(updateClock, primeTvIsPlaying() ? 1000 : 50);
+          `${String(now.getSeconds()).padStart(2, '0')}`;
       }
-
-      function settleClock(clock, opacity = 0.35, filter = 'blur(0.25px)') {
-        if (!clock) return;
-
-        const existingTimer = restoreTimers.get(clock);
-        if (existingTimer) clearTimeout(existingTimer);
-
-        clock.classList.remove('is-glitching');
-        clock.style.opacity = opacity;
-        clock.style.transform = 'none';
-        clock.style.filter = filter;
-      }
-
-      function glitchOne(clock) {
-        const hit = Math.random() < 0.18;
-        if (!hit) return;
-
-        const existingTimer = restoreTimers.get(clock);
-        if (existingTimer) clearTimeout(existingTimer);
-
-        const x = (Math.random() * 6 - 3).toFixed(2);
-        const y = (Math.random() * 3 - 1.5).toFixed(2);
-        const skew = (Math.random() * 8 - 4).toFixed(2);
-        const blur = (Math.random() * 1.2).toFixed(2);
-
-        clock.classList.add('is-glitching');
-        clock.style.opacity = 0.55 + Math.random() * 0.4;
-        clock.style.transform = `translate(${x}px, ${y}px) skewX(${skew}deg)`;
-        clock.style.filter = `blur(${blur}px)`;
-
-        clock.style.setProperty('--glitch-x1', `${Math.random() * 8 - 4}px`);
-        clock.style.setProperty('--glitch-y1', `${Math.random() * 4 - 2}px`);
-        clock.style.setProperty('--glitch-x2', `${Math.random() * 8 - 4}px`);
-        clock.style.setProperty('--glitch-y2', `${Math.random() * 4 - 2}px`);
-
-        const restoreTimer = setTimeout(() => {
-          settleClock(clock);
-          restoreTimers.delete(clock);
-        }, 45 + Math.random() * 90);
-
-        restoreTimers.set(clock, restoreTimer);
-      }
-
-      function glitch() {
-        if (primeTvIsPlaying()) {
-          glitchClocks.forEach(clock => settleClock(clock, 0.75, 'blur(0.2px)'));
-          setTimeout(() => requestAnimationFrame(glitch), 1000);
-          return;
-        }
-
-        glitchClocks.forEach(glitchOne);
-        setTimeout(() => requestAnimationFrame(glitch), 50 + Math.random() * 180);
-      }
-
-      glitchClocks.forEach(clock => {
-        if (!clock.dataset.text) {
-          clock.dataset.text = clock.textContent || '';
-        }
-      });
 
       updateClock();
-      glitch();
+      setInterval(updateClock, 1000);
     })();
 
     // ---- Nav sort + randomize ----
