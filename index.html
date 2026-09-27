@@ -405,98 +405,91 @@
       box-sizing: border-box;
       width: min(28rem, calc(100vw - 2rem));
       overflow: hidden;
-      background: #050505;
-      color: #ffffff;
-      border: 3px solid #ffffff;
-      box-shadow: 0 0 0 4px #ff1616, 0 1rem 3rem rgba(255, 0, 0, 0.45);
+      background: #111111;
+      color: #f0f0f0;
+      border: 1px solid #626262;
+      border-radius: 0.65rem;
+      box-shadow: 0 1.25rem 3rem rgba(0, 0, 0, 0.65), 0 0.25rem 0.75rem rgba(0, 0, 0, 0.35);
     }
 
-    .prime-tv.is-live,
-    .prime-tv.is-alert {
+    .prime-tv.is-live {
       display: block;
-    }
-
-    .prime-tv.is-alert {
-      right: 0;
-      bottom: 0;
-      left: 0;
-      display: grid;
-      grid-template-columns: minmax(8rem, 26vh) minmax(0, 1fr);
-      grid-template-rows: minmax(0, 1fr) auto;
-      width: 100%;
-      max-height: 15vh;
-      transform: none;
-      cursor: pointer;
-      border-right: 0;
-      border-bottom: 0;
-      border-left: 0;
-      border-width: 2px;
-      box-shadow: 0 0 0 3px #ff1616, 0 0.75rem 2rem rgba(255, 0, 0, 0.35);
-    }
-
-    .prime-tv.is-alert .prime-tv__bar {
-      grid-column: 2;
-      grid-row: 1;
-      align-items: end;
-      min-height: 0;
-      padding: 0.55rem 0.75rem;
-      overflow: hidden;
-      font-size: clamp(0.85rem, 2.8vw, 1.35rem);
-    }
-
-    .prime-tv.is-alert .prime-tv__close {
-      display: none;
-    }
-
-    .prime-tv.is-alert .prime-tv__video {
-      grid-column: 1;
-      grid-row: 1 / span 2;
-      height: 15vh;
-      max-height: 15vh;
-      aspect-ratio: 16 / 9;
-      object-fit: contain;
-    }
-
-    .prime-tv.is-alert .prime-tv__status {
-      grid-column: 2;
-      grid-row: 2;
-      min-height: 0;
-      padding-top: 0;
-      color: #c0c0c0;
-      font-size: 0.75rem;
-      text-align: left;
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
     }
 
     .prime-tv__bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 1rem;
-      background: #ff1616;
-      color: #ffffff;
+      gap: 0.65rem;
+      background: #242424;
+      color: #f0f0f0;
       padding: 0.6rem 0.75rem;
       text-transform: uppercase;
       letter-spacing: 0.14rem;
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
     }
 
-    .prime-tv__close {
+    .prime-tv.is-dragging .prime-tv__bar {
+      cursor: grabbing;
+    }
+
+    .prime-tv__bar::before {
+      content: '';
+      width: 0.5rem;
+      height: 0.5rem;
+      flex: none;
+      border-radius: 50%;
+      background: #be5656;
+      box-shadow: 0 0 0 2px rgba(190, 86, 86, 0.16);
+    }
+
+    #prime-tv-label {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .prime-tv__controls {
+      display: flex;
+      flex: none;
+      gap: 0.35rem;
+    }
+
+    .prime-tv__controls button {
       appearance: none;
-      border: 1px solid #ffffff;
-      background: #ff1616;
-      color: #ffffff;
+      border: 1px solid #666666;
+      border-radius: 0.25rem;
+      background: #333333;
+      color: #f0f0f0;
       font: inherit;
       line-height: 1;
       padding: 0.2rem 0.45rem;
       cursor: pointer;
     }
 
+    .prime-tv.is-maximized {
+      top: 1rem;
+      right: 1rem;
+      bottom: auto;
+      left: 1rem;
+      width: auto;
+    }
+
+    .prime-tv.is-maximized .prime-tv__bar {
+      cursor: default;
+      touch-action: auto;
+    }
+
     .prime-tv__video {
       display: block;
       width: 100%;
       aspect-ratio: 16 / 9;
+      max-height: calc(100dvh - 7rem);
+      object-fit: contain;
       background: #000000;
     }
 
@@ -508,32 +501,19 @@
       text-align: left;
     }
 
-    body.has-prime-tv {
-      padding-bottom: calc(21rem + env(safe-area-inset-bottom));
-    }
-
-    body.has-prime-tv-alert {
-      padding-bottom: calc(15vh + env(safe-area-inset-bottom));
-    }
-
     @media (max-width: 40rem) {
       .prime-tv {
-        right: 0;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        transform: none;
-        border-right: 0;
-        border-bottom: 0;
-        border-left: 0;
+        right: 0.75rem;
+        bottom: calc(0.75rem + env(safe-area-inset-bottom));
+        width: min(22rem, calc(100vw - 1.5rem));
       }
 
-      body.has-prime-tv {
-        padding-bottom: calc(72vw + 4rem + env(safe-area-inset-bottom));
-      }
-
-      body.has-prime-tv-alert {
-        padding-bottom: calc(15vh + env(safe-area-inset-bottom));
+      .prime-tv.is-maximized {
+        top: 0.75rem;
+        right: 0.75rem;
+        bottom: auto;
+        left: 0.75rem;
+        width: auto;
       }
     }
 
@@ -556,9 +536,12 @@
   <div id="toast"></div>
   <div id="palette-disabled-overlay" aria-hidden="true"></div>
   <section id="prime-tv" class="prime-tv" aria-label="PrimeTV broadcast" hidden data-nosnippet>
-    <div class="prime-tv__bar">
-      <span id="prime-tv-label">LIVE NOW!</span>
-      <button id="prime-tv-close" class="prime-tv__close" type="button" aria-label="Hide PrimeTV">×</button>
+    <div class="prime-tv__bar" tabindex="0" aria-label="Move PrimeTV with arrow keys" title="Drag to move PrimeTV">
+      <span id="prime-tv-label">PrimeTV</span>
+      <div class="prime-tv__controls">
+        <button id="prime-tv-maximize" type="button" aria-label="Maximize PrimeTV to browser width"
+          title="Maximize to browser width">MAX</button>
+      </div>
     </div>
     <video id="prime-tv-video" class="prime-tv__video" controls muted playsinline preload="metadata"></video>
     <div id="prime-tv-status" class="prime-tv__status">checking broadcast…</div>
@@ -856,12 +839,11 @@
       const video = document.getElementById('prime-tv-video');
       const label = document.getElementById('prime-tv-label');
       const statusLine = document.getElementById('prime-tv-status');
-      const closeBtn = document.getElementById('prime-tv-close');
+      const maximizeBtn = document.getElementById('prime-tv-maximize');
+      const bar = tv?.querySelector('.prime-tv__bar');
 
-      if (!tv || !video || !label || !statusLine) return;
+      if (!tv || !video || !label || !statusLine || !maximizeBtn || !bar) return;
 
-      const floatingParent = tv.parentNode;
-      const floatingNext = tv.nextSibling;
       const WORKER_BASE = 'https://primecast.mborsare.workers.dev/';
       const STREAM_ORIGIN = 'https://primebook.duckdns.org';
       const DEFAULT_STREAM_HREF = `${STREAM_ORIGIN}/Prime/index.m3u8`;
@@ -880,9 +862,19 @@
       let hls;
       let hlsLoaderPromise;
       let currentStreamHref = '';
-      let dismissedStreamHref = '';
-      let lastStreamHref = '';
       let playerStarted = false;
+      let maximized = false;
+      let dragStart = null;
+      let floatingPosition = null;
+
+      try {
+        const savedPosition = JSON.parse(localStorage.getItem('prime-tv-position'));
+        if (Number.isFinite(savedPosition?.left) && Number.isFinite(savedPosition?.top)) {
+          floatingPosition = savedPosition;
+        }
+      } catch (_error) {
+        // Storage may be unavailable; dragging still works for this visit.
+      }
 
       function safeHttpsUrl(value) {
         if (typeof value !== 'string' || value.trim() === '') return '';
@@ -945,37 +937,55 @@
         statusLine.textContent = message;
       }
 
-      function mountFloating() {
-        if (tv.parentNode !== floatingParent) {
-          floatingParent.insertBefore(tv, floatingNext);
+      function applyFloatingPosition() {
+        tv.style.left = '';
+        tv.style.top = '';
+        tv.style.right = '';
+        tv.style.bottom = '';
+
+        if (tv.dataset.layout !== 'floating' || maximized || !floatingPosition) return;
+
+        const margin = 8;
+        floatingPosition.left = Math.min(
+          Math.max(margin, floatingPosition.left),
+          Math.max(margin, window.innerWidth - tv.offsetWidth - margin)
+        );
+        floatingPosition.top = Math.min(
+          Math.max(margin, floatingPosition.top),
+          Math.max(margin, window.innerHeight - tv.offsetHeight - margin)
+        );
+        tv.style.left = `${floatingPosition.left}px`;
+        tv.style.top = `${floatingPosition.top}px`;
+        tv.style.right = 'auto';
+        tv.style.bottom = 'auto';
+      }
+
+      function saveFloatingPosition() {
+        try {
+          localStorage.setItem('prime-tv-position', JSON.stringify(floatingPosition));
+        } catch (_error) {
+          // Keep the position for this visit if storage is unavailable.
         }
       }
 
-      function setPrimeTvLayout(layout) {
-        const isFloating = layout === 'floating';
-        const isAlert = layout === 'alert';
-
+      function setPrimeTvLayout() {
         tv.hidden = false;
-        tv.classList.toggle('is-live', isFloating);
-        tv.classList.toggle('is-alert', isAlert);
-        tv.dataset.layout = layout;
-        document.body.classList.toggle('has-prime-tv', isFloating);
-        document.body.classList.toggle('has-prime-tv-alert', isAlert);
-        label.textContent = isAlert ? 'PICTURE IN PICTURE' : tv.dataset.liveLabel || label.textContent;
-
-        if (closeBtn) {
-          closeBtn.setAttribute(
-            'aria-label',
-            isFloating ? 'Minimize PrimeTV' : 'PrimeTV is minimized'
-          );
-        }
+        tv.classList.add('is-live');
+        tv.classList.toggle('is-maximized', maximized);
+        tv.dataset.layout = 'floating';
+        label.textContent = tv.dataset.liveLabel || label.textContent;
+        bar.tabIndex = maximized ? -1 : 0;
+        applyFloatingPosition();
+        maximizeBtn.textContent = maximized ? 'Min' : 'Max';
+        maximizeBtn.setAttribute('aria-label', maximized ? 'Restore PrimeTV size' : 'Maximize PrimeTV to browser width');
+        maximizeBtn.title = maximized ? 'Restore size' : 'Maximize to browser width';
       }
 
       function clearPrimeTvLayout() {
         tv.hidden = true;
-        tv.classList.remove('is-live', 'is-alert');
-        document.body.classList.remove('has-prime-tv');
-        document.body.classList.remove('has-prime-tv-alert');
+        tv.classList.remove('is-live', 'is-maximized');
+        tv.dataset.layout = '';
+        applyFloatingPosition();
       }
 
       function loadHlsJs() {
@@ -1095,32 +1105,19 @@
 
       function showLive(status) {
         const streamHref = getStreamHref(status);
-        const shouldShowAlert = streamHref && dismissedStreamHref === streamHref;
 
         state = 'live';
         misses = 0;
-        lastStreamHref = streamHref;
         tv.dataset.liveLabel = buildLiveText(status);
         label.textContent = tv.dataset.liveLabel;
         tv.dataset.state = 'live';
 
-        if (shouldShowAlert) {
-          mountFloating();
-          setPrimeTvLayout('alert');
-          startPlayer(streamHref);
-          return;
-        }
-
-        mountFloating();
-        setPrimeTvLayout('floating');
+        setPrimeTvLayout();
         startPlayer(streamHref);
       }
 
       function hideLive(reason = 'offline') {
         state = reason;
-        dismissedStreamHref = '';
-        lastStreamHref = '';
-        mountFloating();
         clearPrimeTvLayout();
         tv.dataset.state = reason;
         setStatus(reason === 'error' ? 'status unavailable' : 'off air');
@@ -1180,7 +1177,6 @@
           return;
         }
 
-        dismissedStreamHref = '';
         misses++;
         if (state !== 'live' || misses >= MISSES_BEFORE_HIDING_LIVE) {
           hideLive('offline');
@@ -1201,22 +1197,74 @@
         }
       }
 
-      if (closeBtn) {
-        closeBtn.addEventListener('click', () => {
-          dismissedStreamHref = currentStreamHref || lastStreamHref;
-          mountFloating();
-          setPrimeTvLayout('alert');
-        });
+      maximizeBtn.addEventListener('click', () => {
+        maximized = !maximized;
+        setPrimeTvLayout();
+      });
+
+      bar.addEventListener('pointerdown', event => {
+        if (tv.dataset.layout !== 'floating' || maximized || dragStart || !event.isPrimary || event.button !== 0 || event.target.closest('button')) return;
+
+        const bounds = tv.getBoundingClientRect();
+        dragStart = {
+          pointerId: event.pointerId,
+          x: event.clientX,
+          y: event.clientY,
+          left: bounds.left,
+          top: bounds.top,
+          moved: false
+        };
+        bar.setPointerCapture(event.pointerId);
+        tv.classList.add('is-dragging');
+        event.preventDefault();
+      });
+
+      bar.addEventListener('pointermove', event => {
+        if (!dragStart || event.pointerId !== dragStart.pointerId) return;
+
+        floatingPosition = {
+          left: dragStart.left + event.clientX - dragStart.x,
+          top: dragStart.top + event.clientY - dragStart.y
+        };
+        dragStart.moved = true;
+        applyFloatingPosition();
+      });
+
+      function finishDrag(event) {
+        if (!dragStart || event.pointerId !== dragStart.pointerId) return;
+        if (dragStart.moved) saveFloatingPosition();
+        dragStart = null;
+        tv.classList.remove('is-dragging');
+        if (bar.hasPointerCapture(event.pointerId)) bar.releasePointerCapture(event.pointerId);
       }
 
-      tv.addEventListener('click', event => {
-        if (event.target === closeBtn || tv.dataset.layout !== 'alert') return;
+      bar.addEventListener('pointerup', finishDrag);
+      bar.addEventListener('pointercancel', finishDrag);
 
-        dismissedStreamHref = '';
-        mountFloating();
-        setPrimeTvLayout('floating');
-        setStatus('on air');
+      bar.addEventListener('keydown', event => {
+        if (event.target !== bar || tv.dataset.layout !== 'floating' || maximized) return;
+
+        const directions = {
+          ArrowLeft: [-1, 0],
+          ArrowRight: [1, 0],
+          ArrowUp: [0, -1],
+          ArrowDown: [0, 1]
+        };
+        const direction = directions[event.key];
+        if (!direction) return;
+
+        event.preventDefault();
+        const bounds = tv.getBoundingClientRect();
+        const step = event.shiftKey ? 40 : 10;
+        floatingPosition = {
+          left: bounds.left + direction[0] * step,
+          top: bounds.top + direction[1] * step
+        };
+        applyFloatingPosition();
+        saveFloatingPosition();
       });
+
+      window.addEventListener('resize', applyFloatingPosition);
 
       checkLive();
       timerId = setInterval(checkLive, CHECK_INTERVAL_MS);
