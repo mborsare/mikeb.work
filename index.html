@@ -917,7 +917,7 @@
       }
 
       function buildLiveText(status) {
-        const liveLabel = textPart(status?.label) || 'LIVE NOW!';
+        const liveLabel = textPart(status?.label) || 'Live';
         const channel = textPart(status?.channel);
         const number = textPart(status?.number);
         const suffix = [channel, number ? `CH ${number}` : ''].filter(Boolean).join(' · ');
