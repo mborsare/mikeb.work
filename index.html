@@ -669,11 +669,22 @@
       text-align: left;
     }
 
-    @media (max-width: 40rem) {
+    @media (max-width: 40rem), (max-height: 35rem) {
       .prime-tv {
         right: 0.75rem;
         bottom: calc(0.75rem + env(safe-area-inset-bottom));
-        width: min(22rem, calc(100vw - 1.5rem));
+        width: min(10rem, calc(100vw - 1.5rem));
+      }
+
+      .prime-tv__bar {
+        gap: 0.35rem;
+        padding: 0.35rem 0.45rem;
+        font-size: 0.75rem;
+      }
+
+      .prime-tv__status {
+        padding: 0.3rem 0.45rem 0.35rem;
+        font-size: 0.7rem;
       }
 
       .prime-tv.is-maximized {
