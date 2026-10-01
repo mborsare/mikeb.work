@@ -91,7 +91,10 @@
       white-space: normal;
     }
 
-    .timer-input::selection { color: var(--bg); background: var(--ink); }
+    .timer-input::selection {
+      color: var(--bg);
+      background: var(--ink);
+    }
 
     a:hover,
     a:focus-visible {
@@ -161,20 +164,20 @@
  **
     </pre></a>
     <a href="the-paper.html" class="art-tile" aria-label="The paper"><pre class="brand" style="--fit-width: 62; --fit-height: 114;">
-sdSS_SSSSSSbs   .S    S.     sSSs         .S_sSSs     .S_SSSs     .S_sSSs      sSSs   .S_sSSs
-YSSS~SSSSSSP  .SS    SS.   dSP        .SS~YSb   .SS~SSSSS   .SS~YSb    dSP  .SS~YSb
-     SS       SS    SS  dS'          SS   `Sb  SS   SSSS  SS   `Sb  dS'    SS   `Sb
-     SS       SS    SS  SS           SS    SS  SS    SS  SS    SS  SS     SS    SS
-     S&S       SS SSSSS  S&S           SS    d*S  SS SS1981  SS    d*S  S&S     SS    d*S
-     S&S       S&S  SSS&S  S&S_Ss        S&S   .S*S  S&S  SSSS  S&S   .S*S  S&S_Ss  S&S   .S*S
-     S&S       S&S    S&S  S&S~SP        S&S_sdSSS   S&S    S&S  S&S_sdSSS   S&S~SP  S&S_sdSSS
-     S&S       S&S    S&S  S&S           S&S~YSSY    S&S    S&S  S&S~YSSY    S&S     S&S~YSYb
-     S*S       S*S    S*S  S*b           S*S         S*S    S&S  S*S         S*b     S*S   `Sb
-     S*S       S*S    S*S  S*S.          S*S         S*S    S*S  S*S         S*S.    S*S    SS
-     S*S       S*S    S*S   SSSbs        MjB         S*S    S*S  S*S          SSSbs  S*S    S&S
-     S*S       SSS    S*S    YSSP        S*S         SSS    S*S  S*S           YSSP  S*S    SSS
-     SP               SP                 SP                 SP   SP                  SP
-     Y                Y                  Y                  Y    Y                   Y
+sdSS_SSSSSSbs   .S    S.     sSSs         .S_sSSs     .S_SSSs     .S_sSSs      sSSs   .S_sSSs    
+YSSS~SSSSSSP  .SS    SS.   d%SP        .SS~YS%b   .SS~SSSSS   .SS~YS%b    d%SP  .SS~YS%b   
+     SS       SS    SS  dS'          SS   `Sb  SS   SSSS  SS   `Sb  dS'    SS   `Sb  
+     SS       SS    SS  SS           SS    SS  SS    SS  SS    SS  SS     SS    SS  
+     S&S       SS SSSSS  S&S           SS    d*S  SS SS1981  SS    d*S  S&S     SS    d*S  
+     S&S       S&S  SSS&S  S&S_Ss        S&S   .S*S  S&S  SSSS  S&S   .S*S  S&S_Ss  S&S   .S*S  
+     S&S       S&S    S&S  S&S~SP        S&S_sdSSS   S&S    S&S  S&S_sdSSS   S&S~SP  S&S_sdSSS   
+     S&S       S&S    S&S  S&S           S&S~YSSY    S&S    S&S  S&S~YSSY    S&S     S&S~YSYb   
+     S*S       S*S    S*S  S*b           S*S         S*S    S&S  S*S         S*b     S*S   `Sb  
+     S*S       S*S    S*S  S*S.          S*S         S*S    S*S  S*S         S*S.    S*S    SS  
+     S*S       S*S    S*S   SSSbs        MjB         S*S    S*S  S*S          SSSbs  S*S    S&S  
+     S*S       SSS    S*S    YSSP        S*S         SSS    S*S  S*S           YSSP  S*S    SSS  
+     SP               SP                 SP                 SP   SP                  SP          
+     Y                Y                  Y                  Y    Y                   Y           
     </pre></a>
     <a href="headlines.html" class="art-tile" aria-label="Headlines"><pre class="brand" style="--fit-width: 38; --fit-height: 43;">
    _   _  ____    __    ____  __    ____  _  _  ____  ___
@@ -198,7 +201,8 @@ YSSS~SSSSSSP  .SS    SS.   dSP        .SS~YSb   .SS~SSSSS   .SS~YSb    dSP  .SS~
       
     </pre></a>
     <div class="timer-tile">
-      <input class="timer-input" value="1:00:00" aria-label="Timer — press Enter to start" autocomplete="off" spellcheck="false" />
+      <input class="timer-input" value="1:00:00" aria-label="Timer — press Enter to start" autocomplete="off"
+        spellcheck="false" />
     </div>
   </main>
   <script>
@@ -299,13 +303,13 @@ YSSS~SSSSSSP  .SS    SS.   dSP        .SS~YSb   .SS~SSSSS   .SS~YSb    dSP  .SS~
 
     function selectTimer() {
       if (running) pause()
-      requestAnimationFrame(() => { timerInput.focus(); timerInput.select() })
+      requestAnimationFrame(() => {timerInput.focus(); timerInput.select()})
     }
 
     timerInput.addEventListener('click', selectTimer)
-    timerInput.addEventListener('focus', () => { if (!running) requestAnimationFrame(() => timerInput.select()) })
+    timerInput.addEventListener('focus', () => {if (!running) requestAnimationFrame(() => timerInput.select())})
     timerInput.addEventListener('keydown', event => {
-      if (event.key === 'Enter') { event.preventDefault(); startFromInput() }
+      if (event.key === 'Enter') {event.preventDefault(); startFromInput()}
     })
     setInterval(() => {
       if (!running && document.activeElement !== timerInput) render()
