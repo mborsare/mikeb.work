@@ -126,7 +126,6 @@
       max-width: 100%;
     }
 
-    .doctrine-scribble::before,
     .doctrine-scribble::after {
       content: "";
       position: absolute;
@@ -136,14 +135,6 @@
       pointer-events: none;
     }
 
-    .doctrine-scribble::before {
-      bottom: -0.15em;
-      height: 0.18em;
-      opacity: 0.7;
-      clip-path: polygon(0 42%, 7% 16%, 15% 54%, 24% 11%, 34% 47%, 43% 22%, 53% 58%, 62% 13%, 72% 45%, 81% 18%, 91% 55%, 100% 27%, 100% 66%, 91% 86%, 81% 49%, 72% 78%, 62% 43%, 53% 88%, 43% 53%, 34% 77%, 24% 40%, 15% 84%, 7% 47%, 0 73%);
-      transform: rotate(var(--scribble-angle, -1.4deg));
-    }
-
     .doctrine-scribble::after {
       bottom: -0.2em;
       height: 0.12em;
@@ -151,37 +142,11 @@
       transform: rotate(var(--scribble-angle-2, 1.1deg));
     }
 
-    .doctrine-scribble-edge::before,
-    .doctrine-scribble-edge::after {
-      content: "";
-      position: absolute;
-      background: currentColor;
-      pointer-events: none;
-    }
-
-    .doctrine-scribble-edge::before {
-      bottom: var(--edge-left-bottom, -0.26em);
-      left: var(--edge-left-offset, -0.55em);
-      width: var(--edge-left-size, 0.5em);
-      height: var(--edge-left-size, 0.5em);
-      clip-path: var(--edge-left-shape, polygon(0 10%, 18% 3%, 43% 36%, 53% 0, 67% 5%, 57% 52%, 100% 31%, 100% 48%, 55% 72%, 77% 97%, 62% 100%, 37% 67%, 6% 90%, 0 74%, 32% 51%));
-      transform: rotate(var(--edge-left-tilt, -14deg));
-    }
-
-    .doctrine-scribble-edge::after {
-      bottom: var(--edge-right-bottom, -0.26em);
-      right: var(--edge-right-offset, -0.55em);
-      width: var(--edge-right-size, 0.5em);
-      height: var(--edge-right-size, 0.5em);
-      clip-path: var(--edge-right-shape, polygon(0 10%, 18% 3%, 43% 36%, 53% 0, 67% 5%, 57% 52%, 100% 31%, 100% 48%, 55% 72%, 77% 97%, 62% 100%, 37% 67%, 6% 90%, 0 74%, 32% 51%));
-      transform: rotate(var(--edge-right-tilt, 162deg));
-    }
-
     .list-item::after {
       color: var(--stamp);
       content: "MJB";
       white-space: pre;
-      font-size: var(--type-base);
+      font-size: var(--type-xs);
       margin-left: 1rem;
       vertical-align: middle;
       display: inline-block;
