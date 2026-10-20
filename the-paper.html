@@ -226,26 +226,31 @@ YSSS~S%SSSSSP  .SS    SS.   d%%SP        .SS~YS%%b   .SS~SSSSS   .SS~YS%%b    d%
     // FEED
     const SOURCES = [
       { label: 'NEW YORK TIMES', rss: 'https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml' },
-      { label: 'WASHINGTON POST', rss: 'https://feeds.washingtonpost.com/rss/politics' }
+      { label: 'WASHINGTON POST', rss: 'https://feeds.washingtonpost.com/rss/politics', url: 'https://www.washingtonpost.com/politics/' },
+      { label: 'THE ECONOMIST', rss: 'https://www.economist.com/latest/rss.xml', url: 'https://www.economist.com/latest' }
     ]
 
     const RSS2JSON = 'https://api.rss2json.com/v1/api.json?rss_url='
     const LIMIT = 12
     const CACHE_TTL = 1000 * 60 * 30
 
-    function getCache(key) {
-      const raw = localStorage.getItem(key)
-      if (!raw) return null
-      const parsed = JSON.parse(raw)
-      if (Date.now() - parsed.time > CACHE_TTL) {
-        localStorage.removeItem(key)
+    function getCache(key, allowStale = false) {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(key))
+        if (!parsed || !Array.isArray(parsed.data) || !parsed.data.length) return null
+        if (!allowStale && Date.now() - parsed.time > CACHE_TTL) return null
+        return parsed.data
+      } catch {
         return null
       }
-      return parsed.data
     }
 
     function setCache(key, data) {
-      localStorage.setItem(key, JSON.stringify({ time: Date.now(), data }))
+      try {
+        localStorage.setItem(key, JSON.stringify({ time: Date.now(), data }))
+      } catch {
+        // Headlines can still render when browser storage is unavailable.
+      }
     }
 
     function fmt(dateStr) {
@@ -306,7 +311,8 @@ YSSS~S%SSSSSP  .SS    SS.   d%%SP        .SS~YS%%b   .SS~SSSSS   .SS~YS%%b    d%
         block.appendChild(loading)
 
         try {
-          const res = await fetch(RSS2JSON + encodeURIComponent(source.rss))
+          const res = await fetch(RSS2JSON + encodeURIComponent(source.rss), { signal: AbortSignal.timeout(15000) })
+          if (!res.ok) throw new Error('Feed unavailable')
           const data = await res.json()
 
           if (data.status !== 'ok') throw new Error(data.message)
@@ -315,13 +321,25 @@ YSSS~S%SSSSSP  .SS    SS.   d%%SP        .SS~YS%%b   .SS~SSSSS   .SS~YS%%b    d%
             .slice(0, LIMIT)
             .filter((v, i, a) => a.findIndex(t => t.link === v.link) === i)
 
+          if (!items.length) throw new Error('Feed is empty')
           setCache(cacheKey, items)
           block.removeChild(loading)
 
         } catch (err) {
           loading.className = 'status err'
-          loading.textContent = err.message
-          return
+          items = getCache(cacheKey, true)
+          loading.textContent = items
+            ? 'feed temporarily unavailable · showing saved headlines'
+            : 'feed temporarily unavailable'
+          if (source.url) {
+            const link = document.createElement('a')
+            link.href = source.url
+            link.target = '_blank'
+            link.rel = 'noopener noreferrer'
+            link.textContent = source.label === 'WASHINGTON POST' ? 'read Post Politics ↗' : 'read ' + source.label + ' ↗'
+            loading.append(' · ', link)
+          }
+          if (!items) return
         }
       }
 
