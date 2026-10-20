@@ -99,20 +99,54 @@
       margin-bottom: .5rem;
     }
 
+    a:not(.article),
+    .article-title {
+      color: var(--seal);
+      text-decoration: none;
+      padding: 0.15rem 0.4rem;
+      background:
+        radial-gradient(circle, color-mix(in srgb, var(--seal) calc(28% * var(--link-strength, 1)), transparent) 0 0.35px, transparent 0.7px) 0 0 / 3px 3px,
+        color-mix(in srgb, var(--seal) calc(16% * var(--link-strength, 1)), var(--bg));
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--seal) calc(20% * var(--link-strength, 1)), transparent);
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+      transition: box-shadow 0.15s ease;
+    }
+
+    a:not(.article):hover,
+    a:not(.article):focus-visible,
+    .article:hover .article-title,
+    .article:focus-visible .article-title {
+      background:
+        radial-gradient(circle, color-mix(in srgb, var(--seal) calc(35% * var(--link-strength, 1)), transparent) 0 0.35px, transparent 0.7px) 0 0 / 3px 3px,
+        color-mix(in srgb, var(--seal) calc(30% * var(--link-strength, 1)), var(--bg));
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--seal) calc(45% * var(--link-strength, 1)), transparent);
+    }
+
+    a:not(.article):active,
+    .article:active .article-title {
+      color: var(--text);
+    }
+
+    a:not(.article):focus-visible,
+    .article:focus-visible .article-title {
+      outline: 1px solid var(--seal);
+      outline-offset: 2px;
+    }
+
     .article {
       display: block;
       border-bottom: 1px solid #111;
-      padding: .6rem 0;
+      padding: .6rem .4rem;
       text-decoration: none;
-      transition: background .15s;
     }
 
-    .article:hover {
-      background: #0a0a0a;
+    .article:focus-visible {
+      outline: none;
     }
 
     .article-title {
-      color: var(--seal);
+      --link-strength: 0.25;
       font-size: .95rem;
       line-height: 1.4;
     }
@@ -128,10 +162,6 @@
       font-size: .8rem;
       padding: 1rem 0;
       text-align: left;
-    }
-
-    .err {
-      color: #ff6b6b;
     }
 
     nav a {
@@ -226,19 +256,18 @@ YSSS~S%SSSSSP  .SS    SS.   d%%SP        .SS~YS%%b   .SS~SSSSS   .SS~YS%%b    d%
     // FEED
     const SOURCES = [
       { label: 'NEW YORK TIMES', rss: 'https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml' },
-      { label: 'WASHINGTON POST', rss: 'https://feeds.washingtonpost.com/rss/politics', url: 'https://www.washingtonpost.com/politics/' },
-      { label: 'THE ECONOMIST', rss: 'https://www.economist.com/latest/rss.xml', url: 'https://www.economist.com/latest' }
+      { label: 'THE ECONOMIST', rss: 'https://www.economist.com/latest/rss.xml', directLinks: true, url: 'https://www.economist.com/latest' }
     ]
 
     const RSS2JSON = 'https://api.rss2json.com/v1/api.json?rss_url='
     const LIMIT = 12
     const CACHE_TTL = 1000 * 60 * 30
 
-    function getCache(key, allowStale = false) {
+    function getCache(key) {
       try {
         const parsed = JSON.parse(localStorage.getItem(key))
         if (!parsed || !Array.isArray(parsed.data) || !parsed.data.length) return null
-        if (!allowStale && Date.now() - parsed.time > CACHE_TTL) return null
+        if (Date.now() - parsed.time > CACHE_TTL) return null
         return parsed.data
       } catch {
         return null
@@ -253,6 +282,70 @@ YSSS~S%SSSSSP  .SS    SS.   d%%SP        .SS~YS%%b   .SS~SSSSS   .SS~YS%%b    d%
       }
     }
 
+    function normalizeItems(items) {
+      const seen = new Set()
+      return items.filter(item => {
+        if (!item.title || !item.link) return false
+        try {
+          if (!['http:', 'https:'].includes(new URL(item.link).protocol)) return false
+        } catch {
+          return false
+        }
+        if (seen.has(item.link)) return false
+        seen.add(item.link)
+        return true
+      }).slice(0, LIMIT)
+    }
+
+    function parseFeed(xml) {
+      const doc = new DOMParser().parseFromString(xml, 'application/xml')
+      if (doc.querySelector('parsererror')) throw new Error('Invalid feed XML')
+      return [...doc.querySelectorAll('item, entry')].map(entry => {
+        const value = selector => entry.querySelector(selector)?.textContent.trim() || ''
+        return {
+          title: value('title'),
+          link: entry.querySelector('link[href]')?.getAttribute('href') || value('link'),
+          pubDate: value('pubDate, published, updated'),
+          author: value('creator, author')
+        }
+      })
+    }
+
+    async function fetchFeed(url, signal) {
+      // Independent retrieval paths: one converter outage need not hide a feed.
+      const routes = [
+        { url: RSS2JSON + encodeURIComponent(url), json: true },
+        { url },
+        { url: 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url) },
+        { url: 'https://allorigins.hexlet.app/raw?url=' + encodeURIComponent(url) }
+      ]
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 12000)
+      const requestSignal = signal
+        ? AbortSignal.any([signal, controller.signal])
+        : controller.signal
+      try {
+        return await Promise.any(routes.map(async route => {
+          const response = await fetch(route.url, { signal: requestSignal })
+          if (!response.ok) throw new Error('Feed unavailable')
+          let items
+          if (route.json) {
+            const data = await response.json()
+            if (data.status !== 'ok') throw new Error('Feed conversion unavailable')
+            items = data.items || []
+          } else {
+            items = parseFeed(await response.text())
+          }
+          items = normalizeItems(items)
+          if (!items.length) throw new Error('Feed is empty')
+          return items
+        }))
+      } finally {
+        clearTimeout(timeout)
+        controller.abort()
+      }
+    }
+
     function fmt(dateStr) {
       if (!dateStr) return ''
       const d = new Date(dateStr)
@@ -264,16 +357,18 @@ YSSS~S%SSSSSP  .SS    SS.   d%%SP        .SS~YS%%b   .SS~SSSSS   .SS~YS%%b    d%
       })
     }
 
-    function buildCard(item) {
+    function buildCard(item, source) {
 
       const clean = item.link.replace(/\?.*/, '')
 
       const article = document.createElement('a')
       article.className = 'article'
-      article.href = 'https://archive.ph/' + encodeURIComponent(clean)
+      article.href = source.directLinks
+        ? item.link
+        : 'https://archive.ph/' + encodeURIComponent(clean)
       article.target = '_blank'
 
-      const title = document.createElement('div')
+      const title = document.createElement('span')
       title.className = 'article-title'
       title.textContent = item.title
 
@@ -289,7 +384,7 @@ YSSS~S%SSSSSP  .SS    SS.   d%%SP        .SS~YS%%b   .SS~SSSSS   .SS~YS%%b    d%
 
     async function loadSource(source, container) {
 
-      const cacheKey = 'feed:' + source.label
+      const cacheKey = 'feed:' + source.label + (source.directLinks ? ':direct' : '')
 
       const block = document.createElement('div')
       block.className = 'source-block'
@@ -311,35 +406,21 @@ YSSS~S%SSSSSP  .SS    SS.   d%%SP        .SS~YS%%b   .SS~SSSSS   .SS~YS%%b    d%
         block.appendChild(loading)
 
         try {
-          const res = await fetch(RSS2JSON + encodeURIComponent(source.rss), { signal: AbortSignal.timeout(15000) })
-          if (!res.ok) throw new Error('Feed unavailable')
-          const data = await res.json()
-
-          if (data.status !== 'ok') throw new Error(data.message)
-
-          items = (data.items || [])
-            .slice(0, LIMIT)
-            .filter((v, i, a) => a.findIndex(t => t.link === v.link) === i)
-
-          if (!items.length) throw new Error('Feed is empty')
+          items = await fetchFeed(source.rss)
           setCache(cacheKey, items)
           block.removeChild(loading)
 
-        } catch (err) {
-          loading.className = 'status err'
-          items = getCache(cacheKey, true)
-          loading.textContent = items
-            ? 'feed temporarily unavailable · showing saved headlines'
-            : 'feed temporarily unavailable'
+        } catch {
+          loading.textContent = 'feed temporarily unavailable'
           if (source.url) {
             const link = document.createElement('a')
             link.href = source.url
             link.target = '_blank'
             link.rel = 'noopener noreferrer'
-            link.textContent = source.label === 'WASHINGTON POST' ? 'read Post Politics ↗' : 'read ' + source.label + ' ↗'
+            link.textContent = 'read ' + source.label + ' ↗'
             loading.append(' · ', link)
           }
-          if (!items) return
+          return
         }
       }
 
@@ -351,7 +432,7 @@ YSSS~S%SSSSSP  .SS    SS.   d%%SP        .SS~YS%%b   .SS~SSSSS   .SS~YS%%b    d%
         return
       }
 
-      items.forEach(item => block.appendChild(buildCard(item)))
+      items.forEach(item => block.appendChild(buildCard(item, source)))
     }
 
     ; (async () => {
