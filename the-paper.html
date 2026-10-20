@@ -117,15 +117,14 @@
     a:not(.article):focus-visible,
     .article:hover .article-title,
     .article:focus-visible .article-title {
-      background:
-        radial-gradient(circle, color-mix(in srgb, var(--seal) calc(35% * var(--link-strength, 1)), transparent) 0 0.35px, transparent 0.7px) 0 0 / 3px 3px,
-        color-mix(in srgb, var(--seal) calc(30% * var(--link-strength, 1)), var(--bg));
-      box-shadow: 0 0 0 1px color-mix(in srgb, var(--seal) calc(45% * var(--link-strength, 1)), transparent);
+      color: var(--bg);
+      background: var(--seal);
+      box-shadow: 0 0 0 1px var(--seal);
     }
 
     a:not(.article):active,
     .article:active .article-title {
-      color: var(--text);
+      color: var(--bg);
     }
 
     a:not(.article):focus-visible,
