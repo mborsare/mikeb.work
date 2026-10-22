@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, ipcMain, screen } = require("electron");
+const { app, BrowserWindow, Menu, ipcMain, screen, systemPreferences } = require("electron");
 const fs = require("node:fs");
 const path = require("node:path");
 const { contentBounds } = require("./window-sizing");
@@ -121,6 +121,14 @@ ipcMain.handle("resize-to-content", (event, contentHeight, animate = false, anch
   const display = screen.getDisplayNearestPoint({ x: bounds.x, y: bounds.y });
 
   return resizeWindow(contentBounds(bounds, display.workArea, contentHeight, anchor), Boolean(animate));
+});
+
+ipcMain.handle("get-clock-hour12", () => {
+  if (process.platform === "darwin") {
+    if (systemPreferences.getUserDefault("AppleICUForce24HourTime", "boolean")) return false;
+    if (systemPreferences.getUserDefault("AppleICUForce12HourTime", "boolean")) return true;
+  }
+  return new Intl.DateTimeFormat(app.getSystemLocale(), { hour: "numeric" }).resolvedOptions().hour12;
 });
 
 ipcMain.handle("load-timer-state", () => {

@@ -56,6 +56,23 @@ test("keeps existing duration formats working", () => {
   }
 });
 
+test("in followed by a number starts a duration in minutes", () => {
+  for (const [input, expected] of [
+    ["in15", 900],
+    ["in 15", 900],
+    [" IN 15 ", 900],
+    ["in 5", 300],
+    ["in 1.5", 90],
+    ["in1600", 96000]
+  ]) {
+    assert.equal(parseCommand(input), expected, input);
+    assert.equal(isCountUpCommand(input), false, input);
+  }
+  for (const input of ["in", "in n", "in -15", "in 15:00", "in Infinity", "in 999999999999999999"]) {
+    assert.equal(parseCommand(input), null, input);
+  }
+});
+
 test("keeps existing clock target formats working", () => {
   assert.equal(parseCommand("@14:00"), 7200);
   assert.equal(parseCommand("@2:00pm"), 7200);

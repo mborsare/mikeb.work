@@ -55,6 +55,7 @@ When a countdown reaches zero, it keeps running upward as overtime and shows
 resume, while keeping the label. Overtime includes time asleep or closed.
 
 - `30`
+- `in15` or `in 15` (count down for 15 minutes; `in n` accepts a number of minutes)
 - `90m`
 - `1.5h`
 - `45s`

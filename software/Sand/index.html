@@ -24,7 +24,7 @@
       --card: #f3ebce;
       --label: #57523e;
       --label-on-light: #d9d0ac;
-      --logo-ink: #6b2878;
+      --logo-ink: color-mix(in srgb, var(--panel) 75%, var(--text));
       --dialog-overlay: rgb(38 33 22 / 0.35);
       --dialog-shadow: rgb(38 33 22 / 0.2);
     }
@@ -33,35 +33,30 @@
       --panel: #e2ef54; --card: #eff779; --border: #929d32;
       --text: #282c19; --quiet: #555d2a; --grip: #75803c;
       --label: #4b5326; --label-on-light: #dce977;
-      --logo-ink: #2942b5;
     }
 
     :root[data-theme="moss"] {
       --panel: #8ce4ae; --card: #adf0c5; --border: #529467;
       --text: #203329; --quiet: #395f47; --grip: #538764;
       --label: #36573f; --label-on-light: #a4dcb7;
-      --logo-ink: #8c2457;
     }
 
     :root[data-theme="ocean"] {
       --panel: #ff9b57; --card: #ffb67e; --border: #b66b38;
       --text: #3b281d; --quiet: #75482e; --grip: #9a5c35;
       --label: #68402a; --label-on-light: #efb284;
-      --logo-ink: #263b91;
     }
 
     :root[data-theme="plum"] {
       --panel: #c4a0e4; --card: #d8b9f0; --border: #8868a4;
       --text: #30233d; --quiet: #604475; --grip: #7d5d96;
       --label: #553b69; --label-on-light: #cdb0e4;
-      --logo-ink: #16452e;
     }
 
     :root[data-theme="rose"] {
       --panel: #ff83b6; --card: #ffa4ca; --border: #b4537d;
       --text: #3c2330; --quiet: #783c58; --grip: #9b5276;
       --label: #6b354f; --label-on-light: #efa6c5;
-      --logo-ink: #3a287f;
     }
 
     :root[data-theme="system"] {
@@ -69,7 +64,6 @@
       --panel: #ececec; --card: #fafafa; --border: #c8c8c8;
       --text: #202020; --quiet: #606060; --grip: #808080;
       --label: #505050; --label-on-light: #d4d4d4;
-      --logo-ink: #7140ad;
       --dialog-overlay: rgb(0 0 0 / 0.3);
       --dialog-shadow: rgb(0 0 0 / 0.18);
     }
@@ -79,10 +73,20 @@
         --panel: #181818; --card: #252525; --border: #101010;
         --text: #efefef; --quiet: #aaa; --grip: #888;
         --label: #bdbdbd; --label-on-light: #555;
-        --logo-ink: #c5a3ff;
         --dialog-overlay: rgb(0 0 0 / 0.6);
         --dialog-shadow: rgb(0 0 0 / 0.35);
       }
+    }
+
+    :root[data-theme="custom"] {
+      --panel: var(--custom-color, #e8dfbd);
+      --text: var(--custom-ink, #29281f);
+      --card: color-mix(in srgb, var(--panel) 90%, var(--text));
+      --border: color-mix(in srgb, var(--panel) 65%, var(--text));
+      --quiet: color-mix(in srgb, var(--panel) 25%, var(--text));
+      --grip: color-mix(in srgb, var(--panel) 50%, var(--text));
+      --label: var(--quiet);
+      --label-on-light: var(--panel);
     }
 
     html,
@@ -250,6 +254,7 @@
     /* Count-up timers are the active, open-ended mode. Give them a light
        surface so they are immediately distinct from countdowns. */
     .timer-unit.counting-up {
+      --focus-ring: var(--panel);
       --timer-surface: var(--text);
       background: var(--timer-surface);
     }
@@ -305,10 +310,6 @@
     .timer-label:hover,
     .timer-label:focus {
       color: var(--text);
-    }
-
-    .timer-label:focus {
-      border-bottom-color: var(--quiet);
     }
 
     .timer-label::selection {
@@ -540,6 +541,13 @@
       outline-color: var(--text);
     }
 
+    .theme-swatch[data-theme="custom"] {
+      background: var(--custom-color, conic-gradient(#ff83b6, #e2ef54, #8ce4ae, #c4a0e4, #ff83b6));
+      color: var(--custom-ink, #29281f);
+      font: 10px/11px ComicMono, monospace;
+      text-align: center;
+    }
+
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after {
         transition-duration: 0s !important;
@@ -638,7 +646,8 @@
 
     #add,
     #tiny-mode,
-    #seconds-toggle {
+    #seconds-toggle,
+    #clock-toggle {
       padding: 0.2rem 0.4rem;
       border: 0;
       outline: 0;
@@ -651,7 +660,8 @@
     }
 
     #tiny-mode,
-    #seconds-toggle {
+    #seconds-toggle,
+    #clock-toggle {
       font-size: 0.8rem;
     }
 
@@ -660,13 +670,93 @@
     #tiny-mode:hover,
     #tiny-mode:focus-visible,
     #seconds-toggle:hover,
-    #seconds-toggle:focus-visible {
+    #seconds-toggle:focus-visible,
+    #clock-toggle:hover,
+    #clock-toggle:focus-visible {
       color: var(--text);
     }
 
     .timer-display-options {
       display: flex;
+      flex: 1;
+      min-width: 0;
       align-items: center;
+      gap: 7px;
+    }
+
+    .seconds-control {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--quiet);
+      font-size: 0.8rem;
+      white-space: nowrap;
+    }
+
+    #tiny-mode {
+      display: inline-flex;
+      flex: none;
+      padding: 0.2rem;
+    }
+
+    #tiny-mode svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    #tiny-mode .expand-icon,
+    #tiny-mode[aria-pressed="true"] .shrink-icon {
+      display: none;
+    }
+
+    #tiny-mode[aria-pressed="true"] .expand-icon {
+      display: block;
+    }
+
+    .timer.tiny-mode .timer-actions,
+    .timer.tiny-mode .timer-display-options {
+      display: contents;
+    }
+
+    .timer.tiny-mode .seconds-control,
+    .timer.tiny-mode .timer-create-options,
+    .timer.tiny-mode .action-logo {
+      display: none;
+    }
+
+    .timer.tiny-mode {
+      padding-left: 3rem;
+      padding-right: 1rem;
+    }
+
+    .timer.tiny-mode #tiny-mode {
+      position: absolute;
+      left: 1.25rem;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .timer-display-options button {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .timer-create-options {
+      flex: none;
+    }
+
+    @media (max-width: 420px) {
+      .timer-actions {
+        gap: 0.4rem;
+        flex-wrap: nowrap;
+      }
+
+      .timer-create-options,
+      .theme-picker {
+        gap: 5px;
+      }
     }
 
     .timer-unit[draggable="true"] {
@@ -796,6 +886,116 @@
     .merge-dialog button:focus-visible {
       color: var(--text);
     }
+
+    /* Use the swatches' focus ring for every keyboard target. */
+    :root :focus-visible {
+      outline: 2px solid var(--focus-ring, var(--text)) !important;
+      outline-offset: 3px !important;
+      border-radius: 4px !important;
+    }
+
+    .clock-panel {
+      flex: none;
+      width: 12ch;
+      text-align: center;
+      padding: 0.25rem 0.4rem;
+      border-radius: 3px;
+      background: color-mix(in srgb, var(--panel) 94%, var(--text));
+      color: var(--quiet);
+      font: inherit;
+      font-size: 0.8rem;
+      line-height: 1.2;
+      font-variant-numeric: tabular-nums;
+    }
+
+    #clock-toggle,
+    #seconds-toggle {
+      display: inline-flex;
+      align-items: center;
+      flex: none;
+      width: 28px;
+      height: 16px;
+      padding: 2px;
+      border: 1px solid var(--quiet);
+      border-radius: 4px;
+      background: transparent;
+      transition: none;
+    }
+
+    #clock-toggle::before,
+    #seconds-toggle::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      background: var(--quiet);
+    }
+
+    #clock-toggle[aria-checked="true"],
+    #seconds-toggle[aria-checked="true"] {
+      background: var(--quiet);
+    }
+
+    #clock-toggle[aria-checked="true"]::before,
+    #seconds-toggle[aria-checked="true"]::before {
+      background: var(--panel);
+      transform: translateX(12px);
+    }
+
+    .clock-panel[hidden],
+    .timer.tiny-mode .clock-panel {
+      display: none;
+    }
+
+    .clock-time {
+      display: block;
+      text-align: center;
+      line-height: 1.2;
+      white-space: nowrap;
+      letter-spacing: 0.04em;
+    }
+
+    .clock-off {
+      opacity: 0.45;
+      white-space: nowrap;
+    }
+
+    .clock-time[hidden],
+    .clock-off[hidden] {
+      display: none;
+    }
+
+    .merge-undo {
+      position: absolute;
+      bottom: 4.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      max-width: calc(100% - 3rem);
+      box-sizing: border-box;
+      padding: 0.5rem 0.65rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: var(--panel);
+      color: var(--quiet);
+      font-size: 0.75rem;
+    }
+
+    .merge-undo[hidden] { display: none; }
+
+    .merge-undo button {
+      border: 0;
+      padding: 0.2rem;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    #merge-undo-countdown { opacity: 0.55; }
   </style>
   <script>
     try {
@@ -823,24 +1023,39 @@
   </div>
   <main class="timer">
     <div id="timer-list"></div>
+    <div class="merge-undo" id="merge-undo" hidden>
+      <span role="status">timers combined</span>
+      <button type="button" id="merge-undo-button">undo <span id="merge-undo-countdown" aria-hidden="true"></span></button>
+      <button type="button" id="merge-undo-dismiss" aria-label="Dismiss undo" title="Dismiss">×</button>
+    </div>
     <div class="timer-actions">
       <div class="timer-display-options">
+        <button id="tiny-mode" type="button" aria-label="Enter tiny mode" title="Shrink" aria-pressed="false">
+          <svg class="shrink-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 1l5 5M6 2v4H2M15 15l-5-5M10 14v-4h4"/></svg>
+          <svg class="expand-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6L1 1M1 5V1h4M10 10l5 5M15 11v4h-4"/></svg>
+        </button>
         <pre class="action-logo" aria-hidden="true">▄▖     ▌
 ▚ ▀▌▛▌▛▌
 ▄▌█▌▌▌▙▌</pre>
-        <button id="tiny-mode" type="button">tiny mode</button>
-        <button id="seconds-toggle" type="button" aria-pressed="false">show seconds</button>
+        <label class="seconds-control">seconds <button id="seconds-toggle" type="button" role="switch" aria-label="Show seconds" title="Show seconds" aria-checked="false"></button></label>
       </div>
       <div class="timer-create-options">
         <div class="theme-picker" role="group" aria-label="Interface color">
+          <button type="button" class="theme-swatch" data-theme="system" style="--swatch: linear-gradient(90deg, #eee 50%, #202020 50%)" aria-label="Follow macOS appearance" title="System — follows macOS light or dark mode" aria-pressed="false"></button>
+          <button type="button" class="theme-swatch" data-theme="custom" aria-label="Choose custom color" title="Choose custom color" aria-pressed="false">+</button>
+          <input id="custom-color" type="color" value="#e8dfbd" tabindex="-1" aria-label="Custom interface color" hidden>
           <button type="button" class="theme-swatch" data-theme="graphite" style="--swatch: #e8dfbd" aria-label="Old paper" title="Old paper" aria-pressed="true"></button>
           <button type="button" class="theme-swatch" data-theme="amber" style="--swatch: #e2ef54" aria-label="Acid yellow" title="Acid yellow" aria-pressed="false"></button>
           <button type="button" class="theme-swatch" data-theme="moss" style="--swatch: #8ce4ae" aria-label="Faded mint" title="Faded mint" aria-pressed="false"></button>
           <button type="button" class="theme-swatch" data-theme="ocean" style="--swatch: #ff9b57" aria-label="Safety orange" title="Safety orange" aria-pressed="false"></button>
           <button type="button" class="theme-swatch" data-theme="plum" style="--swatch: #c4a0e4" aria-label="Ditto lilac" title="Ditto lilac" aria-pressed="false"></button>
           <button type="button" class="theme-swatch" data-theme="rose" style="--swatch: #ff83b6" aria-label="Flyer pink" title="Flyer pink" aria-pressed="false"></button>
-          <button type="button" class="theme-swatch" data-theme="system" style="--swatch: linear-gradient(90deg, #eee 50%, #202020 50%)" aria-label="Follow macOS appearance" title="System — follows macOS light or dark mode" aria-pressed="false"></button>
         </div>
+        <div class="clock-panel" id="clock-panel" aria-label="Current time" hidden>
+          <time class="clock-time" id="clock-time"></time>
+          <span class="clock-off" hidden>clock hidden</span>
+        </div>
+        <button id="clock-toggle" type="button" role="switch" aria-label="Clock" title="Clock" aria-checked="true" aria-controls="clock-panel"></button>
         <button id="add" type="button" aria-label="Add timer">＋</button>
       </div>
     </div>
@@ -880,9 +1095,20 @@
     const addButton = document.querySelector("#add");
     const tinyModeButton = document.querySelector("#tiny-mode");
     const secondsToggleButton = document.querySelector("#seconds-toggle");
+    const clockToggleButton = document.querySelector("#clock-toggle");
+    const clockPanel = document.querySelector("#clock-panel");
+    const clockTime = document.querySelector("#clock-time");
+    let clockRefreshTimer = null;
+    let clockHour12;
     const shell = document.querySelector(".timer");
     const mergeDialog = document.querySelector("#merge-dialog");
     const mergeMessage = document.querySelector("#merge-message");
+    const mergeUndoBanner = document.querySelector("#merge-undo");
+    const mergeUndoButton = document.querySelector("#merge-undo-button");
+    const mergeUndoDismiss = document.querySelector("#merge-undo-dismiss");
+    const mergeUndoCountdown = document.querySelector("#merge-undo-countdown");
+    let pendingMergeUndo = null;
+    let mergeUndoTimer = null;
     let mergeRequest = null;
     let mergeRefreshTimer = null;
     let tinyMode = false;
@@ -894,6 +1120,26 @@
     let showSeconds = false;
 
     const themeSwatches = [...document.querySelectorAll(".theme-swatch")];
+    const customColorPicker = document.querySelector("#custom-color");
+
+    function applyCustomColor(color) {
+      if (!/^#[0-9a-f]{6}$/i.test(color)) return;
+      const channels = color.slice(1).match(/../g).map(channel => {
+        const value = parseInt(channel, 16) / 255;
+        return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+      });
+      const luminance = channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+      document.documentElement.style.setProperty("--custom-color", color);
+      document.documentElement.style.setProperty("--custom-ink", luminance > 0.179 ? "#161616" : "#fafafa");
+      customColorPicker.value = color;
+      try { localStorage.setItem("sandCustomColor", color); } catch { }
+    }
+
+    try {
+      const savedColor = localStorage.getItem("sandCustomColor");
+      if (savedColor) applyCustomColor(savedColor);
+    } catch { }
+
     function selectTheme(theme) {
       if (!themeSwatches.some(button => button.dataset.theme === theme)) theme = "graphite";
       document.documentElement.dataset.theme = theme;
@@ -901,7 +1147,17 @@
       try { localStorage.setItem("sandTheme", theme); } catch { }
     }
     themeSwatches.forEach(button => {
-      button.addEventListener("click", () => selectTheme(button.dataset.theme));
+      button.addEventListener("click", () => {
+        if (button.dataset.theme === "custom") {
+          applyCustomColor(customColorPicker.value);
+          customColorPicker.click();
+        }
+        selectTheme(button.dataset.theme);
+      });
+    });
+    customColorPicker.addEventListener("input", () => {
+      applyCustomColor(customColorPicker.value);
+      selectTheme("custom");
     });
     selectTheme(document.documentElement.dataset.theme);
 
@@ -952,6 +1208,13 @@
       const input = normalizeCommand(value);
 
       if (!input) return null;
+
+      if (input.startsWith("in")) {
+        const match = input.match(/^in(\d+(?:\.\d+)?)$/);
+        if (!match) return null;
+        const seconds = Math.round(Number(match[1]) * 60);
+        return Number.isSafeInteger(seconds) ? seconds : null;
+      }
 
       if (input.startsWith(".")) {
         const secondsPart = input.slice(1);
@@ -1186,7 +1449,8 @@
       }
 
       function render() {
-        command.value = formatTime(remainingSeconds, showSeconds);
+        const includeSeconds = showSeconds || (countingUp ? remainingSeconds < 60 : remainingSeconds <= 60);
+        command.value = formatTime(remainingSeconds, includeSeconds);
         const timerName = label.value.trim() || "untitled";
         tinySummary.textContent = `${timerName} ${command.value}`;
         const proximity = countingUp
@@ -1564,7 +1828,7 @@
     }
 
     function syncAddButton() {
-      addButton.hidden = Boolean(getDraftTimer());
+      addButton.hidden = false;
     }
 
     function updateDeleteButtons() {
@@ -1667,8 +1931,9 @@
         tinyMode = enabled;
         shell.classList.toggle("tiny-mode", enabled);
         setInputsForTinyMode(enabled);
-        tinyModeButton.textContent = enabled ? "full mode" : "tiny mode";
+        tinyModeButton.setAttribute("aria-pressed", String(enabled));
         tinyModeButton.setAttribute("aria-label", enabled ? "Exit tiny mode" : "Enter tiny mode");
+        tinyModeButton.title = enabled ? "Expand" : "Shrink";
         document.activeElement?.blur();
         await new Promise(requestAnimationFrame);
         await syncWindowSize({ animate: !reducedMotion, force: true });
@@ -1695,6 +1960,51 @@
     function leaveTinyMode(selectedTimer) {
       return changeTinyMode(false, selectedTimer);
     }
+
+    function dismissMergeUndo() {
+      clearInterval(mergeUndoTimer);
+      mergeUndoTimer = null;
+      pendingMergeUndo = null;
+      if (mergeUndoBanner.contains(document.activeElement)) addButton.focus();
+      mergeUndoBanner.hidden = true;
+    }
+
+    function startMergeUndo(source, target, sourceState, targetState, sourceNext) {
+      dismissMergeUndo();
+      pendingMergeUndo = { source, target, sourceState, targetState, sourceNext, expires: Date.now() + 30000 };
+      const refresh = () => {
+        const seconds = Math.ceil((pendingMergeUndo.expires - Date.now()) / 1000);
+        if (seconds <= 0 || !target.isConnected) {
+          dismissMergeUndo();
+          return;
+        }
+        mergeUndoCountdown.textContent = `${seconds}s`;
+      };
+      mergeUndoBanner.hidden = false;
+      refresh();
+      if (pendingMergeUndo) mergeUndoTimer = setInterval(refresh, 250);
+    }
+
+    function undoMerge() {
+      const undo = pendingMergeUndo;
+      if (!undo || Date.now() >= undo.expires || !undo.target.isConnected) {
+        dismissMergeUndo();
+        return;
+      }
+      dismissMergeUndo();
+      const { source, target, sourceState, targetState, sourceNext } = undo;
+      target.timerState.pause();
+      target.timerState.restore(targetState);
+      timerList.insertBefore(source, sourceNext?.isConnected ? sourceNext : null);
+      source.timerState.restore(sourceState);
+      setInputsForTinyMode(tinyMode);
+      updateDeleteButtons();
+      persistTimerState();
+      if (!tinyMode) target.querySelector(".timer-label").focus();
+    }
+
+    mergeUndoButton.addEventListener("click", undoMerge);
+    mergeUndoDismiss.addEventListener("click", dismissMergeUndo);
 
     function closeMergeDialog() {
       clearInterval(mergeRefreshTimer);
@@ -1737,17 +2047,43 @@
 
       const targetWasRunning = target.timerState.isRunning();
       const now = Date.now();
-      const merged = mergeTimerValues(source.timerState.snapshot(now), target.timerState.snapshot(now), action);
+      const sourceState = source.timerState.snapshot(now);
+      const targetState = target.timerState.snapshot(now);
+      const sourceNext = source.nextSibling;
+      const merged = mergeTimerValues(sourceState, targetState, action);
 
       source.timerState.pause();
       target.timerState.setMergedSeconds(merged.seconds, targetWasRunning, merged.label);
       source.timerState.destroy();
+      startMergeUndo(source, target, sourceState, targetState, sourceNext);
       updateDeleteButtons();
       persistTimerState();
     });
 
     document.addEventListener("keydown", event => {
       if (event.key === "Escape" && !mergeDialog.hidden) closeMergeDialog();
+    });
+
+    document.addEventListener("keydown", event => {
+      if (event.key !== "Tab" || event.altKey || event.ctrlKey || event.metaKey) return;
+      const cards = [...timerList.querySelectorAll(".timer-unit")];
+      const candidates = !mergeDialog.hidden
+        ? [...mergeDialog.querySelectorAll("button")]
+        : tinyMode
+          ? [...cards, tinyModeButton]
+          : [
+            ...cards.flatMap(card => [...card.querySelectorAll(".timer-label, .command")]),
+            addButton, clockToggleButton, ...themeSwatches.toReversed(), secondsToggleButton, tinyModeButton,
+            mergeUndoButton, mergeUndoDismiss,
+            ...cards.flatMap(card => [...card.querySelectorAll("button")].reverse())
+          ];
+      const targets = candidates.filter(element => !element.disabled && element.tabIndex >= 0 && element.getClientRects().length);
+      if (!targets.length) return;
+      const index = targets.indexOf(document.activeElement);
+      const next = index === -1 ? (event.shiftKey ? targets.length - 1 : 0)
+        : (index + (event.shiftKey ? -1 : 1) + targets.length) % targets.length;
+      event.preventDefault();
+      targets[next].focus();
     });
 
     function clearDropHints() {
@@ -1948,9 +2284,47 @@
     });
 
     function syncSecondsToggle() {
-      secondsToggleButton.textContent = showSeconds ? "hide seconds" : "show seconds";
-      secondsToggleButton.setAttribute("aria-pressed", String(showSeconds));
+      secondsToggleButton.setAttribute("aria-checked", String(showSeconds));
     }
+
+    function renderClock() {
+      const now = new Date();
+      clockTime.textContent = now.toLocaleTimeString([], {
+        hour: "numeric", minute: "2-digit",
+        ...(typeof clockHour12 === "boolean" ? { hour12: clockHour12 } : {}),
+        ...(showSeconds ? { second: "2-digit" } : {})
+      }).toLocaleLowerCase();
+      clockTime.dateTime = now.toISOString();
+    }
+
+    async function refreshClockFormat() {
+      try { clockHour12 = await window.timerWindow?.getClockHour12(); } catch { }
+      if (clockToggleButton.getAttribute("aria-checked") === "true") renderClock();
+    }
+
+    window.addEventListener("focus", refreshClockFormat);
+
+    function setClockVisible(visible) {
+      clearInterval(clockRefreshTimer);
+      clockRefreshTimer = null;
+      clockPanel.hidden = false;
+      clockTime.hidden = !visible;
+      clockPanel.querySelector(".clock-off").hidden = visible;
+      clockPanel.setAttribute("aria-label", visible ? "Current time" : "Clock hidden");
+      clockToggleButton.setAttribute("aria-checked", String(visible));
+      if (visible) {
+        renderClock();
+        refreshClockFormat();
+        clockRefreshTimer = setInterval(renderClock, 250);
+      }
+      try { localStorage.setItem("clockEnabled", String(visible)); } catch { }
+      syncWindowSize();
+    }
+
+    clockToggleButton.addEventListener("click", () => setClockVisible(clockToggleButton.getAttribute("aria-checked") !== "true"));
+    let showClock = true;
+    try { showClock = localStorage.getItem("clockEnabled") !== "false"; } catch { }
+    setClockVisible(showClock);
 
     secondsToggleButton.addEventListener("click", () => {
       showSeconds = !showSeconds;
@@ -1958,6 +2332,7 @@
         localStorage.setItem("showSeconds", String(showSeconds));
       } catch { }
       syncSecondsToggle();
+      if (clockToggleButton.getAttribute("aria-checked") === "true") renderClock();
       timerList.querySelectorAll(".timer-unit").forEach(timer => timer.timerState.render());
     });
 

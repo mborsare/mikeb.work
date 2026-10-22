@@ -13,6 +13,7 @@ function harness(sourceOptions = {}, targetOptions = {}) {
   const intervals = new Map();
   const saves = [];
   const readings = [];
+  const undoOffers = [];
   let now = 1000;
   function card(options) {
     const state = { label: "", seconds: 0, running: false, pauses: 0, ...options };
@@ -49,6 +50,7 @@ function harness(sourceOptions = {}, targetOptions = {}) {
     showSeconds: true,
     mergeDialog: dialog,
     mergeMessage: message,
+    startMergeUndo: (...args) => undoOffers.push(args),
     setInterval: callback => { intervals.set(1, callback); return 1; },
     clearInterval: id => intervals.delete(id),
     updateDeleteButtons() {},
@@ -58,7 +60,7 @@ function harness(sourceOptions = {}, targetOptions = {}) {
   });
   vm.runInContext(helpers + "\n" + mergeCode, context);
   return {
-    source, target, dialog, message, intervals, saves, readings,
+    source, target, dialog, message, intervals, saves, readings, undoOffers,
     open: () => context.requestMerge(source, target),
     advance: () => { now += 63000; intervals.forEach(callback => callback()); },
     confirm: action => handlers.get("click")({ target: { dataset: { mergeAction: action } } })
@@ -78,6 +80,9 @@ test("merge adds exact remaining seconds and both trimmed labels", () => {
   assert.equal(h.readings[0], h.readings[1]);
   assert.equal(h.saves.at(-1).length, 1);
   assert.equal(h.saves.at(-1)[0].label, "Reading + Writing");
+  assert.equal(h.undoOffers.length, 1);
+  assert.equal(h.undoOffers[0][2].remainingSeconds, 91);
+  assert.equal(h.undoOffers[0][3].remainingSeconds, 3599);
 });
 
 test("confirmation uses live values, and the dialog follows running timers", () => {

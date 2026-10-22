@@ -101,6 +101,31 @@ test("a countdown passes through zero into overtime with its real end time and r
   assert.equal(h.timeouts.size, 1);
 });
 
+test("count-up shows ticking seconds for the first minute when seconds are hidden", () => {
+  const h = timerHarness({ countingUp: true, showSeconds: false });
+  for (const [seconds, expected] of [[0, "0:00:00"], [1, "0:00:01"], [59, "0:00:59"], [60, "0:01"], [61, "0:01"]]) {
+    h.at(END + seconds * 1000);
+    assert.equal(h.context.command.value, expected);
+    assert.equal(h.context.tinySummary.textContent, `Focus ${expected}`);
+  }
+  h.context.showSeconds = true;
+  h.at(END + 62000);
+  assert.equal(h.context.command.value, "0:01:02");
+});
+
+test("countdowns tick through the last minute and into the first minute of overtime", () => {
+  const h = timerHarness({ showSeconds: false });
+  for (const [seconds, expected] of [[61, "0:01"], [60, "0:01:00"], [59, "0:00:59"], [1, "0:00:01"], [0, "0:00:00"]]) {
+    h.at(END - seconds * 1000);
+    assert.equal(h.context.command.value, expected);
+    assert.equal(h.context.tinySummary.textContent, `Focus ${expected}`);
+  }
+  h.at(END + 1000);
+  assert.equal(h.context.command.value, "0:00:01");
+  h.at(END + 60000);
+  assert.equal(h.context.command.value, "0:01");
+});
+
 test("a delayed tick measures overtime from the deadline, including time asleep", () => {
   const h = timerHarness();
   h.at(END + 65000);
