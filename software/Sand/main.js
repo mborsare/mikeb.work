@@ -1,12 +1,54 @@
 const { app, BrowserWindow, Menu, ipcMain, screen } = require("electron");
 const fs = require("node:fs");
 const path = require("node:path");
+const { contentBounds } = require("./window-sizing");
 
 let win;
 let saveTimer;
+let resizeAnimation;
 
-const SCREEN_EDGE_BUFFER = 24;
 const TRANSPARENT_BACKGROUND = "#00000000";
+
+function cancelResizeAnimation() {
+  if (!resizeAnimation) return;
+  clearTimeout(resizeAnimation.timer);
+  resizeAnimation.finish();
+  resizeAnimation = null;
+}
+
+function resizeWindow(target, animate) {
+  cancelResizeAnimation();
+  const start = win.getBounds();
+  if (!animate || (start.height === target.height && start.y === target.y)) {
+    win.setBounds(target);
+    return Promise.resolve();
+  }
+  return new Promise(resolve => {
+    const animation = { finish: resolve, timer: null };
+    resizeAnimation = animation;
+    const started = performance.now();
+    const duration = target.height > start.height ? 120 : 240;
+    function frame() {
+      if (!win || win.isDestroyed()) {
+        cancelResizeAnimation();
+        return;
+      }
+      const progress = Math.min(1, (performance.now() - started) / duration);
+      const eased = progress * progress * (3 - 2 * progress);
+      win.setBounds({
+        ...target,
+        y: Math.round(start.y + (target.y - start.y) * eased),
+        height: Math.round(start.height + (target.height - start.height) * eased)
+      });
+      if (progress < 1) animation.timer = setTimeout(frame, 16);
+      else {
+        resizeAnimation = null;
+        resolve();
+      }
+    }
+    frame();
+  });
+}
 
 function stateFile() {
   return path.join(app.getPath("userData"), "window-state.json");
@@ -68,23 +110,17 @@ function createWindow() {
   win.on("move", saveState);
   win.on("resize", saveState);
   win.on("close", saveState);
+  win.on("will-resize", cancelResizeAnimation);
+  win.on("will-move", cancelResizeAnimation);
+  win.on("closed", cancelResizeAnimation);
 }
 
-ipcMain.on("resize-to-content", (event, contentHeight, animate = false, anchor = "top-left") => {
-  if (!win || win.isDestroyed()) return;
+ipcMain.handle("resize-to-content", (event, contentHeight, animate = false, anchor = "top-left") => {
+  if (!win || win.isDestroyed() || !Number.isFinite(contentHeight)) return;
   const bounds = win.getBounds();
   const display = screen.getDisplayNearestPoint({ x: bounds.x, y: bounds.y });
 
-  const maxHeight = display.workArea.height - SCREEN_EDGE_BUFFER;
-  const nextHeight = Math.min(Math.round(contentHeight), maxHeight);
-
-  if (nextHeight === bounds.height) return;
-  const nextY = anchor === "bottom-left"
-    ? bounds.y + bounds.height - nextHeight
-    : bounds.y;
-  // Electron animates bounds changes on macOS when requested. This keeps the
-  // compact-to-full transition from feeling like the window has popped open.
-  win.setBounds({ x: bounds.x, y: nextY, width: bounds.width, height: nextHeight }, Boolean(animate));
+  return resizeWindow(contentBounds(bounds, display.workArea, contentHeight, anchor), Boolean(animate));
 });
 
 ipcMain.handle("load-timer-state", () => {
@@ -139,3 +175,10 @@ app.whenReady().then(() => {
 });
 
 app.on("window-all-closed", () => app.quit());
+app.on("activate", () => {
+  if (win && !win.isDestroyed()) {
+    if (win.isMinimized()) win.restore();
+    win.show();
+    win.focus();
+  }
+});

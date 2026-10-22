@@ -6,6 +6,7 @@
   "scripts": {
     "start": "electron .",
     "pack": "zsh pack.sh",
+    "install-app": "zsh install-app.sh",
     "test": "node --test"
   },
   "devDependencies": {

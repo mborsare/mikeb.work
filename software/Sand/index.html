@@ -9,22 +9,80 @@
   <style>
     @font-face {
       font-family: ComicMono;
-      src: url("/fonts/ComicMono-Regular.woff") format("woff");
+      src: url("./fonts/ComicMono-Regular.woff") format("woff");
       font-display: swap;
     }
 
+    /* Sun-faded fluorescent paper, with warm near-black ink. */
     :root {
-      --panel: #292929;
-      --border: #1f1f1f;
-      --text: #fff;
-      --quiet: #999;
-      --grip: #888;
-      --card: #333;
-      --label: #b8b8b8;
-      --label-on-light: #555;
-      --selection-flash: #111;
-      --dialog-overlay: rgb(0 0 0 / 0.6);
-      --dialog-shadow: rgb(0 0 0 / 0.35);
+      color-scheme: light;
+      --panel: #e8dfbd;
+      --border: #a39774;
+      --text: #29281f;
+      --quiet: #615b45;
+      --grip: #807655;
+      --card: #f3ebce;
+      --label: #57523e;
+      --label-on-light: #d9d0ac;
+      --logo-ink: #6b2878;
+      --dialog-overlay: rgb(38 33 22 / 0.35);
+      --dialog-shadow: rgb(38 33 22 / 0.2);
+    }
+
+    :root[data-theme="amber"] {
+      --panel: #e2ef54; --card: #eff779; --border: #929d32;
+      --text: #282c19; --quiet: #555d2a; --grip: #75803c;
+      --label: #4b5326; --label-on-light: #dce977;
+      --logo-ink: #2942b5;
+    }
+
+    :root[data-theme="moss"] {
+      --panel: #8ce4ae; --card: #adf0c5; --border: #529467;
+      --text: #203329; --quiet: #395f47; --grip: #538764;
+      --label: #36573f; --label-on-light: #a4dcb7;
+      --logo-ink: #8c2457;
+    }
+
+    :root[data-theme="ocean"] {
+      --panel: #ff9b57; --card: #ffb67e; --border: #b66b38;
+      --text: #3b281d; --quiet: #75482e; --grip: #9a5c35;
+      --label: #68402a; --label-on-light: #efb284;
+      --logo-ink: #263b91;
+    }
+
+    :root[data-theme="plum"] {
+      --panel: #c4a0e4; --card: #d8b9f0; --border: #8868a4;
+      --text: #30233d; --quiet: #604475; --grip: #7d5d96;
+      --label: #553b69; --label-on-light: #cdb0e4;
+      --logo-ink: #16452e;
+    }
+
+    :root[data-theme="rose"] {
+      --panel: #ff83b6; --card: #ffa4ca; --border: #b4537d;
+      --text: #3c2330; --quiet: #783c58; --grip: #9b5276;
+      --label: #6b354f; --label-on-light: #efa6c5;
+      --logo-ink: #3a287f;
+    }
+
+    :root[data-theme="system"] {
+      color-scheme: light dark;
+      --panel: #ececec; --card: #fafafa; --border: #c8c8c8;
+      --text: #202020; --quiet: #606060; --grip: #808080;
+      --label: #505050; --label-on-light: #d4d4d4;
+      --logo-ink: #7140ad;
+      --dialog-overlay: rgb(0 0 0 / 0.3);
+      --dialog-shadow: rgb(0 0 0 / 0.18);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root[data-theme="system"] {
+        --panel: #181818; --card: #252525; --border: #101010;
+        --text: #efefef; --quiet: #aaa; --grip: #888;
+        --label: #bdbdbd; --label-on-light: #555;
+        --logo-ink: #c5a3ff;
+        --dialog-overlay: rgb(0 0 0 / 0.6);
+        --dialog-shadow: rgb(0 0 0 / 0.35);
+      }
     }
 
     html,
@@ -196,28 +254,21 @@
       background: var(--timer-surface);
     }
 
-    /* A tiny-mode selection returns to a full card with a short visual
-       handoff, so the chosen timer is easy to find in the larger layout. */
-    .timer-unit.tiny-selection-flash {
-      animation: tiny-selection-flash 650ms ease-out;
-    }
-
-    @keyframes tiny-selection-flash {
-      0%, 75% {
-        background-color: var(--selection-flash);
-      }
-
-      100% {
-        background-color: var(--timer-surface);
-      }
-    }
-
     .timer-unit.counting-up .command {
       color: var(--panel);
     }
 
     .timer-unit.counting-up .timer-label {
       color: var(--label-on-light);
+    }
+
+    .timer-unit.counting-up .running-render,
+    .timer-unit.counting-up .remove {
+      color: var(--label-on-light);
+    }
+
+    .timer-unit.counting-up .pause {
+      color: var(--panel);
     }
 
     .timer-unit.counting-up .timer-label:hover,
@@ -421,6 +472,79 @@
       align-items: center;
       flex-shrink: 0;
       margin-top: 0.4rem;
+      gap: 0.4rem 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .timer-create-options,
+    .theme-picker {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .timer-create-options {
+      margin-left: auto;
+    }
+
+    .card-underprint {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      margin: 0;
+      color: var(--quiet);
+      font: 6px/1 ComicMono, Menlo, monospace;
+      letter-spacing: 0;
+      white-space: pre;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .action-logo {
+      display: none;
+      flex: none;
+      margin: 0 1rem 0 0;
+      padding-left: 12px;
+      color: var(--logo-ink);
+      font: 6px/1 ComicMono, Menlo, monospace;
+      letter-spacing: 0;
+      white-space: pre;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    @media (min-width: 660px) {
+      .action-logo {
+        display: block;
+      }
+    }
+
+    .theme-swatch {
+      width: 11px;
+      height: 11px;
+      border: 0;
+      border-radius: 50%;
+      padding: 0;
+      background: var(--swatch);
+      cursor: pointer;
+      flex: none;
+      outline: 1px solid transparent;
+      outline-offset: 3px;
+      transition: outline-color 120ms ease;
+    }
+
+    .theme-swatch[aria-pressed="true"],
+    .theme-swatch:focus-visible {
+      outline-color: var(--text);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        transition-duration: 0s !important;
+        animation-duration: 0s !important;
+      }
     }
 
     /* Tiny mode is a glanceable, read-only index of every timer. The cards
@@ -570,7 +694,19 @@
     }
 
     .timer-unit.dragging {
-      opacity: 0.45;
+      background: transparent;
+    }
+
+    .timer-unit.dragging > :not(.card-underprint) {
+      visibility: hidden;
+    }
+
+    .timer-unit.dragging .card-underprint {
+      display: block;
+    }
+
+    .timer-unit.dragging::after {
+      display: none;
     }
 
     .timer-unit.drop-target {
@@ -661,6 +797,11 @@
       color: var(--text);
     }
   </style>
+  <script>
+    try {
+      document.documentElement.dataset.theme = localStorage.getItem("sandTheme") || "graphite";
+    } catch { }
+  </script>
 </head>
 
 <body>
@@ -684,15 +825,32 @@
     <div id="timer-list"></div>
     <div class="timer-actions">
       <div class="timer-display-options">
+        <pre class="action-logo" aria-hidden="true">▄▖     ▌
+▚ ▀▌▛▌▛▌
+▄▌█▌▌▌▙▌</pre>
         <button id="tiny-mode" type="button">tiny mode</button>
         <button id="seconds-toggle" type="button" aria-pressed="false">show seconds</button>
       </div>
-      <button id="add" type="button" aria-label="Add timer">＋</button>
+      <div class="timer-create-options">
+        <div class="theme-picker" role="group" aria-label="Interface color">
+          <button type="button" class="theme-swatch" data-theme="graphite" style="--swatch: #e8dfbd" aria-label="Old paper" title="Old paper" aria-pressed="true"></button>
+          <button type="button" class="theme-swatch" data-theme="amber" style="--swatch: #e2ef54" aria-label="Acid yellow" title="Acid yellow" aria-pressed="false"></button>
+          <button type="button" class="theme-swatch" data-theme="moss" style="--swatch: #8ce4ae" aria-label="Faded mint" title="Faded mint" aria-pressed="false"></button>
+          <button type="button" class="theme-swatch" data-theme="ocean" style="--swatch: #ff9b57" aria-label="Safety orange" title="Safety orange" aria-pressed="false"></button>
+          <button type="button" class="theme-swatch" data-theme="plum" style="--swatch: #c4a0e4" aria-label="Ditto lilac" title="Ditto lilac" aria-pressed="false"></button>
+          <button type="button" class="theme-swatch" data-theme="rose" style="--swatch: #ff83b6" aria-label="Flyer pink" title="Flyer pink" aria-pressed="false"></button>
+          <button type="button" class="theme-swatch" data-theme="system" style="--swatch: linear-gradient(90deg, #eee 50%, #202020 50%)" aria-label="Follow macOS appearance" title="System — follows macOS light or dark mode" aria-pressed="false"></button>
+        </div>
+        <button id="add" type="button" aria-label="Add timer">＋</button>
+      </div>
     </div>
   </main>
 
   <template id="timer-template">
     <section class="timer-unit">
+      <pre class="card-underprint" aria-hidden="true">▄▖     ▌
+▚ ▀▌▛▌▛▌
+▄▌█▌▌▌▙▌</pre>
       <input class="timer-label" aria-label="Timer label" placeholder="Label" autocomplete="off" spellcheck="false">
       <input class="command" aria-label="Timer" autocomplete="off" spellcheck="false">
       <span class="tiny-summary"></span>
@@ -726,10 +884,26 @@
     const mergeDialog = document.querySelector("#merge-dialog");
     const mergeMessage = document.querySelector("#merge-message");
     let mergeRequest = null;
+    let mergeRefreshTimer = null;
     let tinyMode = false;
-    let animateNextResize = false;
+    let modeTransition = false;
+    let fullModeHeight = null;
+    let fullModeScroll = 0;
+    let lastWindowWidth = window.innerWidth;
     let tinyResizeFrame = null;
     let showSeconds = false;
+
+    const themeSwatches = [...document.querySelectorAll(".theme-swatch")];
+    function selectTheme(theme) {
+      if (!themeSwatches.some(button => button.dataset.theme === theme)) theme = "graphite";
+      document.documentElement.dataset.theme = theme;
+      themeSwatches.forEach(button => button.setAttribute("aria-pressed", String(button.dataset.theme === theme)));
+      try { localStorage.setItem("sandTheme", theme); } catch { }
+    }
+    themeSwatches.forEach(button => {
+      button.addEventListener("click", () => selectTheme(button.dataset.theme));
+    });
+    selectTheme(document.documentElement.dataset.theme);
 
     try {
       showSeconds = localStorage.getItem("showSeconds") === "true";
@@ -761,12 +935,21 @@
       return value.trim() === "+";
     }
 
-    function parseCommand(value) {
+    function normalizeCommand(value) {
       const input = value
         .trim()
         .toLowerCase()
         .replaceAll(" ", "")
-        .replaceAll(";", ":");
+        .replaceAll(";", ":")
+        .replace(/^(@?)(\d{2})(\d{2})(?=(?:am|pm)?(?:-|$))/, "$1$2:$3");
+
+      // Two-digit hours (with or without a colon) mean a time of day.
+      // Keep short duration inputs such as 30 and 1:30 working as before.
+      return /^\d{2}:\d{2}(?=(?:am|pm)?(?:-|$))/.test(input) ? `@${input}` : input;
+    }
+
+    function parseCommand(value) {
+      const input = normalizeCommand(value);
 
       if (!input) return null;
 
@@ -871,6 +1054,33 @@
       return hours * 3600 + minutes * 60 + seconds;
     }
 
+    function readTimer(state, now) {
+      if (!state.running) return {
+        seconds: state.remainingSeconds,
+        countingUp: state.countingUp,
+        endedAt: state.endedAt ?? null
+      };
+      const justEnded = !state.countingUp && now >= state.deadline;
+      const countingUp = state.countingUp || justEnded;
+      return {
+        seconds: countingUp
+          ? Math.max(0, Math.floor((now - state.deadline) / 1000))
+          : Math.max(0, Math.ceil((state.deadline - now) / 1000)),
+        countingUp,
+        endedAt: justEnded ? state.deadline : (state.endedAt ?? null)
+      };
+    }
+
+    function mergeTimerValues(source, target, action) {
+      const labels = [target.label.trim(), source.label.trim()].filter(Boolean);
+      return {
+        seconds: action === "add"
+          ? target.remainingSeconds + source.remainingSeconds
+          : Math.max(0, target.remainingSeconds - source.remainingSeconds),
+        label: labels.join(action === "add" ? " + " : " − ")
+      };
+    }
+
     function addTimer(initialMinutes = 0, autoStart = false, blank = false, landing = false) {
       const timer = timerTemplate.content.firstElementChild.cloneNode(true);
 
@@ -891,6 +1101,8 @@
       const removeButton = timer.querySelector(".remove");
 
       let remainingSeconds = blank ? 0 : initialMinutes * 60;
+      let initialSeconds = remainingSeconds;
+      let endedAt = null;
       let disposableIfEmpty = blank;
       let running = false;
       let countingUp = false;
@@ -901,7 +1113,7 @@
       timer.draggable = !blank;
 
       function clockTargetLabel(raw) {
-        const input = raw.trim().toLowerCase();
+        const input = normalizeCommand(raw);
         if (input.startsWith("@")) {
           const value = input.slice(1);
           if (/-\s*\d+\s*m?\s*$/.test(value)) {
@@ -920,6 +1132,13 @@
       }
 
       function updateInputAssist() {
+        if (endedAt !== null) {
+          intentOptions.hidden = true;
+          commitHint.hidden = true;
+          runningHint.hidden = false;
+          runningRender.textContent = `ended at ${formatClockTime(endedAt)}`;
+          return;
+        }
         if (running) {
           intentOptions.hidden = true;
           commitHint.hidden = true;
@@ -974,19 +1193,24 @@
           ? 1
           : 1 - Math.min(1, remainingSeconds / 3600);
         timer.style.setProperty("--timer-label-opacity", String(0.45 + proximity * 0.55));
-        command.readOnly = running || tinyMode;
-        pauseButton.hidden = !running && !canResume();
-        pauseButton.textContent = running ? "pause" : "resume";
-        pauseButton.setAttribute("aria-label", running ? "Pause timer" : "Resume timer");
+        command.readOnly = running || tinyMode || endedAt !== null;
+        pauseButton.hidden = endedAt === null && !running && !canResume();
+        pauseButton.textContent = endedAt !== null ? "reset" : running ? "pause" : "resume";
+        pauseButton.setAttribute("aria-label", endedAt !== null ? "Reset timer" : running ? "Pause timer" : "Resume timer");
         updateInputAssist();
       }
 
+      function updateClock(now = Date.now()) {
+        const reading = readTimer({ running, countingUp, deadline, remainingSeconds, endedAt }, now);
+        if (endedAt === null && reading.endedAt !== null) document.title = "Overtime";
+        remainingSeconds = reading.seconds;
+        countingUp = reading.countingUp;
+        endedAt = reading.endedAt;
+        timer.classList.toggle("counting-up", countingUp);
+      }
+
       function pause() {
-        if (running) {
-          remainingSeconds = countingUp
-            ? Math.max(0, Math.floor((Date.now() - deadline) / 1000))
-            : Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
-        }
+        updateClock();
 
         running = false;
         timer.classList.remove("running");
@@ -1000,32 +1224,28 @@
       }
 
       function tick() {
-        remainingSeconds = countingUp
-          ? Math.max(0, Math.floor((Date.now() - deadline) / 1000))
-          : Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+        updateClock();
         render();
         persistTimerState();
 
-        if (!countingUp && remainingSeconds === 0) {
-          pause();
-          document.title = "Done";
-        } else {
-          timerId = setTimeout(tick, 1000 - Date.now() % 1000 + 5);
-        }
+        timerId = setTimeout(tick, 1000 - Date.now() % 1000 + 5);
       }
 
-      function start() {
+      function start(savedDeadline = null) {
         if (!countingUp && remainingSeconds <= 0) return;
 
         hasStarted = true;
         running = true;
         timer.classList.remove("paused");
         timer.classList.add("running");
-        const now = Math.floor(Date.now() / 1000) * 1000;
-        deadline = countingUp ? now - remainingSeconds * 1000 : now + remainingSeconds * 1000;
+        clearTimeout(timerId);
+        const now = Date.now();
+        deadline = Number.isFinite(savedDeadline) ? savedDeadline
+          : endedAt !== null ? endedAt
+          : countingUp ? now - remainingSeconds * 1000 : now + remainingSeconds * 1000;
         timerId = setTimeout(tick, 1000 - Date.now() % 1000 + 5);
 
-        document.title = "Block";
+        document.title = endedAt !== null ? "Overtime" : "Sand";
         render();
         syncAddButton();
         command.blur();
@@ -1033,8 +1253,10 @@
       }
 
       function startFromInput() {
+        endedAt = null;
         if (isCountUpCommand(command.value)) {
           remainingSeconds = 0;
+          initialSeconds = 0;
           countingUp = true;
           disposableIfEmpty = false;
 
@@ -1053,6 +1275,7 @@
         }
 
         remainingSeconds = seconds;
+        initialSeconds = seconds;
         countingUp = false;
         disposableIfEmpty = false;
 
@@ -1062,20 +1285,21 @@
         start();
       }
 
-      function currentSeconds() {
-        if (!running) return remainingSeconds;
-        return countingUp
-          ? Math.max(0, Math.floor((Date.now() - deadline) / 1000))
-          : Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+      function currentSeconds(now = Date.now()) {
+        updateClock(now);
+        return remainingSeconds;
       }
 
       function canResume() {
         return hasStarted && !timer.classList.contains("empty") && (countingUp || remainingSeconds > 0);
       }
 
-      function setMergedSeconds(seconds, shouldRun) {
+      function setMergedSeconds(seconds, shouldRun, mergedLabel) {
         pause();
+        endedAt = null;
+        label.value = mergedLabel;
         remainingSeconds = Math.max(0, seconds);
+        initialSeconds = remainingSeconds;
         countingUp = false;
         disposableIfEmpty = false;
         timer.classList.remove("empty", "landing", "counting-up");
@@ -1086,10 +1310,30 @@
         persistTimerState();
       }
 
-      function snapshot() {
+      function reset() {
+        clearTimeout(timerId);
+        timerId = null;
+        running = false;
+        countingUp = false;
+        endedAt = null;
+        deadline = 0;
+        remainingSeconds = initialSeconds;
+        hasStarted = initialSeconds > 0;
+        timer.classList.remove("running", "counting-up");
+        timer.classList.toggle("paused", hasStarted);
+        document.title = "Sand";
+        render();
+        syncAddButton();
+        persistTimerState();
+      }
+
+      function snapshot(now = Date.now()) {
+        const seconds = currentSeconds(now);
         return {
           label: label.value,
-          remainingSeconds: currentSeconds(),
+          remainingSeconds: seconds,
+          initialSeconds,
+          endedAt,
           running,
           countingUp,
           hasStarted,
@@ -1102,6 +1346,9 @@
       function restore(state) {
         label.value = typeof state.label === "string" ? state.label : "";
         countingUp = Boolean(state.countingUp);
+        endedAt = Number.isFinite(state.endedAt) ? state.endedAt : null;
+        initialSeconds = Math.max(0, Number.isFinite(state.initialSeconds)
+          ? state.initialSeconds : Number(state.remainingSeconds) || 0);
         hasStarted = Boolean(state.hasStarted || state.running);
         const isEmpty = Boolean(state.empty);
         disposableIfEmpty = isEmpty;
@@ -1111,12 +1358,12 @@
         timer.classList.toggle("paused", hasStarted && !state.running);
         timer.draggable = !isEmpty;
 
+        remainingSeconds = Math.max(0, Number(state.remainingSeconds) || 0);
         if (state.running && Number.isFinite(state.deadline)) {
-          remainingSeconds = countingUp
-            ? Math.max(0, Math.floor((Date.now() - state.deadline) / 1000))
-            : Math.max(0, Math.ceil((state.deadline - Date.now()) / 1000));
-        } else {
-          remainingSeconds = Math.max(0, Number(state.remainingSeconds) || 0);
+          deadline = state.deadline;
+          running = true;
+          updateClock();
+          running = false;
         }
 
         render();
@@ -1125,7 +1372,9 @@
           tinySummary.textContent = `${label.value.trim() || "untitled"} —`;
           updateInputAssist();
         }
-        if (state.running && (countingUp || remainingSeconds > 0)) start();
+        if (state.running && (countingUp || remainingSeconds > 0)) {
+          start(Number.isFinite(state.deadline) ? state.deadline : null);
+        }
       }
 
       function destroy() {
@@ -1133,7 +1382,7 @@
         timer.remove();
       }
 
-      timer.timerState = { currentSeconds, pause, setMergedSeconds, destroy, snapshot, restore, render, isRunning: () => running };
+      timer.timerState = { currentSeconds, pause, reset, setMergedSeconds, destroy, snapshot, restore, render, isRunning: () => running };
 
       timer.addEventListener("click", event => {
         if (!tinyMode) return;
@@ -1154,6 +1403,7 @@
       });
 
       command.addEventListener("focus", () => {
+        if (endedAt !== null) return;
         if (running) pause();
         requestAnimationFrame(() => {
           command.select();
@@ -1181,6 +1431,7 @@
       }
 
       command.addEventListener("blur", event => {
+        if (endedAt !== null) return;
         if (running) return;
 
         if (discardDraftIfEmpty(event.relatedTarget)) return;
@@ -1212,6 +1463,7 @@
       });
 
       function commitInput() {
+        if (endedAt !== null) return;
         if (isCountUpCommand(command.value)) {
           startFromInput();
           return;
@@ -1239,7 +1491,9 @@
 
       pauseButton.addEventListener("mousedown", event => event.preventDefault());
       pauseButton.addEventListener("click", () => {
-        if (running) {
+        if (endedAt !== null) {
+          reset();
+        } else if (running) {
           pause();
         } else {
           start();
@@ -1253,7 +1507,10 @@
 
         if (timerList.children.length === 1) {
           running = false;
-          timer.classList.remove("running", "paused");
+          timer.classList.remove("running", "paused", "counting-up");
+          countingUp = false;
+          endedAt = null;
+          initialSeconds = 0;
           deadline = 0;
           timerId = null;
           remainingSeconds = 0;
@@ -1321,8 +1578,8 @@
       syncWindowSize();
     }
 
-    function syncWindowSize() {
-      if (!window.timerWindow) return;
+    function syncWindowSize({ animate = false, force = false } = {}) {
+      if (!window.timerWindow || (modeTransition && !force)) return;
 
       const shellStyle = getComputedStyle(shell);
       const paddingTop = parseFloat(shellStyle.paddingTop) || 0;
@@ -1338,7 +1595,10 @@
       } else {
         let timersHeight = 0;
         timerUnits.forEach(unit => {
-          timersHeight += unit.offsetHeight;
+          const style = getComputedStyle(unit);
+          timersHeight += force
+            ? Math.max(parseFloat(style.minHeight) || 0, parseFloat(style.flexBasis) || 0)
+            : unit.offsetHeight;
         });
 
         const listStyle = getComputedStyle(timerList);
@@ -1352,18 +1612,22 @@
       const actionsStyle = getComputedStyle(timerActions);
       const actionsMarginY = (parseFloat(actionsStyle.marginTop) || 0) + (parseFloat(actionsStyle.marginBottom) || 0);
 
-      const totalContentHeight = paddingTop + paddingBottom + listContentHeight + actionsHeight + actionsMarginY;
+      let totalContentHeight = paddingTop + paddingBottom + listContentHeight
+        + (tinyMode ? 0 : actionsHeight + actionsMarginY);
+      if (!tinyMode && force) totalContentHeight = Math.max(totalContentHeight, fullModeHeight || 0);
 
-      window.timerWindow.resizeToContent(
+      return window.timerWindow.resizeToContent(
         totalContentHeight,
-        tinyMode || animateNextResize,
-        tinyMode || animateNextResize ? "bottom-left" : "top-left"
+        animate,
+        tinyMode || force ? "bottom-left" : "top-left"
       );
-      animateNextResize = false;
     }
 
     window.addEventListener("resize", () => {
-      if (!tinyMode || tinyResizeFrame !== null) return;
+      // Height changes during our own animation must not start another resize.
+      const widthChanged = window.innerWidth !== lastWindowWidth;
+      lastWindowWidth = window.innerWidth;
+      if (!widthChanged || modeTransition || !tinyMode || tinyResizeFrame !== null) return;
       tinyResizeFrame = requestAnimationFrame(() => {
         tinyResizeFrame = null;
         syncWindowSize();
@@ -1385,64 +1649,77 @@
       });
     }
 
+    async function changeTinyMode(enabled, selectedTimer) {
+      if (modeTransition || tinyMode === enabled) return;
+      modeTransition = true;
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      let outgoing;
+      try {
+        if (enabled) {
+          fullModeHeight = window.innerHeight;
+          fullModeScroll = timerList.scrollTop;
+        }
+        // Hide the layout handoff; reveal it after the window reaches its size.
+        outgoing = shell.animate([{ opacity: 1 }, { opacity: 0 }], {
+          duration: reducedMotion ? 0 : (enabled ? 70 : 25), fill: "forwards"
+        });
+        await outgoing.finished;
+        tinyMode = enabled;
+        shell.classList.toggle("tiny-mode", enabled);
+        setInputsForTinyMode(enabled);
+        tinyModeButton.textContent = enabled ? "full mode" : "tiny mode";
+        tinyModeButton.setAttribute("aria-label", enabled ? "Exit tiny mode" : "Enter tiny mode");
+        document.activeElement?.blur();
+        await new Promise(requestAnimationFrame);
+        await syncWindowSize({ animate: !reducedMotion, force: true });
+        if (!enabled) {
+          timerList.scrollTop = fullModeScroll;
+          selectedTimer?.scrollIntoView({ behavior: "instant", block: "nearest" });
+          selectedTimer?.focus({ preventScroll: true });
+        }
+        outgoing.cancel();
+        const incoming = shell.animate([{ opacity: 0 }, { opacity: 1 }], {
+          duration: reducedMotion ? 0 : (enabled ? 110 : 45)
+        });
+        await incoming.finished;
+      } finally {
+        outgoing?.cancel();
+        modeTransition = false;
+      }
+    }
+
     function enterTinyMode() {
-      if (tinyMode) return;
-      tinyMode = true;
-      animateNextResize = true;
-      shell.classList.add("tiny-mode");
-      setInputsForTinyMode(true);
-      tinyModeButton.textContent = "full mode";
-      tinyModeButton.setAttribute("aria-label", "Exit tiny mode");
-      // Blur after applying the compact layout. A blur can commit a timer and
-      // request a resize; doing it first produced a full-size resize followed
-      // by a second compact one.
-      document.activeElement?.blur();
-      requestAnimationFrame(() => requestAnimationFrame(syncWindowSize));
+      return changeTinyMode(true);
     }
 
     function leaveTinyMode(selectedTimer) {
-      if (!tinyMode) return;
-      tinyMode = false;
-      animateNextResize = true;
-      shell.classList.remove("tiny-mode");
-      setInputsForTinyMode(false);
-      tinyModeButton.textContent = "tiny mode";
-      tinyModeButton.setAttribute("aria-label", "Enter tiny mode");
-
-      // Let the normal cards lay out before measuring and center the timer the
-      // user chose, rather than returning them to the top of a long list.
-      requestAnimationFrame(() => {
-        selectedTimer?.scrollIntoView({ behavior: "smooth", block: "center" });
-        requestAnimationFrame(() => {
-          syncWindowSize();
-
-          // Let the full card become visible before calling attention to it.
-          if (selectedTimer) {
-            setTimeout(() => {
-              selectedTimer.classList.remove("tiny-selection-flash");
-              // Force a fresh animation if the same timer is selected twice.
-              void selectedTimer.offsetWidth;
-              selectedTimer.classList.add("tiny-selection-flash");
-              setTimeout(() => selectedTimer.classList.remove("tiny-selection-flash"), 700);
-            }, 80);
-          }
-        });
-      });
+      return changeTinyMode(false, selectedTimer);
     }
 
     function closeMergeDialog() {
+      clearInterval(mergeRefreshTimer);
+      mergeRefreshTimer = null;
       mergeDialog.hidden = true;
       mergeRequest = null;
     }
 
     function requestMerge(source, target) {
-      const sourceSeconds = source.timerState.currentSeconds();
-      const targetSeconds = target.timerState.currentSeconds();
+      const now = Date.now();
+      const sourceSeconds = source.timerState.currentSeconds(now);
+      const targetSeconds = target.timerState.currentSeconds(now);
 
       if (!sourceSeconds || !targetSeconds || source === target) return;
 
-      mergeRequest = { source, target, sourceSeconds, targetSeconds };
-      mergeMessage.textContent = `Merge ${formatTime(sourceSeconds, showSeconds)} into ${formatTime(targetSeconds, showSeconds)}?`;
+      closeMergeDialog();
+      mergeRequest = { source, target };
+      const refresh = () => {
+        const now = Date.now();
+        const sourceSeconds = source.timerState.currentSeconds(now);
+        const targetSeconds = target.timerState.currentSeconds(now);
+        mergeMessage.textContent = `Merge ${formatTime(sourceSeconds, showSeconds)} into ${formatTime(targetSeconds, showSeconds)}?`;
+      };
+      refresh();
+      mergeRefreshTimer = setInterval(refresh, 1000);
       mergeDialog.hidden = false;
       mergeDialog.querySelector('[data-merge-action="add"]').focus();
     }
@@ -1453,19 +1730,20 @@
       const action = event.target.dataset.mergeAction;
       if (!action || !mergeRequest) return;
 
-      const { source, target, sourceSeconds, targetSeconds } = mergeRequest;
+      const { source, target } = mergeRequest;
       closeMergeDialog();
       if (action === "cancel" || !source.isConnected || !target.isConnected) return;
+      if (action !== "add" && action !== "subtract") return;
 
       const targetWasRunning = target.timerState.isRunning();
-      const mergedSeconds = action === "add"
-        ? targetSeconds + sourceSeconds
-        : Math.max(0, targetSeconds - sourceSeconds);
+      const now = Date.now();
+      const merged = mergeTimerValues(source.timerState.snapshot(now), target.timerState.snapshot(now), action);
 
       source.timerState.pause();
-      target.timerState.setMergedSeconds(mergedSeconds, targetWasRunning);
+      target.timerState.setMergedSeconds(merged.seconds, targetWasRunning, merged.label);
       source.timerState.destroy();
       updateDeleteButtons();
+      persistTimerState();
     });
 
     document.addEventListener("keydown", event => {
@@ -1582,6 +1860,7 @@
       });
     }
 
+    let draggedTimer = null;
     timerList.addEventListener("dragstart", event => {
       const source = event.target.closest(".timer-unit");
       if (!source || source.classList.contains("empty") || !source.timerState.currentSeconds()) {
@@ -1591,10 +1870,16 @@
 
       event.dataTransfer.effectAllowed = "move";
       event.dataTransfer.setData("text/plain", "timer");
-      source.classList.add("dragging");
+      draggedTimer = source;
+      // Let Chromium capture the intact card for the cursor's drag image
+      // before revealing the paper underneath its original position.
+      requestAnimationFrame(() => {
+        if (draggedTimer === source && source.isConnected) source.classList.add("dragging");
+      });
     });
 
     timerList.addEventListener("dragend", event => {
+      draggedTimer = null;
       event.target.closest(".timer-unit")?.classList.remove("dragging");
       clearDropHints();
     });
@@ -1612,6 +1897,7 @@
     });
 
     timerList.addEventListener("drop", event => {
+      draggedTimer = null;
       const source = timerList.querySelector(".dragging");
       if (!source) return;
       event.preventDefault();
@@ -1632,7 +1918,8 @@
     });
 
     async function initializeTimers() {
-      const savedState = await window.timerWindow?.loadTimerState();
+      let savedState;
+      try { savedState = await window.timerWindow?.loadTimerState(); } catch { }
       const savedTimers = savedState?.timers;
 
       if (Array.isArray(savedTimers) && savedTimers.length) {
@@ -1649,7 +1936,7 @@
       requestAnimationFrame(() => landingLabel.focus());
     }
 
-    initializeTimers();
+    initializeTimers().catch(console.error);
     window.addEventListener("beforeunload", persistTimerState);
 
     tinyModeButton.addEventListener("click", () => {

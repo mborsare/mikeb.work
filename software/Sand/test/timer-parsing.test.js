@@ -70,6 +70,26 @@ test("subtracts minutes from @ clock targets", () => {
   assert.equal(parseCommand("@00:10 - 15"), 42900);
 });
 
+test("treats compact and colon-separated two-digit hours as clock targets", () => {
+  for (const [compact, colon, expected] of [
+    ["1600", "16:00", 14400],
+    ["0930", "09:30", 77400],
+    ["0000", "00:00", 43200],
+    ["2359", "23:59", 43140]
+  ]) {
+    for (const input of [compact, colon, `@${compact}`, `@${colon}`]) {
+      assert.equal(parseCommand(input), expected, input);
+    }
+  }
+  assert.equal(parseCommand("1600 - 15"), 13500);
+  assert.equal(parseCommand("16:00 - 15"), 13500);
+  assert.equal(parseCommand("@1600 - 15"), 13500);
+  assert.equal(parseCommand("1600m"), 96000);
+  for (const input of ["2400", "24:00", "1660", "16:60"]) {
+    assert.equal(parseCommand(input), null, input);
+  }
+});
+
 test("accepts clock-target offset variants", () => {
   const examples = [
     "@16:00-15",
