@@ -419,7 +419,7 @@
     }
 
     .marquee-stage {
-      flex: 1 1 0;
+      flex: 0 0 auto;
       display: flex;
       align-items: center;
       min-height: 0;
@@ -934,8 +934,8 @@
       {speed: 45, dir: 'ltr'},
     ]
 
-    const MIN_STAGE_ROWS = 8
-    const MAX_STAGE_ROWS = 48
+    const MIN_STAGE_ROWS = 4
+    const MAX_STAGE_ROWS = 512
     const STAGE_FILL_BUFFER_PX = 32
     const STAGE_REBUILD_DELAY_MS = 80
 
@@ -1346,15 +1346,20 @@
       return Math.max(min, Math.min(max, n))
     }
 
-    function getStageRowTarget(stage, sampleRow) {
-      if (!stage || !sampleRow) return MIN_STAGE_ROWS
+    function getStageRowTarget(stage, sampleRows) {
+      if (!stage || !sampleRows.length) return MIN_STAGE_ROWS
 
       const stageHeight = stage.clientHeight || window.innerHeight || 1
-      const sampleHeight = sampleRow.getBoundingClientRect().height || 1
+      const sampleHeights = sampleRows.map(row => row.getBoundingClientRect().height || 1)
       const styles = window.getComputedStyle(stage)
       const rowGap = parseFloat(styles.rowGap || styles.gap || '0') || 0
-      const rowStep = Math.max(1, sampleHeight + rowGap)
-      const needed = Math.ceil((stageHeight + STAGE_FILL_BUFFER_PX + rowGap) / rowStep)
+      let height = 0
+      let needed = 0
+      while (height < stageHeight + STAGE_FILL_BUFFER_PX && needed < MAX_STAGE_ROWS) {
+        if (needed) height += rowGap
+        height += sampleHeights[needed % sampleHeights.length]
+        needed += 1
+      }
 
       return clamp(needed, MIN_STAGE_ROWS, MAX_STAGE_ROWS)
     }
@@ -1399,10 +1404,13 @@
         attachDrag(state, hitArea)
       }
 
-      appendRow(pools[rowIndex % pools.length], rowIndex)
-      rowIndex += 1
+      // Measure a full cycle at its natural height, including the selected padding.
+      while (rowIndex < MIN_STAGE_ROWS) {
+        appendRow(pools[rowIndex % pools.length], rowIndex)
+        rowIndex += 1
+      }
 
-      const targetRows = getStageRowTarget(stage, stage.lastElementChild)
+      const targetRows = getStageRowTarget(stage, [...stage.children])
       while (rowIndex < targetRows) {
         appendRow(pools[rowIndex % pools.length], rowIndex)
         rowIndex += 1
