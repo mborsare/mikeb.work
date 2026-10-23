@@ -523,6 +523,7 @@
     }
 
     .theme-swatch {
+      position: relative;
       width: 11px;
       height: 11px;
       border: 0;
@@ -534,6 +535,13 @@
       outline: 1px solid transparent;
       outline-offset: 3px;
       transition: outline-color 120ms ease;
+    }
+
+    /* Fill the gaps and add generous vertical reach without moving the dots. */
+    .theme-swatch::before {
+      content: "";
+      position: absolute;
+      inset: -17px -3.5px;
     }
 
     .theme-swatch[aria-pressed="true"],
