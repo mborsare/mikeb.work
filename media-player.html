@@ -281,21 +281,32 @@
       --bg: #f5f0e8 !important;
       --text: #1a1a1a !important;
     }
+
+    /* Keep ASCII rows aligned while centering the complete logo. */
+    pre.mike-logo {
+      width: max-content;
+      margin-inline: auto;
+      text-align: left;
+      white-space: pre;
+      font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+      letter-spacing: 0;
+      line-height: 1;
+    }
   </style>
 </head>
 
 <body>
   <!-- prettier-ignore -->
-  <pre id="led">
-      ██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████
-      ▓██░  ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█   ▀
-      ▓██░ ██▓▒▓██ ░▄█ ▒▒██▒▓██    ▓██░▒███
-      ▒██▄█▓▒ ▒▒██▀▀█▄  ░██░▒██    ▒██ ▒▓█  ▄
-      ▒██▒ ░  ░░██▓ ▒██▒░██░▒██▒    ░██▒░▒████▒
-      ▒▓▒░ ░  ░░ ▒▓ ░▒▓░░▓  ░ ▒░    ░  ░░░ ▒░ ░
-      ░▒ ░        ░▒ ░ ▒░ ▒ ░░  ░      ░ ░ ░  ░
-      ░░          ░░   ░  ▒ ░░      ░      ░
-                  ░      ░          ░      ░  ░
+  <pre id="led" class="mike-logo">
+ ███▄ ▄███▓ ██▓ ██ ▄█▀▓█████
+▓██▒▀█▀ ██▒▓██▒ ██▄█▒ ▓█   ▀
+▓██    ▓██░▒██▒▓███▄░ ▒███
+▒██    ▒██ ░██░▓██ █▄ ▒▓█  ▄
+▒██▒   ░██▒░██░▒██▒ █▄░▒████▒
+░ ▒░   ░  ░░▓  ▒ ▒▒ ▓▒░░ ▒░ ░
+░  ░      ░ ▒ ░░ ░▒ ▒░ ░ ░  ░
+░      ░    ▒ ░░ ░░ ░    ░
+       ░    ░  ░  ░      ░  ░
   </pre>
 
   <div class="container">

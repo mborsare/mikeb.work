@@ -354,6 +354,17 @@
       height: 1px;
       width: 100%;
     }
+
+    /* Keep ASCII rows aligned while centering the complete logo. */
+    pre.mike-logo {
+      width: max-content;
+      margin-inline: auto;
+      text-align: left;
+      white-space: pre;
+      font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+      letter-spacing: 0;
+      line-height: 1;
+    }
   </style>
 </head>
 
@@ -423,16 +434,16 @@
     </div>
   </div>
 
-  <pre id="prime-logo" class="ascii" style="font-size:0.4rem; margin-top:9rem;">
-  ██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████ 
-  ▓██░  ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█   ▀ 
-  ▓██░ ██▓▒▓██ ░▄█ ▒▒██▒▓██   ▓██░▒███   
-  ▒██▄█▓▒ ▒▒██▀▀█▄  ░██░▒██   ▒██ ▒▓█  ▄ 
-  ▒██▒ ░  ░░██▓ ▒██▒░██░▒██▒   ░██▒░▒████▒
-  ▒▓▒░ ░  ░░ ▒▓ ░▒▓░░▓  ░ ▒░   ░  ░░░ ▒░ ░
-  ░▒ ░      ░▒ ░ ▒░ ▒ ░░  ░      ░ ░ ░  ░
-  ░░        ░░   ░  ▒ ░░      ░      ░   
-                 ░      ░          ░     ░
+  <pre id="prime-logo" class="ascii mike-logo" style="font-size:0.4rem; margin-top:9rem;">
+ ███▄ ▄███▓ ██▓ ██ ▄█▀▓█████
+▓██▒▀█▀ ██▒▓██▒ ██▄█▒ ▓█   ▀
+▓██    ▓██░▒██▒▓███▄░ ▒███
+▒██    ▒██ ░██░▓██ █▄ ▒▓█  ▄
+▒██▒   ░██▒░██░▒██▒ █▄░▒████▒
+░ ▒░   ░  ░░▓  ▒ ▒▒ ▓▒░░ ▒░ ░
+░  ░      ░ ▒ ░░ ░▒ ▒░ ░ ░  ░
+░      ░    ▒ ░░ ░░ ░    ░
+       ░    ░  ░  ░      ░  ░
 </pre>
 
   <script>

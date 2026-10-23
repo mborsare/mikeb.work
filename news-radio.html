@@ -92,6 +92,17 @@
       font-size: 0.9rem;
       color: var(--seal);
     }
+
+    /* Keep ASCII rows aligned while centering the complete logo. */
+    pre.mike-logo {
+      width: max-content;
+      margin-inline: auto;
+      text-align: left;
+      white-space: pre;
+      font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+      letter-spacing: 0;
+      line-height: 1;
+    }
   </style>
 </head>
 
@@ -144,16 +155,16 @@
     </main>
 
     <!-- prettier-ignore -->
-    <pre class="ascii" style="font-size:0.4rem;">
-██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████ 
-▓██░  ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█   ▀ 
-▓██░ ██▓▒▓██ ░▄█ ▒▒██▒▓██    ▓██░▒███   
-▒██▄█▓▒ ▒▒██▀▀█▄  ░██░▒██    ▒██ ▒▓█  ▄ 
-▒██▒ ░  ░░██▓ ▒██▒░██░▒██▒   ░██▒░▒████▒
-▒▓▒░ ░  ░░ ▒▓ ░▒▓░░▓  ░ ▒░   ░  ░░░ ▒░ ░
-░▒ ░        ░▒ ░ ▒░ ▒ ░░  ░      ░ ░ ░  ░
-░░          ░░   ░  ▒ ░░      ░      ░    
-               ░      ░         ░      ░  ░
+    <pre class="ascii mike-logo" style="font-size:0.4rem;">
+ ███▄ ▄███▓ ██▓ ██ ▄█▀▓█████
+▓██▒▀█▀ ██▒▓██▒ ██▄█▒ ▓█   ▀
+▓██    ▓██░▒██▒▓███▄░ ▒███
+▒██    ▒██ ░██░▓██ █▄ ▒▓█  ▄
+▒██▒   ░██▒░██░▒██▒ █▄░▒████▒
+░ ▒░   ░  ░░▓  ▒ ▒▒ ▓▒░░ ▒░ ░
+░  ░      ░ ▒ ░░ ░▒ ▒░ ░ ░  ░
+░      ░    ▒ ░░ ░░ ░    ░
+       ░    ░  ░  ░      ░  ░
     </pre>
   </div>
 

@@ -688,6 +688,17 @@
         line-height: 1;
       }
     }
+
+    /* Keep ASCII rows aligned while centering the complete logo. */
+    pre.mike-logo {
+      width: max-content;
+      margin-inline: auto;
+      text-align: left;
+      white-space: pre;
+      font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+      letter-spacing: 0;
+      line-height: 1;
+    }
   </style>
 </head>
 
@@ -698,16 +709,16 @@
       <div class="prime-status">
       <a class="prime-home" href="https://mikeb.work/" rel="home" aria-label="Mike Borsare — home">
       <!-- prettier-ignore -->
-      <pre class="prime-logo" id="prime-logo" data-state="loading" role="img" aria-label="PRIME — loading headlines">
-██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████
-▓██░  ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█   ▀
-▓██░ ██▓▒▓██ ░▄█ ▒▒██▒▓██    ▓██░▒███
-▒██▄█▓▒ ▒▒██▀▀█▄  ░██░▒██    ▒██ ▒▓█  ▄
-▒██▒ ░  ░░██▓ ▒██▒░██░▒██▒   ░██▒░▒████▒
-▒▓▒░ ░  ░░ ▒▓ ░▒▓░░▓  ░ ▒░   ░  ░░░ ▒░ ░
-░▒ ░       ░▒ ░ ▒░ ▒ ░░  ░      ░ ░ ░  ░
-░░         ░░   ░  ▒ ░░      ░      ░
-            ░      ░         ░      ░  ░
+      <pre class="prime-logo mike-logo" id="prime-logo" data-state="loading" role="img" aria-label="MIKE — loading headlines">
+ ███▄ ▄███▓ ██▓ ██ ▄█▀▓█████
+▓██▒▀█▀ ██▒▓██▒ ██▄█▒ ▓█   ▀
+▓██    ▓██░▒██▒▓███▄░ ▒███
+▒██    ▒██ ░██░▓██ █▄ ▒▓█  ▄
+▒██▒   ░██▒░██░▒██▒ █▄░▒████▒
+░ ▒░   ░  ░░▓  ▒ ▒▒ ▓▒░░ ▒░ ░
+░  ░      ░ ▒ ░░ ░▒ ▒░ ░ ░  ░
+░      ░    ▒ ░░ ░░ ░    ░
+       ░    ░  ░  ░      ░  ░
 </pre>
       </a>
         <div id="feed-pills" aria-label="Headline sources"></div>
@@ -972,7 +983,7 @@
         loading: 'loading headlines',
         error: 'all sources unavailable',
       }[state]
-      logo.setAttribute('aria-label', `PRIME — ${description}`)
+      logo.setAttribute('aria-label', `MIKE — ${description}`)
       logo.title = description
     }
 

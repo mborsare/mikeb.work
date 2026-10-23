@@ -762,6 +762,17 @@
     .workshop {
       padding: 1rem;
     }
+
+    /* Keep ASCII rows aligned while centering the complete logo. */
+    pre.mike-logo {
+      width: max-content;
+      margin-inline: auto;
+      text-align: left;
+      white-space: pre;
+      font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+      letter-spacing: 0;
+      line-height: 1;
+    }
   </style>
 </head>
 
@@ -895,16 +906,16 @@
     <a href="//patorjk.com/software/taag/#p=testall&f=Graffiti&t=mikeb.work&x=none&v=4&h=4&w=80&we=true"
       class="resource-link">Ascii made with taag</a>
     <!-- prettier-ignore -->
-    <pre class="ascii footer-ascii">
-      ██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████ 
-      ▓██░  ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█   ▀ 
-      ▓██░ ██▓▒▓██ ░▄█ ▒▒██▒▓██    ▓██░▒███   
-      ▒██▄█▓▒ ▒▒██▀▀█▄  ░██░▒██    ▒██ ▒▓█  ▄ 
-      ▒██▒ ░  ░░██▓ ▒██▒░██░▒██▒   ░██▒░▒████▒
-      ▒▓▒░ ░  ░░ ▒▓ ░▒▓░░▓  ░ ▒░   ░  ░░░ ▒░ ░
-      ░▒ ░       ░▒ ░ ▒░ ▒ ░░  ░      ░ ░ ░  ░
-      ░░         ░░   ░  ▒ ░░      ░      ░   
-                  ░      ░         ░      ░  ░
+    <pre class="ascii footer-ascii mike-logo">
+ ███▄ ▄███▓ ██▓ ██ ▄█▀▓█████
+▓██▒▀█▀ ██▒▓██▒ ██▄█▒ ▓█   ▀
+▓██    ▓██░▒██▒▓███▄░ ▒███
+▒██    ▒██ ░██░▓██ █▄ ▒▓█  ▄
+▒██▒   ░██▒░██░▒██▒ █▄░▒████▒
+░ ▒░   ░  ░░▓  ▒ ▒▒ ▓▒░░ ▒░ ░
+░  ░      ░ ▒ ░░ ░▒ ▒░ ░ ░  ░
+░      ░    ▒ ░░ ░░ ░    ░
+       ░    ░  ░  ░      ░  ░
     </pre>
     <time id="clock" class="clock" data-nosnippet></time>
     <div class="webring"><a href="https://hotlinewebring.club/mikeb/previous">Previous</a>

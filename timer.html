@@ -109,6 +109,17 @@
     button:active {
       transform: scale(0.94);
     }
+
+    /* Keep ASCII rows aligned while centering the complete logo. */
+    pre.mike-logo {
+      width: max-content;
+      margin-inline: auto;
+      text-align: left;
+      white-space: pre;
+      font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+      letter-spacing: 0;
+      line-height: 1;
+    }
   </style>
 </head>
 
@@ -116,16 +127,16 @@
   <main class="timer">
     <header>
       <!-- prettier-ignore -->
-      <pre style="font-size:0.125rem;">
-██▓███   ██▀███   ██▓ ███▄ ▄███▓▓█████
-▓██░  ██▒▓██ ▒ ██▒▓██▒▓██▒▀█▀ ██▒▓█   ▀
-▓██░ ██▓▒▓██ ░▄█ ▒▒██▒▓██    ▓██░▒███
-▒██▄█▓▒ ▒▒██▀▀█▄  ░██░▒██    ▒██ ▒▓█  ▄
-▒██▒ ░  ░░██▓ ▒██▒░██░▒██▒   ░██▒░▒████▒
-▒▓▒░ ░  ░░ ▒▓ ░▒▓░░▓  ░ ▒░   ░  ░░░ ▒░ ░
-░▒ ░       ░▒ ░ ▒░ ▒ ░░  ░      ░ ░ ░  ░
-░░         ░░   ░  ▒ ░░      ░      ░
-            ░      ░         ░      ░  ░
+      <pre style="font-size:0.125rem;" class="mike-logo">
+ ███▄ ▄███▓ ██▓ ██ ▄█▀▓█████
+▓██▒▀█▀ ██▒▓██▒ ██▄█▒ ▓█   ▀
+▓██    ▓██░▒██▒▓███▄░ ▒███
+▒██    ▒██ ░██░▓██ █▄ ▒▓█  ▄
+▒██▒   ░██▒░██░▒██▒ █▄░▒████▒
+░ ▒░   ░  ░░▓  ▒ ▒▒ ▓▒░░ ▒░ ░
+░  ░      ░ ▒ ░░ ░▒ ▒░ ░ ░  ░
+░      ░    ▒ ░░ ░░ ░    ░
+       ░    ░  ░  ░      ░  ░
       </pre>
 
       <time id="clock"></time>
