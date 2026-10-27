@@ -338,6 +338,10 @@
       transition: opacity 150ms ease;
     }
 
+    .timer-unit.clock-card .command {
+      font-size: clamp(20px, min(11vw, 42cqh), 500px);
+    }
+
     .timer-unit.paused .command {
       opacity: 0.45;
     }
@@ -1377,6 +1381,7 @@
       let disposableIfEmpty = blank;
       let running = false;
       let countingUp = false;
+      let clockMode = false;
       let hasStarted = false;
       let deadline = 0;
       let timerId = null;
@@ -1403,6 +1408,13 @@
       }
 
       function updateInputAssist() {
+        if (clockMode) {
+          intentOptions.hidden = true;
+          commitHint.hidden = true;
+          runningHint.hidden = false;
+          runningRender.textContent = "current time";
+          return;
+        }
         if (endedAt !== null) {
           intentOptions.hidden = true;
           commitHint.hidden = true;
@@ -1441,6 +1453,11 @@
         commitHint.hidden = false;
         runningHint.hidden = true;
 
+        if (normalizeCommand(raw) === "clock") {
+          inputRender.textContent = "→ current time";
+          return;
+        }
+
         if (isCountUpCommand(raw)) {
           inputRender.textContent = "→ count up";
           return;
@@ -1458,21 +1475,22 @@
 
       function render() {
         const includeSeconds = showSeconds || (countingUp ? remainingSeconds < 60 : remainingSeconds <= 60);
-        command.value = formatTime(remainingSeconds, includeSeconds);
+        command.value = clockMode ? formatCurrentTime() : formatTime(remainingSeconds, includeSeconds);
         const timerName = label.value.trim() || "untitled";
         tinySummary.textContent = `${timerName} ${command.value}`;
         const proximity = countingUp
           ? 1
           : 1 - Math.min(1, remainingSeconds / 3600);
         timer.style.setProperty("--timer-label-opacity", String(0.45 + proximity * 0.55));
-        command.readOnly = running || tinyMode || endedAt !== null;
-        pauseButton.hidden = endedAt === null && !running && !canResume();
+        command.readOnly = clockMode || running || tinyMode || endedAt !== null;
+        pauseButton.hidden = clockMode || (endedAt === null && !running && !canResume());
         pauseButton.textContent = endedAt !== null ? "reset" : running ? "pause" : "resume";
         pauseButton.setAttribute("aria-label", endedAt !== null ? "Reset timer" : running ? "Pause timer" : "Resume timer");
         updateInputAssist();
       }
 
       function updateClock(now = Date.now()) {
+        if (clockMode) return;
         const reading = readTimer({ running, countingUp, deadline, remainingSeconds, endedAt }, now);
         if (endedAt === null && reading.endedAt !== null) document.title = "Overtime";
         remainingSeconds = reading.seconds;
@@ -1524,7 +1542,32 @@
         persistTimerState();
       }
 
+      function startClock() {
+        clearTimeout(timerId);
+        clockMode = true;
+        running = false;
+        countingUp = false;
+        hasStarted = false;
+        endedAt = null;
+        remainingSeconds = initialSeconds = deadline = 0;
+        disposableIfEmpty = false;
+        timer.classList.remove("empty", "landing", "running", "paused", "counting-up");
+        timer.classList.add("clock-card");
+        timer.draggable = true;
+        command.setAttribute("aria-label", "Current time");
+        render();
+        timerId = setTimeout(tick, 1000 - Date.now() % 1000 + 5);
+        command.blur();
+        updateDeleteButtons();
+        syncAddButton();
+        persistTimerState();
+      }
+
       function startFromInput() {
+        if (normalizeCommand(command.value) === "clock") {
+          startClock();
+          return;
+        }
         endedAt = null;
         if (isCountUpCommand(command.value)) {
           remainingSeconds = 0;
@@ -1608,6 +1651,7 @@
           endedAt,
           running,
           countingUp,
+          clockMode,
           hasStarted,
           deadline,
           empty: timer.classList.contains("empty"),
@@ -1617,6 +1661,13 @@
 
       function restore(state) {
         label.value = typeof state.label === "string" ? state.label : "";
+        if (state.clockMode) {
+          startClock();
+          return;
+        }
+        clockMode = false;
+        timer.classList.remove("clock-card");
+        command.setAttribute("aria-label", "Timer");
         countingUp = Boolean(state.countingUp);
         endedAt = Number.isFinite(state.endedAt) ? state.endedAt : null;
         initialSeconds = Math.max(0, Number.isFinite(state.initialSeconds)
@@ -1675,7 +1726,7 @@
       });
 
       command.addEventListener("focus", () => {
-        if (endedAt !== null) return;
+        if (clockMode || endedAt !== null) return;
         if (running) pause();
         requestAnimationFrame(() => {
           command.select();
@@ -1703,7 +1754,7 @@
       }
 
       command.addEventListener("blur", event => {
-        if (endedAt !== null) return;
+        if (clockMode || endedAt !== null) return;
         if (running) return;
 
         if (discardDraftIfEmpty(event.relatedTarget)) return;
@@ -1727,6 +1778,12 @@
       // A label is optional, but it is the natural first field for a new
       // timer. Escape lets someone skip it and go straight to the duration.
       label.addEventListener("keydown", event => {
+        if (event.key === "Enter" && normalizeCommand(label.value) === "clock") {
+          event.preventDefault();
+          label.value = "";
+          startClock();
+          return;
+        }
         if (event.key === "Escape") {
           event.preventDefault();
           command.focus();
@@ -1735,6 +1792,11 @@
       });
 
       function commitInput() {
+        if (clockMode) return;
+        if (normalizeCommand(command.value) === "clock") {
+          startClock();
+          return;
+        }
         if (endedAt !== null) return;
         if (isCountUpCommand(command.value)) {
           startFromInput();
@@ -1779,7 +1841,9 @@
 
         if (timerList.children.length === 1) {
           running = false;
-          timer.classList.remove("running", "paused", "counting-up");
+          timer.classList.remove("running", "paused", "counting-up", "clock-card");
+          clockMode = false;
+          command.setAttribute("aria-label", "Timer");
           countingUp = false;
           endedAt = null;
           initialSeconds = 0;
@@ -1830,7 +1894,7 @@
 
       const timers = [...timerList.querySelectorAll(".timer-unit")]
         .map(timer => timer.timerState.snapshot());
-      const hasRunningTimer = timers.some(timer => timer.running);
+      const hasRunningTimer = timers.some(timer => timer.running || timer.clockMode);
 
       window.timerWindow.saveTimerState(hasRunningTimer ? { timers } : null);
     }
@@ -1914,7 +1978,7 @@
 
         label.readOnly = enabled;
         label.tabIndex = enabled ? -1 : 0;
-        command.readOnly = enabled || timer.timerState.isRunning();
+        command.readOnly = enabled || timer.classList.contains("clock-card") || timer.timerState.isRunning();
         command.tabIndex = enabled ? -1 : 0;
         remove.tabIndex = enabled ? -1 : 0;
         timer.tabIndex = enabled ? 0 : -1;
@@ -2121,7 +2185,8 @@
         const rect = target.getBoundingClientRect();
         const relativeY = (event.clientY - rect.top) / rect.height;
 
-        if (relativeY > 0.25 && relativeY < 0.75) {
+        if (relativeY > 0.25 && relativeY < 0.75
+            && !source.classList.contains("clock-card") && !target.classList.contains("clock-card")) {
           return { type: "merge", target };
         }
 
@@ -2207,7 +2272,7 @@
     let draggedTimer = null;
     timerList.addEventListener("dragstart", event => {
       const source = event.target.closest(".timer-unit");
-      if (!source || source.classList.contains("empty") || !source.timerState.currentSeconds()) {
+      if (!source || source.classList.contains("empty") || (!source.classList.contains("clock-card") && !source.timerState.currentSeconds())) {
         event.preventDefault();
         return;
       }
@@ -2295,19 +2360,24 @@
       secondsToggleButton.setAttribute("aria-checked", String(showSeconds));
     }
 
-    function renderClock() {
-      const now = new Date();
-      clockTime.textContent = now.toLocaleTimeString([], {
+    function formatCurrentTime(now = new Date()) {
+      return now.toLocaleTimeString([], {
         hour: "numeric", minute: "2-digit",
         ...(typeof clockHour12 === "boolean" ? { hour12: clockHour12 } : {}),
         ...(showSeconds ? { second: "2-digit" } : {})
       }).toLocaleLowerCase();
+    }
+
+    function renderClock() {
+      const now = new Date();
+      clockTime.textContent = formatCurrentTime(now);
       clockTime.dateTime = now.toISOString();
     }
 
     async function refreshClockFormat() {
       try { clockHour12 = await window.timerWindow?.getClockHour12(); } catch { }
       if (clockToggleButton.getAttribute("aria-checked") === "true") renderClock();
+      timerList.querySelectorAll(".clock-card").forEach(timer => timer.timerState.render());
     }
 
     window.addEventListener("focus", refreshClockFormat);

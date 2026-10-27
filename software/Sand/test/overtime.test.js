@@ -10,13 +10,14 @@ function timerHarness(options = {}) {
   const html = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
   const section = (start, end) => html.slice(html.indexOf(start), html.indexOf(end, html.indexOf(start)));
   const helpers = section("function formatTime", "function addTimer");
-  const clock = section("function updateInputAssist", "function startFromInput");
+  const clock = section("function updateInputAssist", "function currentSeconds");
   const state = section("function currentSeconds", "function destroy");
   const action = section('pauseButton.addEventListener("click"', 'removeButton.addEventListener("mousedown"');
   let now = END - 10000;
   const timeouts = new Map();
   const classes = new Set(["running"]);
   const actions = new Map();
+  const commandActions = new Map();
   let nextId = 0;
   class Clock extends Date {
     static now() { return now; }
@@ -32,6 +33,7 @@ function timerHarness(options = {}) {
     endedAt: null,
     running: true,
     countingUp: false,
+    clockMode: false,
     hasStarted: true,
     deadline: END,
     timerId: null,
@@ -49,7 +51,7 @@ function timerHarness(options = {}) {
       style: { setProperty() {} }
     },
     label: { value: "Focus" },
-    command: { value: "", blur() {} },
+    command: { value: "", blur() {}, setAttribute() {}, addEventListener: (name, callback) => commandActions.set(name, callback) },
     tinySummary: {},
     intentOptions: {},
     commitHint: {},
@@ -58,6 +60,7 @@ function timerHarness(options = {}) {
     runningRender: {},
     pauseButton: button,
     clockTargetLabel: () => null,
+    formatCurrentTime: () => new Clock(now).toISOString(),
     syncAddButton() {},
     persistTimerState() {},
     updateDeleteButtons() {},
@@ -66,8 +69,10 @@ function timerHarness(options = {}) {
     ...options
   });
   vm.runInContext(helpers + "\n" + clock + "\n" + state + "\n" + action, context);
+  vm.runInContext(section("function commitInput()", 'enterChip.addEventListener("mousedown"'), context);
   return {
     context, classes, timeouts,
+    enter: () => commandActions.get("keydown")({ key: "Enter", preventDefault() {} }),
     at(timestamp) {
       now = timestamp;
       if (timeouts.size) {
@@ -209,4 +214,40 @@ test("a merged overtime card becomes a fresh countdown with its combined label",
   assert.equal(h.context.initialSeconds, 300);
   assert.equal(h.context.label.value, "Focus + Read");
   assert.equal(h.context.pauseButton.textContent, "pause");
+});
+
+
+test("clock command creates a live clock without countdown controls", () => {
+  const h = timerHarness({ running: false, hasStarted: false, remainingSeconds: 0 });
+  h.context.command.value = " CLOCK ";
+  h.context.updateInputAssist();
+  assert.equal(h.context.inputRender.textContent, "→ current time");
+  h.enter();
+  assert.equal(h.context.clockMode, true);
+  assert.equal(h.context.running, false);
+  assert.equal(h.context.command.readOnly, true);
+  assert.equal(h.context.pauseButton.hidden, true);
+  assert.equal(h.context.runningRender.textContent, "current time");
+  assert.ok(h.classes.has("clock-card"));
+  assert.equal(h.context.command.value, new Date(END - 10000).toISOString());
+  h.at(END + 65000);
+  assert.equal(h.context.command.value, new Date(END + 65000).toISOString());
+  assert.equal(h.context.remainingSeconds, 0);
+  assert.equal(h.context.endedAt, null);
+  assert.equal(h.timeouts.size, 1);
+});
+
+test("clock cards save their mode and restore the current wall time", () => {
+  const h = timerHarness({ running: false });
+  h.context.command.value = "clock";
+  h.context.startFromInput();
+  const saved = h.context.snapshot();
+  assert.equal(saved.clockMode, true);
+  assert.equal(saved.label, "Focus");
+  h.at(END + 120000);
+  h.context.restore(saved);
+  assert.equal(h.context.clockMode, true);
+  assert.equal(h.context.command.value, new Date(END + 120000).toISOString());
+  assert.equal(h.context.pauseButton.hidden, true);
+  assert.equal(h.timeouts.size, 1);
 });

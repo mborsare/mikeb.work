@@ -54,6 +54,7 @@ When a countdown reaches zero, it keeps running upward as overtime and shows
 `ended at [time]`. **Reset** restores the original duration, paused and ready to
 resume, while keeping the label. Overtime includes time asleep or closed.
 
+- `clock` (press Enter to turn the card into a live clock)
 - `30`
 - `in15` or `in 15` (count down for 15 minutes; `in n` accepts a number of minutes)
 - `90m`
