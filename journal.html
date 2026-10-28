@@ -22,39 +22,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
-    .upload-preview {
-      width: 100%;
-      display: block;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-    }
-
-    .oath {
-      align-items: center;
-      flex-direction: row-reverse;
-      justify-content: space-between;
-      display: flex;
-      font-size: .81rem;
-      width: 100%;
-    }
-
-    .punch-guides {
-      display: block;
-      position: fixed;
-      z-index: 1;
-      top: 1in;
-      left: 0.25in;
-      width: 0.25in;
-      height: 9in;
-      pointer-events: none;
-      overflow: visible;
-    }
-
-    .punch-guides circle {
-      fill: none;
-      stroke: #c8c8c8;
-      stroke-width: 1.3;
-    }
-
+    /* Theme and base styles */
     :root {
       --bg: #000000;
       --text: #c0c0c0;
@@ -80,14 +48,6 @@
       font-display: swap;
     }
 
-    .cursive-teacher {
-      font-family: "CursiveWorksheet";
-      font-size: 3rem;
-      letter-spacing: 0.1rem;
-      line-height: 3rem;
-      margin: 0;
-    }
-
     body {
       margin: 0;
       min-height: 100vh;
@@ -105,6 +65,7 @@
       padding: 1rem;
     }
 
+    /* Header and typography */
     header {
       display: flex;
       flex-direction: column;
@@ -135,14 +96,42 @@
       opacity: 0.5;
     }
 
+    .oath {
+      align-items: center;
+      flex-direction: row-reverse;
+      justify-content: space-between;
+      display: flex;
+      font-size: 0.81rem;
+      width: 100%;
+    }
+
     #clock {
       color: var(--seal);
       opacity: 0.45;
       font-size: 0.9rem;
     }
 
+    /* Writing paper and guides */
+    .punch-guides {
+      display: block;
+      position: fixed;
+      z-index: 1;
+      top: 1in;
+      left: 0.25in;
+      width: 0.25in;
+      height: 9in;
+      pointer-events: none;
+      overflow: visible;
+    }
+
+    .punch-guides circle {
+      fill: none;
+      stroke: #c8c8c8;
+      stroke-width: 1.3;
+    }
+
     .rules-section {
-      margin: 0rem 0 2rem 0;
+      margin: 0 0 2rem;
     }
 
     .handwriting-paper {
@@ -150,7 +139,6 @@
       min-height: 55rem;
       position: relative;
       background: transparent;
-      background-image: none;
       --paper-line-gap: 1.25rem;
       --paper-line-color: var(--line-color);
     }
@@ -170,6 +158,7 @@
       vector-effect: non-scaling-stroke;
     }
 
+    /* Activities and uploads */
     .games-section {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -181,12 +170,12 @@
     }
 
     h2 {
-      margin: 0 0 1rem 0;
+      margin: 0 0 1rem;
       font-weight: normal;
     }
 
     .ticket-date-row {
-      margin: 0 0 0.75rem 0;
+      margin: 0 0 0.75rem;
     }
 
     #ticket-date {
@@ -230,7 +219,7 @@
       border: 1px solid currentColor;
       font: inherit;
       cursor: pointer;
-      padding: .5rem;
+      padding: 0.5rem;
       margin-top: 1rem;
     }
 
@@ -245,6 +234,12 @@
     .button:disabled {
       cursor: not-allowed;
       opacity: 0.45;
+    }
+
+    .upload-preview {
+      width: 100%;
+      display: block;
+      border: 1px solid rgba(255, 255, 255, 0.12);
     }
 
     .upload-box {
@@ -262,6 +257,15 @@
       font-size: 0.8rem;
     }
 
+    /* Handwriting and drawing activities */
+    .cursive-teacher {
+      font-family: "CursiveWorksheet";
+      font-size: 3rem;
+      letter-spacing: 0.1rem;
+      line-height: 3rem;
+      margin: 0;
+    }
+
     .cursive-area {
       display: flex;
       flex-direction: column;
@@ -276,7 +280,7 @@
       padding: 2.5rem;
     }
 
-    .draw-grid>li {
+    .draw-grid > li {
       text-align: center;
       color: var(--text);
       display: flex;
@@ -298,14 +302,14 @@
       display: grid;
       grid-template-columns: repeat(5, 1fr);
       align-content: center;
-      gap: .5rem;
+      gap: 0.5rem;
     }
 
     .scantron-bubble {
       width: 100%;
       border: 1px solid var(--line-color);
       border-radius: 8px;
-      padding: .25rem .1rem;
+      padding: 0.25rem 0.1rem;
     }
 
     .hunt-size-box {
@@ -317,7 +321,7 @@
     .hunt-size-scale {
       display: flex;
       flex-wrap: wrap;
-      gap: .25rem;
+      gap: 0.25rem;
     }
 
     .hunt-size-row {
@@ -348,6 +352,7 @@
       background: var(--bg);
     }
 
+    /* Responsive overrides */
     @media (max-width: 900px) {
       .ascii-prime {
         font-size: 0.2rem;
@@ -366,6 +371,7 @@
       }
     }
 
+    /* Print overrides: physical units match letter paper. */
     @page {
       size: letter;
       margin: 0;
@@ -463,7 +469,6 @@
         break-inside: avoid;
       }
 
-
       h2 {
         font-size: 0.54rem;
         margin-bottom: 0.08in;
@@ -474,7 +479,7 @@
         gap: 0;
       }
 
-      .cursive-area>div {
+      .cursive-area > div {
         display: grid;
         grid-template-columns: 1fr 1fr;
         column-gap: 2rem;
@@ -503,7 +508,7 @@
       margin-inline: auto;
       text-align: left;
       white-space: pre;
-      font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+      font-family: Menlo, Consolas, "DejaVu Sans Mono", monospace;
       letter-spacing: 0;
       line-height: 1;
     }
