@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The Tape | Mike Borsare</title>
+  <meta name="description" content="A printable tape-reading sheet for recording time, price, and direction." />
+  <meta name="author" content="Mike Borsare" />
+  <link rel="canonical" href="https://mikeb.work/the-tape.html" />
+  <style>
+    :root {
+      --bg: #000000;
+      --text: #c0c0c0;
+      --stamp: #888888;
+      --seal: #eaffea;
+      --line-color: rgba(210, 210, 210, 0.22);
+    }
+
+    @font-face {
+      font-family: "ComicMono";
+      src: url("/fonts/ComicMono-Regular.woff") format("woff");
+      font-display: swap;
+    }
+
+    html { font-size: 16px; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "ComicMono", monospace;
+      line-height: 1.4;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 70rem;
+      padding: 1rem;
+      box-sizing: border-box;
+    }
+
+    nav {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      padding: 2em 0;
+    }
+    nav a { color: var(--stamp); }
+    nav a:first-child { color: var(--seal); }
+    a:focus-visible { outline: 1px solid currentColor; outline-offset: 0.2rem; }
+
+    header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    header pre {
+      width: max-content;
+      max-width: 100%;
+      white-space: pre;
+      text-align: left;
+      font-family: Menlo, Consolas, "DejaVu Sans Mono", monospace;
+      letter-spacing: 0;
+      color: var(--seal);
+    }
+    .ascii-prime { font-size: 0.3rem; line-height: 1; }
+    .ascii-tape {
+      font-size: clamp(0.34rem, 1.5vw, 0.5rem);
+      line-height: 1.2;
+      opacity: 0.7;
+    }
+
+    .punch-guides {
+      position: fixed;
+      top: 1in;
+      left: 0.25in;
+      width: 0.25in;
+      height: 9in;
+      pointer-events: none;
+      overflow: visible;
+    }
+    .punch-guides circle { fill: none; stroke: #c8c8c8; stroke-width: 1.3; }
+
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    .time-column { width: 25%; }
+    .price-column { width: 40%; }
+    .direction-column { width: 35%; }
+    th {
+      padding: 0.5rem;
+      font-weight: normal;
+      font-size: 0.8rem;
+      color: var(--seal);
+    }
+    td { height: 2rem; padding: 0; }
+    th, td { border-bottom: 1px solid var(--line-color); }
+    th + th, td + td { border-left: 1px solid var(--line-color); }
+    tr { break-inside: avoid; }
+
+    @media (max-width: 900px) {
+      .ascii-prime { font-size: 0.2rem; }
+      .container { padding: 1rem; }
+      .punch-guides { display: none; }
+    }
+
+    /* Match Journal's Letter paper, binding margin, and print palette. */
+    @page { size: letter; margin: 0; }
+    @media print {
+      :root {
+        --bg: #ffffff;
+        --text: #000000;
+        --stamp: #999999;
+        --seal: #000000;
+        --line-color: #d8d8d8;
+      }
+      * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      html { font-size: 16px; }
+      body { display: block; min-height: auto; line-height: 1.2; }
+      .container {
+        max-width: none;
+        padding: 0.42in 0.42in 0.42in 0.75in;
+        box-sizing: border-box;
+      }
+      nav { display: none !important; }
+      .punch-guides { display: block; position: absolute; top: 1in; left: 0.375in; }
+      header { margin-bottom: 0.08in; break-after: avoid; }
+      header pre { margin: 0; }
+      .ascii-prime { font-size: 0.135rem; line-height: 0.9; }
+      .ascii-tape { font-size: 0.4rem; line-height: 0.9; opacity: 1; margin-top: 0.08in; }
+      th { font-size: 0.65rem; padding: 0.06in; }
+      td { height: 0.4in; }
+    }
+  </style>
+</head>
+<body>
+  <svg class="punch-guides" viewBox="0 0 18 648" aria-hidden="true">
+    <circle cx="9" cy="5" r="8"></circle>
+    <circle cx="9" cy="315" r="8"></circle>
+    <circle cx="9" cy="630" r="8"></circle>
+  </svg>
+  <main class="container">
+    <nav aria-label="Main navigation">
+      <a href="/">mikeb.work</a>
+      <a href="journal.html">Journal</a>
+    </nav>
+    <header>
+      <pre class="ascii-prime" role="img" aria-label="Mike">
+ ███▄ ▄███▓ ██▓ ██ ▄█▀▓█████
+▓██▒▀█▀ ██▒▓██▒ ██▄█▒ ▓█   ▀
+▓██    ▓██░▒██▒▓███▄░ ▒███
+▒██    ▒██ ░██░▓██ █▄ ▒▓█  ▄
+▒██▒   ░██▒░██░▒██▒ █▄░▒████▒
+░ ▒░   ░  ░░▓  ▒ ▒▒ ▓▒░░ ▒░ ░
+░  ░      ░ ▒ ░░ ░▒ ▒░ ░ ░  ░
+░      ░    ▒ ░░ ░░ ░    ░
+       ░    ░  ░  ░      ░  ░
+      </pre>
+      <pre class="ascii-tape" role="heading" aria-level="1" aria-label="The Tape">░██████████░██                         ░██
+    ░██    ░██                         ░██
+    ░██    ░████████   ░███████     ░████████  ░██████   ░████████   ░███████
+    ░██    ░██    ░██ ░██    ░██       ░██          ░██  ░██    ░██ ░██    ░██
+    ░██    ░██    ░██ ░█████████       ░██     ░███████  ░██    ░██ ░█████████
+    ░██    ░██    ░██ ░██              ░██    ░██   ░██  ░███   ░██ ░██
+    ░██    ░██    ░██  ░███████         ░████  ░█████░██ ░██░█████   ░███████
+                                                         ░██
+                                                         ░██</pre>
+    </header>
+    <table aria-label="The Tape: time, price, and direction">
+      <colgroup>
+        <col class="time-column" />
+        <col class="price-column" />
+        <col class="direction-column" />
+      </colgroup>
+      <thead>
+        <tr><th scope="col">Time</th><th scope="col">Price</th><th scope="col">Up / Down / No change</th></tr>
+      </thead>
+      <tbody>
+        <tr><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td></tr>
+      </tbody>
+    </table>
+  </main>
+</body>
+</html>
