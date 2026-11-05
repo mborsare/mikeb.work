@@ -88,7 +88,7 @@
 
     table { width: 100%; border-collapse: collapse; table-layout: fixed; }
     .time-column { width: 25%; }
-    .price-column { width: 40%; }
+    .price-column { width: 8%; }
     .direction-column { width: 35%; }
     th {
       padding: 0;
@@ -192,38 +192,46 @@
     <table aria-label="The Tape: time, price, and direction">
       <colgroup>
         <col class="time-column" />
+      </colgroup>
+      <colgroup>
         <col class="price-column" />
+        <col class="price-column" />
+        <col class="price-column" />
+        <col class="price-column" />
+        <col class="price-column" />
+      </colgroup>
+      <colgroup>
         <col class="direction-column" />
       </colgroup>
       <thead>
         <tr>
           <th scope="col"><a href="#top" aria-label="Time — back to top">Time</a></th>
-          <th scope="col"><a href="#top" aria-label="Price — back to top">Price</a></th>
+          <th scope="colgroup" colspan="5"><a href="#top" aria-label="Price — back to top">Price</a></th>
           <th scope="col"><a href="#top" aria-label="Up / Down / No change — back to top">Up / Down / No change</a></th>
         </tr>
       </thead>
       <tbody>
-        <tr><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
       </tbody>
     </table>
     <div class="tape-end" aria-hidden="true"></div>
@@ -246,7 +254,7 @@
 
         for (let index = 0; index < count; index += 1) {
           const row = document.createElement("tr");
-          for (let column = 0; column < 3; column += 1) row.insertCell();
+          for (let column = 0; column < 7; column += 1) row.insertCell();
           batch.appendChild(row);
         }
 
