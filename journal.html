@@ -239,7 +239,22 @@
     .upload-preview {
       width: 100%;
       display: block;
+      box-sizing: border-box;
       border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .upload-preview[hidden] {
+      display: none;
+    }
+
+    .upload-gallery {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .upload-item {
+      margin: 0;
+      min-width: 0;
     }
 
     .upload-box {
@@ -260,9 +275,9 @@
     /* Handwriting and drawing activities */
     .cursive-teacher {
       font-family: "CursiveWorksheet";
-      font-size: 3rem;
-      letter-spacing: 0.1rem;
-      line-height: 3rem;
+      font-size: 2.25rem;
+      letter-spacing: 0.075rem;
+      line-height: 2.25rem;
       margin: 0;
     }
 
@@ -477,20 +492,22 @@
       .cursive-area {
         color: lightgray;
         gap: 0;
+        margin-top: 0;
+        break-after: avoid;
       }
 
       .cursive-area > div {
         display: grid;
         grid-template-columns: 1fr 1fr;
         column-gap: 2rem;
-        padding-top: 0.25in;
+        padding-top: 0.1in;
         break-inside: avoid;
       }
 
       .cursive-teacher {
-        font-size: 2rem;
-        letter-spacing: 0.04rem;
-        line-height: 0.43in;
+        font-size: 1.5rem;
+        letter-spacing: 0.03rem;
+        line-height: 0.3225in;
       }
 
       .footer-ascii {
@@ -498,7 +515,23 @@
       }
 
       .games-section {
-        grid-template-columns: 1fr 1fr;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.16in;
+        align-items: start;
+        margin-top: 0.18in;
+        padding-top: 0;
+        break-inside: auto;
+      }
+
+      .games-section > section,
+      .upload-gallery {
+        display: contents;
+      }
+
+      .upload-preview,
+      .upload-item {
+        break-inside: avoid;
       }
     }
 
@@ -569,25 +602,6 @@
     <section class="rules-section mission-lines-section">
       <div class="handwriting-paper" aria-hidden="true"></div>
     </section>
-    <div class="games-section">
-      <section data-store="jumble">
-        <img class="upload-preview" alt="" hidden />
-        <label class="button upload-box">
-          <input type="file" accept="image/*" hidden />
-          <span>Upload jumble</span>
-        </label>
-      </section>
-    </section>
-
-      <section data-store="color">
-        <img class="upload-preview" alt="" hidden />
-        <label class="button upload-box">
-          <input type="file" accept="image/*" hidden />
-          <span>Upload img</span>
-        </label>
-      </section>
-    </div>
-
     <section class="cursive-area">
       <div>
         <p class="cursive-teacher">Protect the mission</p>
@@ -600,6 +614,25 @@
         <p class="cursive-teacher">Expect the thief</p>
       </div>
     </section>
+
+    <div class="games-section">
+      <section data-store="jumble">
+        <img class="upload-preview" alt="" hidden />
+        <label class="button upload-box">
+          <input type="file" accept="image/*" hidden />
+          <span>Upload jumble</span>
+        </label>
+      </section>
+
+      <section data-store="color">
+        <div class="upload-gallery" aria-label="Uploaded images"></div>
+        <label class="button upload-box">
+          <input type="file" accept="image/*" multiple hidden />
+          <span>Add images</span>
+        </label>
+      </section>
+    </div>
+
     <pre class="ascii-journal footer-ascii" style="padding-top: 81rem;">
  ___                      
   | |_   _     _  ._   _| 
@@ -866,6 +899,88 @@
         const storageKey = `${keyBase}-${today}`;
 
         const input = section.querySelector('input[type="file"]');
+        const gallery = section.querySelector(".upload-gallery");
+
+        if (gallery) {
+          const status = document.createElement("p");
+          status.setAttribute("role", "status");
+          status.className = "upload-box";
+          section.appendChild(status);
+          let images = [];
+          try {
+            const saved = localStorage.getItem(storageKey);
+            if (saved?.startsWith("data:image/")) {
+              images = [saved]; // Preserve the previous single-image format.
+            } else if (saved) {
+              const parsed = JSON.parse(saved);
+              if (Array.isArray(parsed)) {
+                images = parsed.filter(src => typeof src === "string" && src.startsWith("data:image/"));
+              }
+            }
+          } catch {
+            status.textContent = "Saved images could not be loaded.";
+          }
+
+          function renderImages() {
+            gallery.replaceChildren();
+            images.forEach((src, index) => {
+              const item = document.createElement("figure");
+              item.className = "upload-item";
+              const preview = document.createElement("img");
+              preview.className = "upload-preview";
+              preview.alt = `Uploaded image ${index + 1}`;
+              preview.src = src;
+              const remove = document.createElement("button");
+              remove.type = "button";
+              remove.className = "button";
+              remove.textContent = "Remove image";
+              remove.setAttribute("aria-label", `Remove image ${index + 1}`);
+              remove.addEventListener("click", () => {
+                saveImages(images.filter((_, imageIndex) => imageIndex !== index));
+              });
+              item.append(preview, remove);
+              gallery.appendChild(item);
+            });
+          }
+
+          function saveImages(next) {
+            images = next;
+            renderImages();
+            try {
+              localStorage.setItem(storageKey, JSON.stringify(images));
+              status.textContent = "";
+            } catch {
+              status.textContent = "Images are ready to print, but could not be saved for reload. Browser storage may be full or unavailable.";
+            }
+          }
+
+          renderImages();
+          input.addEventListener("change", async () => {
+            const files = [...input.files].filter(file => file.type.startsWith("image/"));
+            if (!files.length) {
+              input.value = "";
+              return;
+            }
+            input.disabled = true;
+            try {
+              const added = await Promise.all(files.map(file => new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = () => reject(reader.error);
+                reader.onabort = () => reject(new Error("Image reading cancelled"));
+                reader.readAsDataURL(file);
+              })));
+              saveImages([...images, ...added]);
+            } catch {
+              status.textContent = "Images could not be read. Please try again.";
+            } finally {
+              input.disabled = false;
+              input.value = "";
+            }
+          });
+          return;
+        }
+
         const img = section.querySelector(".upload-preview");
 
         img.addEventListener("error", () => {
