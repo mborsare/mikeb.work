@@ -558,7 +558,7 @@
       </pre>
       <div class="oath">
         <div class="sign-here">✕ SIGN HERE</div>
-        <time id="clock"></time>
+        <div id="clock"><time id="clock-time"></time><span id="weather"></span></div>
         <p id="ticket-date">
           <span id="journal-date">Thu Jul 2</span>
           <span id="market-prints" aria-live="polite"></span>
@@ -738,14 +738,74 @@
     })();
 
     (() => {
-      const clock = document.getElementById("clock");
+      const clock = document.getElementById("clock-time");
+      const weather = document.getElementById("weather");
+      let weatherMatch = null;
+
+      // Match the session weather wording and cutoffs in ~/.zshrc.
+      function weatherPhrase(date) {
+        if (!weatherMatch) return "";
+
+        const conditions = [
+          [/thunder/, "stormy"],
+          [/snow|sleet/, "snowy"],
+          [/rain|drizzle/, "rainy"],
+          [/fog|mist/, "misty"],
+          [/overcast/, "overcast"],
+          [/cloud/, "cloudy"],
+          [/sun/, "sunny"],
+          [/clear/, "clear"]
+        ];
+        const condition = conditions.find(([pattern]) =>
+          pattern.test(weatherMatch[1].toLowerCase()))?.[1] || "";
+        const temperature = Number(weatherMatch[2]);
+        const feel = temperature < 40 ? "cold"
+          : temperature < 60 ? "cool"
+          : temperature < 75 ? "mild"
+          : temperature < 85 ? "warm" : "hot";
+        const hour = date.getHours();
+        const period = hour < 5 || hour >= 21 ? "night"
+          : hour < 12 ? "morning"
+          : hour < 17 ? "afternoon" : "evening";
+
+        return ` on a ${feel}${condition ? `, ${condition}` : ""} ${period}`;
+      }
 
       function tick() {
-        clock.textContent = new Date().toLocaleTimeString();
+        const now = new Date();
+        clock.textContent = now.toLocaleTimeString();
+        weather.textContent = weatherPhrase(now);
       }
 
       tick();
       setInterval(tick, 1000);
+
+      async function loadWeather() {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 2000);
+
+        try {
+          // JSON avoids wttr.in's HTML wrapper for browser user agents.
+          const response = await fetch("https://wttr.in/?format=j2", {
+            signal: controller.signal,
+            redirect: "error"
+          });
+          if (!response.ok) return;
+          const data = await response.json();
+          const current = data.current_condition?.[0];
+          const condition = current?.weatherDesc?.[0]?.value;
+          const temperature = current?.temp_F;
+          if (typeof condition !== "string" || !/^[+-]?[0-9]+$/.test(temperature ?? "")) return;
+          weatherMatch = [`${condition} ${temperature}°F`, condition, temperature];
+          tick();
+        } catch {
+          // Like the shell banner, omit weather when the service is unavailable.
+        } finally {
+          clearTimeout(timeout);
+        }
+      }
+
+      loadWeather();
     })();
 
     (() => {
