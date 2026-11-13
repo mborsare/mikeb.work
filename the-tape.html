@@ -103,7 +103,7 @@
       text-decoration: none;
     }
     th a:focus-visible { outline-offset: -2px; }
-    td { height: 2rem; padding: 0; }
+    td { height: 1rem; padding: 0; }
     th, td { border-bottom: 1px solid var(--line-color); }
     th + th, td + td { border-left: 1px solid var(--line-color); }
     tr { break-inside: avoid; }
@@ -151,7 +151,7 @@
       .ascii-tape { font-size: 0.4rem; line-height: 0.9; opacity: 1; margin-top: 0.08in; }
       th { font-size: 0.65rem; }
       th a { padding: 0.06in; }
-      td { height: 0.4in; }
+      td { height: 0.2in; }
       tbody tr:nth-child(n + 22), .tape-end { display: none !important; }
     }
   </style>
@@ -248,7 +248,7 @@
         const remaining = end.getBoundingClientRect().top - window.innerHeight;
         if (remaining > 600) return;
 
-        const rowHeight = rows.rows[0].getBoundingClientRect().height || 33;
+        const rowHeight = rows.rows[0].getBoundingClientRect().height || 17;
         const count = Math.max(21, Math.ceil((600 - remaining) / rowHeight) + 1);
         const batch = document.createDocumentFragment();
 
