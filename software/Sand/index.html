@@ -251,35 +251,34 @@
       container-type: size;
     }
 
-    /* Count-up timers are the active, open-ended mode. Give them a light
-       surface so they are immediately distinct from countdowns. */
-    .timer-unit.counting-up {
+    /* Count-up and clock cards share the inverted panel variant. */
+    .timer-unit:is(.counting-up, .clock-card) {
       --focus-ring: var(--panel);
       --timer-surface: var(--text);
       background: var(--timer-surface);
     }
 
-    .timer-unit.counting-up .command {
+    .timer-unit:is(.counting-up, .clock-card) .command {
       color: var(--panel);
     }
 
-    .timer-unit.counting-up .timer-label {
+    .timer-unit:is(.counting-up, .clock-card) .timer-label {
       color: var(--label-on-light);
     }
 
-    .timer-unit.counting-up .running-render,
-    .timer-unit.counting-up .remove {
+    .timer-unit:is(.counting-up, .clock-card) .running-render,
+    .timer-unit:is(.counting-up, .clock-card) .remove {
       color: var(--label-on-light);
     }
 
-    .timer-unit.counting-up .pause {
+    .timer-unit:is(.counting-up, .clock-card) .pause {
       color: var(--panel);
     }
 
-    .timer-unit.counting-up .timer-label:hover,
-    .timer-unit.counting-up .timer-label:focus,
-    .timer-unit.counting-up .remove:hover,
-    .timer-unit.counting-up .remove:focus-visible {
+    .timer-unit:is(.counting-up, .clock-card) .timer-label:hover,
+    .timer-unit:is(.counting-up, .clock-card) .timer-label:focus,
+    .timer-unit:is(.counting-up, .clock-card) .remove:hover,
+    .timer-unit:is(.counting-up, .clock-card) .remove:focus-visible {
       color: var(--panel);
     }
 
@@ -366,7 +365,8 @@
 
     .timer-unit:focus-within .input-hints,
     .timer-unit.running .input-hints,
-    .timer-unit.paused .input-hints {
+    .timer-unit.paused .input-hints,
+    .timer-unit.clock-card .input-hints {
       opacity: 1;
       pointer-events: auto;
     }
@@ -659,7 +659,7 @@
     #add,
     #tiny-mode,
     #seconds-toggle,
-    #clock-toggle {
+    #always-on-top {
       padding: 0.2rem 0.4rem;
       border: 0;
       outline: 0;
@@ -673,7 +673,7 @@
 
     #tiny-mode,
     #seconds-toggle,
-    #clock-toggle {
+    #always-on-top {
       font-size: 0.8rem;
     }
 
@@ -684,7 +684,9 @@
     #seconds-toggle:hover,
     #seconds-toggle:focus-visible,
     #clock-toggle:hover,
-    #clock-toggle:focus-visible {
+    #clock-toggle:focus-visible,
+    #always-on-top:hover,
+    #always-on-top:focus-visible {
       color: var(--text);
     }
 
@@ -731,6 +733,7 @@
     }
 
     .timer.tiny-mode .seconds-control,
+    .timer.tiny-mode #always-on-top,
     .timer.tiny-mode .timer-create-options,
     .timer.tiny-mode .action-logo {
       display: none;
@@ -906,52 +909,37 @@
       border-radius: 4px !important;
     }
 
-    .clock-panel {
+    .toolbar-button {
       flex: none;
-      width: 12ch;
-      text-align: center;
-      padding: 0.25rem 0.4rem;
+      padding: 0.25rem 0.4rem !important;
+      border: 0;
       border-radius: 3px;
-      background: color-mix(in srgb, var(--panel) 94%, var(--text));
+      background: color-mix(in srgb, var(--panel) 94%, var(--text)) !important;
       color: var(--quiet);
       font: inherit;
       font-size: 0.8rem;
       line-height: 1.2;
+      cursor: pointer;
+    }
+
+    .toolbar-button[aria-pressed="true"] {
+      color: var(--text) !important;
+    }
+
+    .toolbar-button[aria-pressed="false"] {
+      opacity: 0.55;
+    }
+
+    .toolbar-button:hover,
+    .toolbar-button:focus-visible {
+      opacity: 1;
+      color: var(--text);
+    }
+
+    .clock-panel {
+      width: 12ch;
+      text-align: center;
       font-variant-numeric: tabular-nums;
-    }
-
-    #clock-toggle,
-    #seconds-toggle {
-      display: inline-flex;
-      align-items: center;
-      flex: none;
-      width: 28px;
-      height: 16px;
-      padding: 2px;
-      border: 1px solid var(--quiet);
-      border-radius: 4px;
-      background: transparent;
-      transition: none;
-    }
-
-    #clock-toggle::before,
-    #seconds-toggle::before {
-      content: "";
-      width: 10px;
-      height: 10px;
-      border-radius: 2px;
-      background: var(--quiet);
-    }
-
-    #clock-toggle[aria-checked="true"],
-    #seconds-toggle[aria-checked="true"] {
-      background: var(--quiet);
-    }
-
-    #clock-toggle[aria-checked="true"]::before,
-    #seconds-toggle[aria-checked="true"]::before {
-      background: var(--panel);
-      transform: translateX(12px);
     }
 
     .clock-panel[hidden],
@@ -1049,7 +1037,8 @@
         <pre class="action-logo" aria-hidden="true">▄▖     ▌
 ▚ ▀▌▛▌▛▌
 ▄▌█▌▌▌▙▌</pre>
-        <label class="seconds-control">seconds <button id="seconds-toggle" type="button" role="switch" aria-label="Show seconds" title="Show seconds" aria-checked="false"></button></label>
+        <button class="seconds-control toolbar-button" id="seconds-toggle" type="button" aria-label="Show seconds" title="Show seconds" aria-pressed="false">seconds</button>
+        <button class="toolbar-button" id="always-on-top" type="button" title="Keep above other apps" aria-label="Always on top" aria-pressed="true">on top</button>
       </div>
       <div class="timer-create-options">
         <div class="theme-picker" role="group" aria-label="Interface color">
@@ -1063,11 +1052,10 @@
           <button type="button" class="theme-swatch" data-theme="plum" style="--swatch: #c4a0e4" aria-label="Ditto lilac" title="Ditto lilac" aria-pressed="false"></button>
           <button type="button" class="theme-swatch" data-theme="rose" style="--swatch: #ff83b6" aria-label="Flyer pink" title="Flyer pink" aria-pressed="false"></button>
         </div>
-        <div class="clock-panel" id="clock-panel" aria-label="Current time" hidden>
+        <button class="clock-panel toolbar-button" id="clock-toggle" type="button" aria-label="Show clock" title="Show or hide clock" aria-pressed="true">
           <time class="clock-time" id="clock-time"></time>
           <span class="clock-off" hidden>clock hidden</span>
-        </div>
-        <button id="clock-toggle" type="button" role="switch" aria-label="Clock" title="Clock" aria-checked="true" aria-controls="clock-panel"></button>
+        </button>
         <button id="add" type="button" aria-label="Add timer">＋</button>
       </div>
     </div>
@@ -1086,6 +1074,8 @@
           <button type="button" class="hint-chip" data-value="45m">for 45m</button>
           <span class="hint-or">or</span>
           <button type="button" class="hint-chip" data-value="9:00pm">until 9:00pm</button>
+          <span class="hint-or">or</span>
+          <button type="button" class="hint-chip" data-value="clock">clock</button>
         </div>
         <div class="commit-hint" hidden>
           <span class="input-render"></span>
@@ -1108,7 +1098,8 @@
     const tinyModeButton = document.querySelector("#tiny-mode");
     const secondsToggleButton = document.querySelector("#seconds-toggle");
     const clockToggleButton = document.querySelector("#clock-toggle");
-    const clockPanel = document.querySelector("#clock-panel");
+    const clockPanel = clockToggleButton;
+    const alwaysOnTopButton = document.querySelector("#always-on-top");
     const clockTime = document.querySelector("#clock-time");
     let clockRefreshTimer = null;
     let clockHour12;
@@ -2145,7 +2136,7 @@
           ? [...cards, tinyModeButton]
           : [
             ...cards.flatMap(card => [...card.querySelectorAll(".timer-label, .command")]),
-            addButton, clockToggleButton, ...themeSwatches.toReversed(), secondsToggleButton, tinyModeButton,
+            addButton, clockToggleButton, ...themeSwatches.toReversed(), alwaysOnTopButton, secondsToggleButton, tinyModeButton,
             mergeUndoButton, mergeUndoDismiss,
             ...cards.flatMap(card => [...card.querySelectorAll("button")].reverse())
           ];
@@ -2356,8 +2347,23 @@
       }
     });
 
+    function syncAlwaysOnTop(enabled) {
+      alwaysOnTopButton.setAttribute("aria-pressed", String(enabled));
+      alwaysOnTopButton.textContent = enabled ? "on top" : "inline";
+      alwaysOnTopButton.title = enabled ? "Use normal app stacking" : "Keep above other apps";
+    }
+
+    window.timerWindow?.getAlwaysOnTop().then(syncAlwaysOnTop).catch(console.error);
+    alwaysOnTopButton.addEventListener("click", async () => {
+      const enabled = alwaysOnTopButton.getAttribute("aria-pressed") !== "true";
+      try {
+        const actual = await window.timerWindow?.setAlwaysOnTop(enabled);
+        if (typeof actual === "boolean") syncAlwaysOnTop(actual);
+      } catch (error) { console.error(error); }
+    });
+
     function syncSecondsToggle() {
-      secondsToggleButton.setAttribute("aria-checked", String(showSeconds));
+      secondsToggleButton.setAttribute("aria-pressed", String(showSeconds));
     }
 
     function formatCurrentTime(now = new Date()) {
@@ -2376,7 +2382,7 @@
 
     async function refreshClockFormat() {
       try { clockHour12 = await window.timerWindow?.getClockHour12(); } catch { }
-      if (clockToggleButton.getAttribute("aria-checked") === "true") renderClock();
+      if (clockToggleButton.getAttribute("aria-pressed") === "true") renderClock();
       timerList.querySelectorAll(".clock-card").forEach(timer => timer.timerState.render());
     }
 
@@ -2388,8 +2394,8 @@
       clockPanel.hidden = false;
       clockTime.hidden = !visible;
       clockPanel.querySelector(".clock-off").hidden = visible;
-      clockPanel.setAttribute("aria-label", visible ? "Current time" : "Clock hidden");
-      clockToggleButton.setAttribute("aria-checked", String(visible));
+      clockPanel.setAttribute("aria-label", visible ? "Hide clock" : "Show clock");
+      clockToggleButton.setAttribute("aria-pressed", String(visible));
       if (visible) {
         renderClock();
         refreshClockFormat();
@@ -2399,7 +2405,7 @@
       syncWindowSize();
     }
 
-    clockToggleButton.addEventListener("click", () => setClockVisible(clockToggleButton.getAttribute("aria-checked") !== "true"));
+    clockToggleButton.addEventListener("click", () => setClockVisible(clockToggleButton.getAttribute("aria-pressed") !== "true"));
     let showClock = true;
     try { showClock = localStorage.getItem("clockEnabled") !== "false"; } catch { }
     setClockVisible(showClock);
@@ -2410,7 +2416,7 @@
         localStorage.setItem("showSeconds", String(showSeconds));
       } catch { }
       syncSecondsToggle();
-      if (clockToggleButton.getAttribute("aria-checked") === "true") renderClock();
+      if (clockToggleButton.getAttribute("aria-pressed") === "true") renderClock();
       timerList.querySelectorAll(".timer-unit").forEach(timer => timer.timerState.render());
     });
 

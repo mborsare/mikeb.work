@@ -78,21 +78,22 @@ function saveState() {
       fs.mkdirSync(path.dirname(stateFile()), { recursive: true });
       fs.writeFileSync(
         stateFile(),
-        JSON.stringify(win.getBounds(), null, 2)
+        JSON.stringify({ ...win.getBounds(), alwaysOnTop: win.isAlwaysOnTop() }, null, 2)
       );
     } catch { }
   }, 120);
 }
 
 function createWindow() {
+  const { alwaysOnTop = true, ...bounds } = loadState();
   win = new BrowserWindow({
-    ...loadState(),
+    ...bounds,
     frame: false,
     transparent: true,
     backgroundColor: TRANSPARENT_BACKGROUND,
     hasShadow: true,
     resizable: true,
-    alwaysOnTop: true,
+    alwaysOnTop,
     show: false,
     webPreferences: {
       contextIsolation: true,
@@ -103,8 +104,8 @@ function createWindow() {
     }
   });
 
-  win.setAlwaysOnTop(true, "floating");
-  win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+  win.setAlwaysOnTop(alwaysOnTop, alwaysOnTop ? "floating" : "normal");
+  win.setVisibleOnAllWorkspaces(alwaysOnTop, { visibleOnFullScreen: alwaysOnTop });
   win.loadFile("index.html");
   win.once("ready-to-show", () => win.show());
   win.on("move", saveState);
@@ -121,6 +122,16 @@ ipcMain.handle("resize-to-content", (event, contentHeight, animate = false, anch
   const display = screen.getDisplayNearestPoint({ x: bounds.x, y: bounds.y });
 
   return resizeWindow(contentBounds(bounds, display.workArea, contentHeight, anchor), Boolean(animate));
+});
+
+ipcMain.handle("get-always-on-top", () => win?.isAlwaysOnTop() ?? true);
+
+ipcMain.handle("set-always-on-top", (event, enabled) => {
+  if (!win || win.isDestroyed() || typeof enabled !== "boolean") return;
+  win.setAlwaysOnTop(enabled, enabled ? "floating" : "normal");
+  win.setVisibleOnAllWorkspaces(enabled, { visibleOnFullScreen: enabled });
+  saveState();
+  return win.isAlwaysOnTop();
 });
 
 ipcMain.handle("get-clock-hour12", () => {

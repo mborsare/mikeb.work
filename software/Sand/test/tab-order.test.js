@@ -22,6 +22,7 @@ test("Tab follows label, timer, Add, then toolbar right to left; Shift-Tab rever
     timerList: { querySelectorAll: () => [card] },
     addButton: element("add"), clockToggleButton: element("clock"),
     themeSwatches: [element("system"), element("custom"), element("paper")],
+    alwaysOnTopButton: element("on top"),
     secondsToggleButton: element("seconds"), tinyModeButton: element("tiny"),
     mergeUndoButton: element("undo", false), mergeUndoDismiss: element("dismiss", false)
   });
@@ -32,7 +33,7 @@ test("Tab follows label, timer, Add, then toolbar right to left; Shift-Tab rever
     assert.equal(prevented, true);
     return document.activeElement.name;
   };
-  const expected = ["label", "timer", "add", "clock", "paper", "custom", "system", "seconds", "tiny", "remove"];
+  const expected = ["label", "timer", "add", "clock", "paper", "custom", "system", "on top", "seconds", "tiny", "remove"];
   for (const name of expected) assert.equal(press(false), name);
   assert.equal(press(false), "label");
   for (const name of expected.toReversed()) assert.equal(press(true), name);

@@ -779,7 +779,7 @@
 <body>
   <div id="toast"></div>
   <div id="palette-disabled-overlay" aria-hidden="true"></div>
-  <section id="prime-tv" class="prime-tv" aria-label="PrimeTV broadcast" hidden data-nosnippet>
+  <section id="prime-tv" class="prime-tv" aria-label="PrimeTV broadcast" data-nosnippet>
     <div class="prime-tv__bar" tabindex="0" aria-label="Move PrimeTV with arrow keys" title="Drag to move PrimeTV">
       <span id="prime-tv-label">PrimeTV</span>
       <div class="prime-tv__controls">
@@ -788,7 +788,7 @@
       </div>
     </div>
     <video id="prime-tv-video" class="prime-tv__video" controls muted playsinline preload="metadata"></video>
-    <div id="prime-tv-status" class="prime-tv__status">checking broadcast…</div>
+    <div id="prime-tv-status" class="prime-tv__status">connecting…</div>
   </section>
   <div class="container">
     <h2 class="sr-only">Arcade</h2>
@@ -1137,7 +1137,7 @@
     loadDoctrineItems();
 
     // ---- Prime broadcast live player ----
-    // Browser asks the Worker for status only. Video plays directly from Caddy.
+    // Always-on broadcast: play HLS directly from Caddy, no status Worker.
     (() => {
       const tv = document.getElementById('prime-tv');
       const video = document.getElementById('prime-tv-video');
@@ -1148,21 +1148,9 @@
 
       if (!tv || !video || !label || !statusLine || !maximizeBtn || !bar) return;
 
-      const WORKER_BASE = 'https://primecast.mborsare.workers.dev/';
-      const STREAM_ORIGIN = 'https://primebook.duckdns.org';
-      const DEFAULT_STREAM_HREF = `${STREAM_ORIGIN}/Prime/index.m3u8`;
-      const LIVE_STATUS_URLS = [
-        `${WORKER_BASE}prime-live.json`
-      ];
+      const STREAM_HREF = 'https://primebook.duckdns.org/Prime/index.m3u8';
       const HLS_JS_URL = 'https://cdn.jsdelivr.net/npm/hls.js@1.5.20/dist/hls.min.js';
-      const CHECK_INTERVAL_MS = 30000;
-      const REQUEST_TIMEOUT_MS = 4500;
-      const MAX_STATUS_AGE_MS = 120000;
-      const MISSES_BEFORE_HIDING_LIVE = 2;
 
-      let state = 'unknown';
-      let misses = 0;
-      let timerId;
       let hls;
       let hlsLoaderPromise;
       let currentStreamHref = '';
@@ -1178,63 +1166,6 @@
         }
       } catch (_error) {
         // Storage may be unavailable; dragging still works for this visit.
-      }
-
-      function safeHttpsUrl(value) {
-        if (typeof value !== 'string' || value.trim() === '') return '';
-
-        try {
-          const url = new URL(value, window.location.href);
-          return url.protocol === 'https:' ? url.href : '';
-        } catch (_error) {
-          return '';
-        }
-      }
-
-      function directStreamUrl(value) {
-        const href = safeHttpsUrl(value);
-        if (!href) return '';
-
-        try {
-          const url = new URL(href);
-
-          if (url.origin !== STREAM_ORIGIN) return '';
-          if (!url.pathname.endsWith('.m3u8') && !url.pathname.endsWith('.m3u')) return '';
-
-          return url.href;
-        } catch (_error) {
-          return '';
-        }
-      }
-
-      function statusIsFresh(status) {
-        if (!status?.checkedAt) return true;
-
-        const checkedAt = Date.parse(status.checkedAt);
-        if (Number.isNaN(checkedAt)) return false;
-
-        return Date.now() - checkedAt <= MAX_STATUS_AGE_MS;
-      }
-
-      function textPart(value) {
-        return typeof value === 'string' ? value.trim() : '';
-      }
-
-      function buildLiveText(status) {
-        const liveLabel = textPart(status?.label) || 'Live';
-        const channel = textPart(status?.channel);
-        const number = textPart(status?.number);
-        const suffix = [channel, number ? `CH ${number}` : ''].filter(Boolean).join(' · ');
-
-        return suffix ? `${liveLabel} ${suffix}` : liveLabel;
-      }
-
-      function getStreamHref(status) {
-        return (
-          directStreamUrl(status?.streamHref) ||
-          directStreamUrl(status?.privateStreamHref) ||
-          DEFAULT_STREAM_HREF
-        );
       }
 
       function setStatus(message) {
@@ -1285,13 +1216,6 @@
         maximizeBtn.title = maximized ? 'Restore size' : 'Maximize to browser width';
       }
 
-      function clearPrimeTvLayout() {
-        tv.hidden = true;
-        tv.classList.remove('is-live', 'is-maximized');
-        tv.dataset.layout = '';
-        applyFloatingPosition();
-      }
-
       function loadHlsJs() {
         if (window.Hls) return Promise.resolve(window.Hls);
         if (hlsLoaderPromise) return hlsLoaderPromise;
@@ -1321,12 +1245,8 @@
         playerStarted = false;
       }
 
-      async function startPlayer(src) {
-        if (!src) {
-          setStatus('live status is missing direct streamHref');
-          return;
-        }
-
+      async function startPlayer() {
+        const src = STREAM_HREF;
         if (currentStreamHref === src && playerStarted) return;
 
         stopPlayer();
@@ -1407,97 +1327,1559 @@
         }
       }
 
-      function showLive(status) {
-        const streamHref = getStreamHref(status);
-
-        state = 'live';
-        misses = 0;
-        tv.dataset.liveLabel = buildLiveText(status);
-        label.textContent = tv.dataset.liveLabel;
-        tv.dataset.state = 'live';
-
+      maximizeBtn.addEventListener('click', () => {
+        maximized = !maximized;
         setPrimeTvLayout();
-        startPlayer(streamHref);
+      });
+
+      bar.addEventListener('pointerdown', event => {
+        if (tv.dataset.layout !== 'floating' || maximized || dragStart || !event.isPrimary || event.button !== 0 || event.target.closest('button')) return;
+
+        const bounds = tv.getBoundingClientRect();
+        dragStart = {
+          pointerId: event.pointerId,
+          x: event.clientX,
+          y: event.clientY,
+          left: bounds.left,
+          top: bounds.top,
+          moved: false
+        };
+        bar.setPointerCapture(event.pointerId);
+        tv.classList.add('is-dragging');
+        event.preventDefault();
+      });
+
+      bar.addEventListener('pointermove', event => {
+        if (!dragStart || event.pointerId !== dragStart.pointerId) return;
+
+        floatingPosition = {
+          left: dragStart.left + event.clientX - dragStart.x,
+          top: dragStart.top + event.clientY - dragStart.y
+        };
+        dragStart.moved = true;
+        applyFloatingPosition();
+      });
+
+      function finishDrag(event) {
+        if (!dragStart || event.pointerId !== dragStart.pointerId) return;
+        if (dragStart.moved) saveFloatingPosition();
+        dragStart = null;
+        tv.classList.remove('is-dragging');
+        if (bar.hasPointerCapture(event.pointerId)) bar.releasePointerCapture(event.pointerId);
       }
 
-      function hideLive(reason = 'offline') {
-        state = reason;
-        clearPrimeTvLayout();
-        tv.dataset.state = reason;
-        setStatus(reason === 'error' ? 'status unavailable' : 'off air');
-        stopPlayer();
+      bar.addEventListener('pointerup', finishDrag);
+      bar.addEventListener('pointercancel', finishDrag);
+
+      bar.addEventListener('keydown', event => {
+        if (event.target !== bar || tv.dataset.layout !== 'floating' || maximized) return;
+
+        const directions = {
+          ArrowLeft: [-1, 0],
+          ArrowRight: [1, 0],
+          ArrowUp: [0, -1],
+          ArrowDown: [0, 1]
+        };
+        const direction = directions[event.key];
+        if (!direction) return;
+
+        event.preventDefault();
+        const bounds = tv.getBoundingClientRect();
+        const step = event.shiftKey ? 40 : 10;
+        floatingPosition = {
+          left: bounds.left + direction[0] * step,
+          top: bounds.top + direction[1] * step
+        };
+        applyFloatingPosition();
+        saveFloatingPosition();
+      });
+
+      window.addEventListener('resize', applyFloatingPosition);
+
+      tv.dataset.liveLabel = 'Live';
+      tv.dataset.state = 'live';
+      setPrimeTvLayout();
+      startPlayer();
+      window.addEventListener('pagehide', stopPlayer, {once: true});
+    })();
+
+    // ---- Random palette generator (with wild mode) ----
+    function applyRandomPalette() {
+      const root = document.documentElement;
+      const r = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+      const hsl = (h, s, l) => `hsl(${h}, ${s}%, ${l}%)`;
+
+      const wild = Math.random() < 0.25;
+
+      const hue = r(0, 360);
+      const dark = Math.random() < 0.6;
+      const bgLight = dark ? r(3, 14) : r(82, 94);
+
+      const bgSat = wild ? r(30, 70) : r(5, 25);
+      const textSat = wild ? r(30, 60) : r(5, 20);
+
+      root.style.setProperty('--bg', hsl(hue, bgSat, bgLight));
+      root.style.setProperty('--text', hsl(hue, textSat, dark ? r(88, 96) : r(4, 12)));
+
+      // softer, belonging stamp
+      root.style.setProperty(
+        '--stamp',
+        bgLight < 50
+          ? hsl((hue + 180) % 360, 30, 70)
+          : hsl((hue + 180) % 360, 30, 30)
+      );
+
+      const sealHue = wild ? r(0, 360) : r(90, 140);
+      root.style.setProperty('--seal',
+        dark
+          ? hsl(sealHue, wild ? r(50, 90) : r(30, 50), r(85, 92))
+          : hsl(sealHue, wild ? r(40, 80) : r(25, 45), r(20, 30))
+      );
+
+      root.style.setProperty(
+        '--aaa-text',
+        bgLight < 50 ? '#ffffff' : '#000000'
+      );
+      root.style.setProperty(
+        '--toast-bg',
+        bgLight < 50 ? '#ffffff' : '#000000'
+      );
+      root.style.setProperty(
+        '--toast-text',
+        bgLight < 50 ? '#000000' : '#ffffff'
+      );
+    }
+
+    applyRandomPalette();
+
+    // ---- Palette button + score ----
+    (() => {
+      const btn = document.getElementById('palette-btn');
+      const scoreEl = document.getElementById('palette-score');
+      const arcadeHint = document.getElementById('arcade-hint');
+      const toast = document.getElementById('toast');
+      const soundMute = document.getElementById('sound-mute');
+      const disabledOverlay = document.getElementById('palette-disabled-overlay');
+
+      if (!scoreEl) return;
+
+      const SCORE_IDLE_TEXT = '1 credit';
+      const SCORE_ACTIVE_MS = 5000;
+      const SCORE_RESET_GRACE_MS = 3000;
+
+      let score = 0;
+      let previousScore = 0;
+      let timer;
+      let warningTimer;
+      let toastTimer;
+      let countdownTimer;
+      let isProcessing = false;
+      let pendingUpdates = 0;
+
+      scoreEl.textContent = SCORE_IDLE_TEXT;
+
+      function showScore() {
+        scoreEl.textContent = `${score} ${score === 1 ? 'point' : 'points'}`;
+        if (arcadeHint) arcadeHint.textContent = score >= 99 ? 'BOOM SHAKA LAKA' : 'Keep tapping to score';
       }
 
-      function shouldShowLive(status) {
-        return status?.live === true && statusIsFresh(status) && Boolean(getStreamHref(status));
+      const SOUND_PATHS_PREUNLOCK = [
+        '/backoffice/the-stacks/reset.wav',
+        '/backoffice/the-stacks/checkpoint.m4a',
+        '/backoffice/the-stacks/boomshakalaka.mp3'
+      ];
+
+      const audioCache = {};
+
+      function resetScore() {
+        clearTimeout(warningTimer);
+        clearInterval(countdownTimer);
+        score = 0;
+        previousScore = 0;
+        pendingUpdates = 0;
+        scoreEl.textContent = SCORE_IDLE_TEXT;
+        if (arcadeHint) arcadeHint.textContent = 'Tap to play for points';
       }
 
-      async function fetchJson(url) {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-        const cacheBustedUrl = new URL(url);
+      function preventZoom(e) {
+        e.preventDefault();
+      }
 
-        cacheBustedUrl.searchParams.set('_', String(Date.now()));
+      function showDisabledOverlay() {
+        if (!disabledOverlay) return;
+        disabledOverlay.classList.add('is-active');
+        disabledOverlay.addEventListener('touchstart', preventZoom, {passive: false});
+      }
 
+      function hideDisabledOverlay() {
+        if (!disabledOverlay) return;
+        disabledOverlay.classList.remove('is-active');
+        disabledOverlay.removeEventListener('touchstart', preventZoom);
+      }
+
+      function unlockAudio() {
+        if (Object.keys(audioCache).length > 0) return;
+
+        SOUND_PATHS_PREUNLOCK.forEach(path => {
+          const a = new Audio(path);
+          a.volume = 0;
+          a.play().then(() => a.pause()).catch(() => { });
+          a.volume = 1;
+          a.currentTime = 0;
+          audioCache[path] = a;
+        });
+
+        audioCache['/backoffice/the-stacks/tap.wav'] = new Audio('/backoffice/the-stacks/tap.wav');
+        audioCache['/backoffice/the-stacks/unlock.wav'] = new Audio('/backoffice/the-stacks/unlock.wav');
+      }
+
+      function playSound(path) {
+        if (soundMute && soundMute.checked) return;
+
+        let a = audioCache[path];
+
+        if (!a) {
+          a = new Audio(path);
+          audioCache[path] = a;
+        }
+
+        a.currentTime = 0;
+        a.volume = 1;
+        a.play().catch(() => { });
+      }
+
+      function showToast(message) {
+        if (!toast) return;
+
+        clearTimeout(toastTimer);
+        toast.textContent = message;
+        toast.classList.add('show');
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Mike Borsare</title>
+  <meta name="description" content="Mike Borsare trades MNQ and makes things." />
+  <meta name="author" content="Mike Borsare" />
+  <link rel="canonical" href="https://mikeb.work/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Mike Borsare" />
+  <meta property="og:title" content="Mike Borsare | Futures Trader &amp; Maker" />
+  <meta property="og:description" content="Mike Borsare trades MNQ and makes things." />
+  <meta property="og:url" content="https://mikeb.work/" />
+  <meta property="og:image" content="https://mikeb.work/social-preview.png" />
+  <meta property="og:image:alt" content="Mike Borsare — mikeb.work" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Mike Borsare | Futures Trader &amp; Maker" />
+  <meta name="twitter:description" content="Mike Borsare trades MNQ and makes things." />
+  <meta name="twitter:image" content="https://mikeb.work/social-preview.png" />
+  <meta name="twitter:image:alt" content="Mike Borsare — mikeb.work" />
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Person",
+      "@id": "https://mikeb.work/#person",
+      "name": "Mike Borsare",
+      "url": "https://mikeb.work/",
+      "description": "Mike Borsare trades MNQ and makes things.",
+      "sameAs": [
+        "https://github.com/mborsare"
+      ]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://mikeb.work/#website",
+      "url": "https://mikeb.work/",
+      "name": "Mike Borsare",
+      "alternateName": "mikeb.work",
+      "publisher": {
+        "@id": "https://mikeb.work/#person"
+      },
+      "inLanguage": "en"
+    },
+    {
+      "@type": "ProfilePage",
+      "@id": "https://mikeb.work/#webpage",
+      "url": "https://mikeb.work/",
+      "name": "Mike Borsare | Futures Trader & Maker",
+      "description": "Mike Borsare trades MNQ and makes things.",
+      "mainEntity": {
+        "@id": "https://mikeb.work/#person"
+      },
+      "isPartOf": {
+        "@id": "https://mikeb.work/#website"
+      }
+    }
+  ]
+}
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <meta name="theme-color" content="#000000" />
+
+  <style>
+    :root {
+      --bg: #000000;
+      --text: #c0c0c0;
+      --stamp: #888888;
+      --seal: #eaffea;
+      --toast-bg: #ffffff;
+      --toast-text: #000000;
+
+      /* fluid type scale */
+      --type-xs: clamp(0.72rem, 0.68rem + 0.18vw, 0.82rem);
+      --type-base: clamp(0.9rem, 0.82rem + 0.34vw, 1.06rem);
+      --type-nav: clamp(0.94rem, 0.86rem + 0.32vw, 1.08rem);
+      --type-lg: clamp(1.15rem, 0.98rem + 0.72vw, 1.55rem);
+      --type-xl: clamp(1.4rem, 1.08rem + 1.35vw, 2rem);
+      --type-ascii: clamp(0.62rem, 0.46rem + 0.7vw, 1rem);
+
+      /* palette contrast colors */
+      --btn-fill: color-mix(in hsl,
+          var(--bg),
+          var(--seal) 20%);
+      --aaa-text: #ffffff;
+    }
+
+    html {
+      font-size: 14px;
+    }
+
+    @font-face {
+      font-family: 'ComicMono';
+      src: url('/fonts/ComicMono-Regular.woff') format('woff');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow-y: auto;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'ComicMono', monospace;
+      font-size: var(--type-base);
+    }
+
+    .container {
+      min-width: 20rem;
+      max-width: 60rem;
+      width: 100%;
+      padding: clamp(0.75rem, 2vw, 1.25rem);
+      margin: auto 0;
+      text-align: center;
+      white-space: pre-line;
+      line-height: 1.5;
+    }
+
+    .site-intro {
+      margin: 3rem 3rem 0;
+      text-align: center;
+      white-space: normal;
+    }
+
+    .site-intro h1 {
+      color: var(--seal);
+      font-size: var(--type-base);
+      margin: 0 0 0.5rem;
+    }
+
+    .site-intro p {
+      color: var(--text);
+      font-size: var(--type-base);
+      margin: 0;
+    }
+
+    h1 {
+      color: var(--bg);
+    }
+
+    .list-item {
+      padding: 0.5rem 1rem;
+    }
+
+    .list-item.is-highlighted {
+      color: var(--aaa-text);
+      font-weight: 700;
+    }
+
+    .list-item.is-highlighted:nth-child(3n) {
+      --scribble-angle: 1.5deg;
+      --scribble-angle-2: -1deg;
+    }
+
+    .list-item.is-highlighted:nth-child(3n + 1) {
+      --scribble-angle: -2.2deg;
+      --scribble-angle-2: 1.8deg;
+    }
+
+    .doctrine-scribble {
+      position: relative;
+      display: inline-block;
+      max-width: 100%;
+    }
+
+    .doctrine-scribble::after {
+      content: "";
+      position: absolute;
+      left: -0.1em;
+      width: calc(100% + 0.2em);
+      background: currentColor;
+      pointer-events: none;
+    }
+
+    .doctrine-scribble::after {
+      bottom: -0.2em;
+      height: 0.12em;
+      clip-path: polygon(0 58%, 9% 34%, 19% 69%, 29% 22%, 38% 64%, 49% 31%, 60% 71%, 70% 27%, 80% 65%, 90% 36%, 100% 61%, 100% 88%, 90% 63%, 80% 91%, 70% 54%, 60% 96%, 49% 57%, 38% 89%, 29% 49%, 19% 95%, 9% 60%, 0 85%);
+      transform: rotate(var(--scribble-angle-2, 1.1deg));
+    }
+
+    .list-item::after {
+      color: var(--stamp);
+      content: "MJB";
+      white-space: pre;
+      font-size: var(--type-xs);
+      margin-left: 1rem;
+      vertical-align: middle;
+      display: inline-block;
+      position: relative;
+      letter-spacing: 0.25rem;
+      line-height: 1;
+      transform:
+        translate(var(--mjb-x, -2px), var(--mjb-y, -2px)) rotate(var(--mjb-tilt, -7deg));
+    }
+
+    @media (max-width: 60rem) {
+      .list-item {
+        font-size: var(--type-lg);
+        text-align: center;
+      }
+    }
+
+    .ascii {
+      white-space: pre;
+      line-height: 1.1;
+      color: var(--seal);
+    }
+
+    .footer-ascii {
+      font-size: 0.4rem;
+      margin-top: 9rem;
+      font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+    }
+
+    .clock {
+      color: var(--seal);
+    }
+
+    .webring {
+      display: flex;
+      justify-content: center;
+      margin-top: 10rem;
+    }
+
+    .webring a {
+      font-size: 0.8rem;
+    }
+
+    .webring span {
+      color: var(--seal);
+      padding: 0 2em;
+    }
+
+    /* ---- MOBILE TAP FIX ---- */
+    #palette-btn {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    #palette-disabled-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    #palette-disabled-overlay.is-active {
+      display: block;
+      pointer-events: auto;
+    }
+
+    button:active {
+      scale: 0.9;
+    }
+
+    #toast {
+      background: var(--toast-bg);
+      bottom: 1rem;
+      color: var(--toast-text);
+      left: 1rem;
+      opacity: 0;
+      padding: 1rem 2rem;
+      pointer-events: none;
+      position: fixed;
+      text-align: center;
+      transform: translateX(-120%);
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+
+    #toast.show {
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+    nav {
+      display: grid;
+      font-size: var(--type-nav);
+      gap: 1rem;
+      grid-template-columns: repeat(2, 1fr);
+      padding-bottom: 4rem;
+    }
+
+    @media (min-width: 40rem) {
+      nav {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    #palette-score {
+      padding: .5rem 3rem;
+      cursor: pointer;
+      touch-action: manipulation;
+      user-select: none;
+    }
+
+    #palette-score:active {
+      scale: 0.9;
+    }
+
+    .arcade-action {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .arcade-hint {
+      color: var(--seal);
+      font-size: var(--type-xs);
+      line-height: 1.2;
+      margin-top: 0.8rem;
+      transform: rotate(var(--mjb-tilt, -7deg));
+    }
+
+    /* ---- Boomshakalaka slam ---- */
+    @keyframes slam {
+      0% {
+        transform: translate(0, 0) scale(1);
+      }
+
+      6% {
+        transform: translate(0, 14px) scale(1.02);
+      }
+
+      14% {
+        transform: translate(0, -5px) scale(0.98);
+      }
+
+      22% {
+        transform: translate(0, 3px) scale(1);
+      }
+
+      35% {
+        transform: translate(-5px, 0) scale(1);
+      }
+
+      48% {
+        transform: translate(5px, 0) scale(1);
+      }
+
+      61% {
+        transform: translate(-3px, 0) scale(1);
+      }
+
+      74% {
+        transform: translate(2px, 0) scale(1);
+      }
+
+      87% {
+        transform: translate(-1px, 0) scale(1);
+      }
+
+      100% {
+        transform: translate(0, 0) scale(1);
+      }
+    }
+
+    body.slam .container {
+      animation: slam 0.75s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    details {
+      cursor: pointer;
+    }
+
+    .missive {
+      text-align: left;
+      color: var(--stamp);
+      display: flex;
+      justify-content: center;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-width: 100%;
+      font-size: var(--type-xl);
+      line-height: 1.4;
+      margin: 0;
+    }
+
+    .missive-text {
+      position: relative;
+      display: inline-block;
+      max-width: 100%;
+    }
+
+    .missive-text::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -0.12em;
+      height: 0.242em;
+      background:
+        radial-gradient(circle, color-mix(in srgb, var(--seal) 24%, transparent) 0 0.35px, transparent 0.7px) 0 0 / 3px 3px,
+        color-mix(in srgb, var(--seal) 10%, var(--bg));
+      clip-path: polygon(0 24%, 6% 14%, 19% 30%, 36% 8%, 53% 26%, 71% 12%, 88% 27%, 100% 18%, 100% 84%, 81% 96%, 61% 77%, 44% 100%, 25% 79%, 8% 94%, 0 82%);
+      transform: rotate(var(--underline-angle));
+      pointer-events: none;
+    }
+
+    .missive:nth-child(1) {
+      --underline-angle: -1.2deg;
+    }
+
+    .missive:nth-child(2) {
+      --underline-angle: 0.8deg;
+    }
+
+    .missive:nth-child(3) {
+      --underline-angle: -0.5deg;
+    }
+
+    .currently-reading {
+      max-width: 42rem;
+      margin: 0 auto 2.5rem;
+      text-align: center;
+      white-space: normal;
+    }
+
+    .reading-cover {
+      width: min(10rem, 100%);
+      height: auto;
+      border: 1px solid var(--stamp);
+      background: var(--bg);
+      margin-bottom: 1rem;
+    }
+
+    .reading-title {
+      color: var(--seal);
+      font-size: var(--type-nav);
+      margin-bottom: 0.25rem;
+    }
+
+    .reading-author {
+      color: var(--stamp);
+      font-size: var(--type-xs);
+      margin-bottom: 0.75rem;
+    }
+
+    .reading-time {
+      color: var(--seal);
+      margin-bottom: 0.75rem;
+    }
+
+    .reading-stats {
+      display: grid;
+      gap: 0.25rem;
+      margin: 0 auto 0.75rem;
+      color: var(--text);
+      font-size: var(--type-xs);
+    }
+
+    .reading-start {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+      justify-content: center;
+      color: var(--stamp);
+      font-size: var(--type-xs);
+    }
+
+    .reading-start input {
+      max-width: 100%;
+      border: 1px solid var(--stamp);
+      background: var(--bg);
+      color: var(--text);
+      font: inherit;
+      padding: 0.35rem;
+    }
+
+    @media (min-width: 40rem) {
+      .currently-reading {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 1.25rem;
+        align-items: center;
+        text-align: left;
+      }
+
+      .reading-cover {
+        margin-bottom: 0;
+      }
+
+      .reading-meta {
+        min-width: 0;
+      }
+
+      .reading-stats {
+        margin-left: 0;
+        margin-right: 0;
+      }
+
+      .reading-start {
+        justify-content: flex-start;
+      }
+    }
+
+    a {
+      color: var(--seal);
+      text-decoration: none;
+      padding: 0.15rem 0.4rem;
+      background:
+        radial-gradient(circle, color-mix(in srgb, var(--seal) 28%, transparent) 0 0.35px, transparent 0.7px) 0 0 / 3px 3px,
+        color-mix(in srgb, var(--seal) 16%, var(--bg));
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--seal) 20%, transparent);
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+      transition: box-shadow 0.15s ease;
+    }
+
+    a:hover,
+    a:focus-visible {
+      background:
+        radial-gradient(circle, color-mix(in srgb, var(--seal) 35%, transparent) 0 0.35px, transparent 0.7px) 0 0 / 3px 3px,
+        color-mix(in srgb, var(--seal) 30%, var(--bg));
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--seal) 45%, transparent);
+    }
+
+    nav a,
+    nav button {
+      justify-self: center;
+    }
+
+    :is(nav button, #palette-score, #prime-tv-maximize) {
+      border: 0.12em solid currentColor;
+      border-radius: 0.8em;
+      font: inherit;
+      cursor: pointer;
+      color: var(--seal);
+      background: transparent;
+      box-shadow: none;
+      transition: background-color 0.15s ease, filter 0.15s ease;
+    }
+
+    nav button {
+      padding: 0.4rem 0.75rem;
+    }
+
+    :is(nav button, #palette-score, #prime-tv-maximize):hover,
+    :is(nav button, #palette-score, #prime-tv-maximize):focus-visible {
+      background: color-mix(in srgb, var(--seal) 12%, transparent);
+      filter: brightness(1.25);
+    }
+
+    .resource-link {
+      display: block;
+      width: fit-content;
+      margin: 0 auto;
+    }
+
+    .parts-heading {
+      text-transform: uppercase;
+      letter-spacing: .2rem;
+      font-size: 1rem;
+    }
+
+    a:active {
+      color: var(--text);
+    }
+
+    a:focus-visible,
+    :is(nav button, #palette-score, #prime-tv-maximize):focus-visible {
+      outline: 1px solid var(--seal);
+      outline-offset: 2px;
+    }
+
+    .prime-tv {
+      display: none;
+      position: fixed;
+      right: 1rem;
+      bottom: 1rem;
+      z-index: 1001;
+      box-sizing: border-box;
+      width: min(28rem, calc(100vw - 2rem));
+      overflow: hidden;
+      background: #111111;
+      color: #f0f0f0;
+      border: 1px solid #626262;
+      border-radius: 0.65rem;
+      box-shadow: 0 1.25rem 3rem rgba(0, 0, 0, 0.65), 0 0.25rem 0.75rem rgba(0, 0, 0, 0.35);
+    }
+
+    .prime-tv.is-live {
+      display: block;
+    }
+
+    .prime-tv__bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.65rem;
+      background: #242424;
+      color: #f0f0f0;
+      padding: 0.6rem 0.75rem;
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
+    }
+
+    .prime-tv.is-dragging .prime-tv__bar {
+      cursor: grabbing;
+    }
+
+    .prime-tv__bar::before {
+      content: '';
+      width: 0.5rem;
+      height: 0.5rem;
+      flex: none;
+      border-radius: 50%;
+      background: #be5656;
+      box-shadow: 0 0 0 2px rgba(190, 86, 86, 0.16);
+    }
+
+    #prime-tv-label {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .prime-tv__controls {
+      display: flex;
+      flex: none;
+      gap: 0.35rem;
+    }
+
+    .prime-tv__controls button {
+      appearance: none;
+      border: 1px solid #666666;
+      border-radius: 0.25rem;
+      background: #333333;
+      color: #f0f0f0;
+      font: inherit;
+      line-height: 1;
+      padding: 0.2rem 0.45rem;
+      cursor: pointer;
+    }
+
+    .prime-tv.is-maximized {
+      top: 1rem;
+      right: 1rem;
+      bottom: auto;
+      left: 1rem;
+      width: auto;
+    }
+
+    .prime-tv.is-maximized .prime-tv__bar {
+      cursor: default;
+      touch-action: auto;
+    }
+
+    .prime-tv__video {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      max-height: calc(100dvh - 7rem);
+      object-fit: contain;
+      background: #000000;
+    }
+
+    .prime-tv__status {
+      min-height: 1.2rem;
+      padding: 0.45rem 0.75rem 0.55rem;
+      color: #c0c0c0;
+      font-size: 0.75rem;
+      text-align: left;
+    }
+
+    @media (max-width: 40rem),
+    (max-height: 35rem) {
+      .prime-tv {
+        right: 0.75rem;
+        bottom: calc(0.75rem + env(safe-area-inset-bottom));
+        width: min(10rem, calc(100vw - 1.5rem));
+      }
+
+      .prime-tv__bar {
+        gap: 0.35rem;
+        padding: 0.35rem 0.45rem;
+        font-size: 0.75rem;
+      }
+
+      .prime-tv__status {
+        padding: 0.3rem 0.45rem 0.35rem;
+        font-size: 0.7rem;
+      }
+
+      .prime-tv.is-maximized {
+        top: 0.75rem;
+        right: 0.75rem;
+        bottom: auto;
+        left: 0.75rem;
+        width: auto;
+      }
+    }
+
+    .sr-only {
+      position: absolute;
+      left: -9999px;
+    }
+
+    .ascii-heading {
+      display: block;
+      width: fit-content;
+      margin-inline: auto;
+      white-space: pre;
+      text-align: left;
+      font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+      font-variant-ligatures: none;
+      font-size: var(--type-ascii);
+      line-height: 1;
+      color: var(--seal);
+    }
+
+    .bio-ascii {
+      font-size: min(var(--type-ascii), 1.6vw);
+      margin-bottom: 1.5rem;
+    }
+
+    .site-controls {
+      position: sticky;
+      top: 0.5rem;
+      background: var(--bg);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem 2rem;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      padding: 0.5rem 0;
+    }
+
+    .sound-mute-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    #sound-mute {
+      margin: 0;
+    }
+
+    .workshop {
+      padding: 1rem;
+    }
+
+    /* Keep ASCII rows aligned while centering the complete logo. */
+    pre.mike-logo {
+      width: max-content;
+      margin-inline: auto;
+      text-align: left;
+      white-space: pre;
+      font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+      letter-spacing: 0;
+      line-height: 1;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="toast"></div>
+  <div id="palette-disabled-overlay" aria-hidden="true"></div>
+  <section id="prime-tv" class="prime-tv" aria-label="PrimeTV broadcast" data-nosnippet>
+    <div class="prime-tv__bar" tabindex="0" aria-label="Move PrimeTV with arrow keys" title="Drag to move PrimeTV">
+      <span id="prime-tv-label">PrimeTV</span>
+      <div class="prime-tv__controls">
+        <button id="prime-tv-maximize" type="button" aria-label="Maximize PrimeTV to browser width"
+          title="Maximize to browser width">MAX</button>
+      </div>
+    </div>
+    <video id="prime-tv-video" class="prime-tv__video" controls muted playsinline preload="metadata"></video>
+    <div id="prime-tv-status" class="prime-tv__status">connecting…</div>
+  </section>
+  <div class="container">
+    <h2 class="sr-only">Arcade</h2>
+    <!-- prettier-ignore -->
+    <pre class="ascii-heading" aria-hidden="true"> ▄▄▄       ██▀███   ▄████▄   ▄▄▄      ▓█████▄ ▓█████
+▒████▄    ▓██ ▒ ██▒▒██▀ ▀█  ▒████▄    ▒██▀ ██▌▓█   ▀
+▒██  ▀█▄  ▓██ ░▄█ ▒▒▓█    ▄ ▒██  ▀█▄  ░██   █▌▒███
+░██▄▄▄▄██ ▒██▀▀█▄  ▒▓▓▄ ▄██▒░██▄▄▄▄██ ░▓█▄   ▌▒▓█  ▄
+ ▓█   ▓██▒░██▓ ▒██▒▒ ▓███▀ ░ ▓█   ▓██▒░▒████▓ ░▒████▒
+ ▒▒   ▓▒█░░ ▒▓ ░▒▓░░ ░▒ ▒  ░ ▒▒   ▓▒█░ ▒▒▓  ▒ ░░ ▒░ ░
+  ▒   ▒▒ ░  ░▒ ░ ▒░  ░  ▒     ▒   ▒▒ ░ ░ ▒  ▒  ░ ░  ░
+  ░   ▒     ░░   ░ ░          ░   ▒    ░ ░  ░    ░
+      ░  ░   ░     ░ ░            ░  ░   ░       ░  ░
+                   ░                   ░</pre>
+    <div class="site-controls">
+      <div class="arcade-action">
+        <span id="palette-score" role="button" tabindex="0">1 credit</span>
+        <span id="arcade-hint" class="arcade-hint">Tap to play!</span>
+      </div>
+
+      <label class="sound-mute-label">
+        <input type="checkbox" id="sound-mute">
+        <span>Mute sounds</span>
+      </label>
+    </div>
+    <div class="workshop">
+      <h2 class="sr-only">Workshop</h2>
+      <!-- prettier-ignore -->
+      <pre class="ascii-heading" aria-hidden="true">
+
+▗▖ ▗▖ ▄▄▄   ▄▄▄ █  ▄  ▄▄▄ ▐▌    ▄▄▄  ▄▄▄▄  
+▐▌ ▐▌█   █ █    █▄▀  ▀▄▄  ▐▌   █   █ █   █ 
+▐▌ ▐▌▀▄▄▄▀ █    █ ▀▄ ▄▄▄▀ ▐▛▀▚▖▀▄▄▄▀ █▄▄▄▀ 
+▐▙█▟▌           █  █      ▐▌ ▐▌      █     
+                                     ▀     
+</pre>
+      <nav>
+        <button type="button" id="sortNav" aria-label="Sort links">SORT</button>
+        <button type="button" id="randomNav" aria-label="Mix up links">MIX-UP</button>
+        <a href="the-tape.html" class="ascii">The Tape</a>
+        <a href="am.html" class="ascii">a.m.</a>
+        <a href="jesse.html" class="ascii">Lefevre</a>
+        <a href="teller.html" class="ascii">William Teller</a>
+        <a href="timer.html" class="ascii">Timer</a>
+        <a href="speculation-art.html" class="ascii">Dickson pamphlet</a>
+        <a href="capital-army.html" class="ascii">Capital army</a>
+        <a href="wc.html" class="ascii">World cup today!</a>
+        <a href="meet.html" class="ascii">Meet me</a>
+        <a href="drop-in.html" class="ascii">Drop in</a>
+        <a href="media-player.html" class="ascii">Media player</a>
+        <a href="headlines.html" class="ascii">Headlines</a>
+        <a href="lot.html" class="ascii">Lot</a>
+        <a href="lots.html" class="ascii">Lots</a>
+        <a href="genesis.html" class="ascii">NHL 94</a>
+        <a href="adventure.html" class="ascii">Adventure</a>
+        <a href="field.html" class="ascii">Field</a>
+        <a href="es-sitrep.html" class="ascii">Weather</a>
+        <a href="blog.html" class="ascii">Blog</a>
+        <a href="dice.html" class="ascii">Dice</a>
+        <a href="trinitron.html" class="ascii">Trinitron</a>
+        <a href="journal.html" class="ascii">Journal</a>
+        <a href="the-paper.html" class="ascii">The paper</a>
+        <a href="news-radio.html" class="ascii">News radio</a>
+        <a href="posters.html" class="ascii">Posters</a>
+        <a href="netflix.html" class="ascii">Netfix</a>
+        <a href="jumble.html" class="ascii">Jumble</a>
+        <a href="mailto:mb@mikeb.work">💌 Email Mike</a>
+      </nav>
+
+      <header class="site-intro">
+        <!-- prettier-ignore -->
+        <pre class="ascii-heading bio-ascii" aria-hidden="true"> ▄▀▀█▀▄    ▄▀▀█▄▄   ▄▀▀█▄▄▄▄  ▄▀▀▄ ▀▄  ▄▀▀▀█▀▀▄  ▄▀▀█▀▄    ▄▀▀▀█▀▀▄  ▄▀▀▄ ▀▀▄
+█   █  █  █ ▄▀   █ ▐  ▄▀   ▐ █  █ █ █ █    █  ▐ █   █  █  █    █  ▐ █   ▀▄ ▄▀
+▐   █  ▐  ▐ █    █   █▄▄▄▄▄  ▐  █  ▀█ ▐   █     ▐   █  ▐  ▐   █     ▐     █
+    █       █    █   █    ▌    █   █     █          █        █            █
+ ▄▀▀▀▀▀▄   ▄▀▄▄▄▄▀  ▄▀▄▄▄▄   ▄▀   █    ▄▀        ▄▀▀▀▀▀▄   ▄▀           ▄▀
+█       █ █     ▐   █    ▐   █    ▐   █         █       █ █             █
+▐       ▐ ▐         ▐        ▐        ▐         ▐       ▐ ▐             ▐</pre>
+        <h1>mikeb.work is Mike Borsare, Mike Borsare is:</h1>
+        <p>
+          Operator &gt; Trader &gt; Gambler &gt; Lost &gt; Product designer &gt;
+          Graphic designer &gt; Urban planner &gt; UPS &gt; University of Tennessee &gt;
+          University of Alabama &gt; Farragut High School &gt; Chelsea HS &gt;
+          Oak Mountain Middle School &gt; Riverchase MS &gt; Inverness Elementary &gt;
+          Cahawba Valley Preschool &gt; Kid &gt; Stardust
+        </p>
+      </header>
+
+      <h2 class="sr-only">Now reading</h2>
+      <!-- prettier-ignore -->
+      <pre class="ascii-heading" aria-hidden="true">
+ ▗▄▄▖▗▖ ▗▖ ▗▄▄▖ ▗▄▄▖▗▄▄▄▖ ▗▄▄▖ ▗▄▄▖    ▗▄▄▄▖ ▗▄▄▖
+▐▌   ▐▌ ▐▌▐▌   ▐▌   ▐▌   ▐▌   ▐▌         █  ▐▌   
+ ▝▀▚▖▐▌ ▐▌▐▌   ▐▌   ▐▛▀▀▘ ▝▀▚▖ ▝▀▚▖      █   ▝▀▚▖
+▗▄▄▞▘▝▚▄▞▘▝▚▄▄▖▝▚▄▄▖▐▙▄▄▖▗▄▄▞▘▗▄▄▞▘    ▗▄█▄▖▗▄▄▞▘
+      </pre>
+      <div class="missives">
+        <div class="missive"><span class="missive-text">Show up</span></div>
+        <div class="missive"><span class="missive-text">Serve the market</span></div>
+        <div class="missive"><span class="missive-text">Build, improve, and make</span></div>
+      </div>
+    </div>
+    <h2 class="sr-only">Doctrine</h2>
+    <!-- prettier-ignore -->
+    <pre class="ascii-heading" aria-hidden="true">
+▄▄▄▄   ▄▄▄   ▄▄▄▄ ▄▄▄▄▄▄ ▄▄▄▄  ▄▄ ▄▄  ▄▄ ▄▄▄▄▄ 
+██▀██ ██▀██ ██▀▀▀   ██   ██▄█▄ ██ ███▄██ ██▄▄  
+████▀ ▀███▀ ▀████   ██   ██ ██ ██ ██ ▀██ ██▄▄▄ 
+</pre>
+    <div id="doctrine"></div>
+    <h2 class="parts-heading">Parts and pieces</h2>
+    <a href="/backoffice/doctrine.json" class="resource-link">Raw doctrine:
+      /backoffice/doctrine.json</a>
+    <a href="//github.com/mborsare/mikeb.work" class="resource-link">Open source and version
+      controlled</a>
+    <a href="//patorjk.com/software/taag/#p=testall&f=Graffiti&t=mikeb.work&x=none&v=4&h=4&w=80&we=true"
+      class="resource-link">Ascii made with taag</a>
+    <!-- prettier-ignore -->
+    <pre class="ascii footer-ascii mike-logo">
+ ███▄ ▄███▓ ██▓ ██ ▄█▀▓█████
+▓██▒▀█▀ ██▒▓██▒ ██▄█▒ ▓█   ▀
+▓██    ▓██░▒██▒▓███▄░ ▒███
+▒██    ▒██ ░██░▓██ █▄ ▒▓█  ▄
+▒██▒   ░██▒░██░▒██▒ █▄░▒████▒
+░ ▒░   ░  ░░▓  ▒ ▒▒ ▓▒░░ ▒░ ░
+░  ░      ░ ▒ ░░ ░▒ ▒░ ░ ░  ░
+░      ░    ▒ ░░ ░░ ░    ░
+       ░    ░  ░  ░      ░  ░
+    </pre>
+    <time id="clock" class="clock" data-nosnippet></time>
+    <div class="webring"><a href="https://hotlinewebring.club/mikeb/previous">Previous</a>
+      <span>Proud member of Hotline Webring</span>
+      <a href="https://hotlinewebring.club/mikeb/next">Next</a>
+    </div>
+  </div>
+
+
+
+  <script>
+    // ---- Currently reading timer ----
+    (() => {
+      const input = document.getElementById('reading-start');
+      const timer = document.getElementById('reading-timer');
+      const storageKey = 'currentlyReadingStartedAt';
+      const defaultStartedAt = new Date(2026, 4, 10);
+
+      if (!input || !timer) return;
+
+      function toInputValue(date) {
+        const offset = date.getTimezoneOffset() * 60000;
+        return new Date(date.getTime() - offset).toISOString().slice(0, 16);
+      }
+
+      function formatDuration(ms) {
+        const totalMs = Math.max(0, Math.floor(ms));
+        const milliseconds = totalMs % 1000;
+        const totalSeconds = Math.floor(totalMs / 1000);
+        const days = Math.floor(totalSeconds / 86400);
+        const hours = Math.floor((totalSeconds % 86400) / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+        const parts = [];
+
+        if (days) parts.push(`${days}d`);
+        if (hours || days) parts.push(`${hours}h`);
+        if (minutes || hours || days) parts.push(`${minutes}m`);
+        parts.push(`${seconds}s`);
+        parts.push(`${String(milliseconds).padStart(3, '0')}ms`);
+
+        return parts.join(' ');
+      }
+
+      function readStart() {
+        const time = Date.parse(input.value);
+        return Number.isNaN(time) ? Date.now() : time;
+      }
+
+      function updateTimer() {
+        const text = formatDuration(Date.now() - readStart());
+        timer.textContent = text;
+        timer.dataset.text = text;
+      }
+
+      input.value = localStorage.getItem(storageKey) || toInputValue(defaultStartedAt);
+      localStorage.setItem(storageKey, input.value);
+      input.addEventListener('change', () => {
+        localStorage.setItem(storageKey, input.value);
+        updateTimer();
+      });
+
+      updateTimer();
+      setInterval(updateTimer, 47);
+    })();
+
+    // ---- Doctrine data (embedded for file:// protocol support) ----
+    // This data is synced from backoffice/doctrine.json
+    const DOCTRINE_DATA = [
+      {"doctrineItem": "Forgive yourself. Shame is chemical"},
+      {"doctrineItem": "Show up everyday (it's honorable)"},
+      {"doctrineItem": "Note last night's bedtime"},
+      {"doctrineItem": "Read yesterday's journal"},
+      {"doctrineItem": "Review yesterday's trades"},
+      {"doctrineItem": "The now in Motivewave chooses where to engage"},
+      {"doctrineItem": "The now in Bookmap chooses where to execute"},
+      {"doctrineItem": "The regime and tape choose the target type"},
+      {"doctrineItem": "Focus on the now for signal"},
+      {"doctrineItem": "Environments matter, chaos breeds chaos. Trade calm"},
+      {"doctrineItem": "Run cadence loop: The 7, market map, email"},
+      {"doctrineItem": "Leaks are a chemical event. Debrief why and create a rule"},
+      {"doctrineItem": "Witness distortions. See reality"},
+      {"doctrineItem": "Size is earned instead of imagined"},
+      {"doctrineItem": "Single lots for rhythm and limited exposure, +1 lot on permission"},
+      {"doctrineItem": "Press when green"},
+      {"doctrineItem": "Globex owns the night. Make instead of trade: ops, art, design"},
+      {"doctrineItem": "Globex wants to bargain. Deals with self cost time, money and emotion"},
+      {"doctrineItem": "Hero trades are signal"},
+      {"doctrineItem": "If both sides lose, stand down"},
+      {"doctrineItem": "Attack at edges and breathe"},
+      {"doctrineItem": "Every score is data for improvement"},
+      {"doctrineItem": "PnL is execution points. 1EXP = 1USD"},
+      {"doctrineItem": "Draw a clean sheet and accept it"},
+      {"doctrineItem": "Draw a red sheet and accept it"},
+      {"doctrineItem": "Draws days together. It's a campaign"},
+      {"doctrineItem": "Trust yourself. Returns cost time, money, and emotion"},
+      {"doctrineItem": "Stretch and sync with nature"},
+      {"doctrineItem": "Journal leftie thru-out"},
+      {"doctrineItem": "Vlog and review sessions"},
+      {"doctrineItem": "Regulate with music, movies and the daily worksheet"},
+      {"doctrineItem": "Survival > PnL"},
+      {"doctrineItem": "Use accounts for lessons and new rules instead of shame"},
+      {"doctrineItem": "Obey prime"}
+    ];
+
+    // ---- Load doctrine items from JSON ----
+    const highlightedDoctrineItems = new Set([
+      'Show up',
+      'Serve the market',
+      'Build, improve, and make'
+    ]);
+
+    function renderDoctrineItems(data) {
+      const container = document.getElementById('doctrine');
+      if (!container) {
+        console.error('Container element #doctrine not found');
+        return;
+      }
+
+      if (!Array.isArray(data)) {
+        console.error('Invalid data format: expected array');
+        return;
+      }
+
+      container.innerHTML = data
+        .map(item => {
+          const text = item.doctrineItem || '';
+          // Escape HTML to prevent XSS
+          const escaped = text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+          const className = highlightedDoctrineItems.has(text)
+            ? 'list-item is-highlighted'
+            : 'list-item';
+          const content = highlightedDoctrineItems.has(text)
+            ? `<span class="doctrine-scribble"><span class="doctrine-scribble-edge">${escaped}</span></span>`
+            : escaped;
+          return `<div class="${className}">${content}</div>`;
+        })
+        .join('');
+
+      // Initialize stamps after items are loaded
+      randomizeStamps();
+    }
+
+    async function loadDoctrineItems() {
+      // Try to fetch from JSON file first (works with HTTP/HTTPS)
+      try {
+        const response = await fetch('./backoffice/doctrine.json');
+        if (response.ok) {
+          const data = await response.json();
+          renderDoctrineItems(data);
+          return;
+        }
+      } catch (error) {
+        // Fall back to embedded data (works with file:// protocol)
+      }
+
+      // Use embedded data as fallback
+      renderDoctrineItems(DOCTRINE_DATA);
+    }
+
+    // ---- Stamp jitter ----
+    function randomizeStamps() {
+      const items = document.querySelectorAll('.list-item');
+      const edgeShapes = [
+        'polygon(0 10%, 18% 3%, 43% 36%, 53% 0, 67% 5%, 57% 52%, 100% 31%, 100% 48%, 55% 72%, 77% 97%, 62% 100%, 37% 67%, 6% 90%, 0 74%, 32% 51%)',
+        'polygon(8% 0, 42% 27%, 28% 4%, 53% 30%, 78% 0, 91% 11%, 63% 48%, 100% 59%, 94% 75%, 52% 63%, 35% 100%, 18% 92%, 41% 55%, 0 34%)',
+        'polygon(0 42%, 31% 30%, 6% 7%, 19% 0, 49% 25%, 76% 0, 89% 11%, 67% 42%, 100% 54%, 95% 70%, 61% 58%, 79% 93%, 65% 100%, 47% 65%, 16% 91%, 5% 78%, 32% 53%)',
+        'polygon(0 17%, 16% 2%, 41% 32%, 56% 0, 71% 8%, 59% 45%, 98% 24%, 100% 41%, 62% 63%, 85% 89%, 70% 100%, 47% 72%, 19% 100%, 7% 86%, 35% 56%)'
+      ];
+
+      function disciplined() {
+        const e = Math.pow(Math.random(), 3);
+        return {x: -3 - e * 8, y: -3 - e * 6, tilt: -4 - e * 6};
+      }
+
+      function sloppy() {
+        return {x: -10 + Math.random() * 16, y: -10 + Math.random() * 16, tilt: -18 + Math.random() * 36};
+      }
+
+      function unhinged() {
+        return {x: Math.random() * 70 - 35, y: Math.random() * 70 - 35, tilt: Math.random() * 80 - 40};
+      }
+
+      function mjbJitter() {
+        const r = Math.random();
+        return r < 0.9 ? disciplined() : r < 0.98 ? sloppy() : unhinged();
+      }
+
+      items.forEach(item => {
+        const s = mjbJitter();
+        item.style.setProperty('--mjb-x', `${s.x}px`);
+        item.style.setProperty('--mjb-y', `${s.y}px`);
+        item.style.setProperty('--mjb-tilt', `${s.tilt}deg`);
+
+        const doodle = item.querySelector('.doctrine-scribble-edge');
+        if (!doodle) return;
+        for (const side of ['left', 'right']) {
+          const size = 0.35 + Math.random() * 0.3;
+          const tilt = (side === 'left' ? -14 : 162) + Math.random() * 60 - 30;
+          doodle.style.setProperty(`--edge-${side}-shape`, edgeShapes[Math.floor(Math.random() * edgeShapes.length)]);
+          doodle.style.setProperty(`--edge-${side}-size`, `${size}em`);
+          doodle.style.setProperty(`--edge-${side}-offset`, `${-size - 0.05}em`);
+          doodle.style.setProperty(`--edge-${side}-bottom`, `${-0.18 - Math.random() * 0.16}em`);
+          doodle.style.setProperty(`--edge-${side}-tilt`, `${tilt}deg`);
+        }
+      });
+
+      const arcadeHint = document.getElementById('arcade-hint');
+      if (arcadeHint) {
+        arcadeHint.style.setProperty('--mjb-tilt', `${mjbJitter().tilt}deg`);
+      }
+    }
+
+    // Load doctrine items on page load
+    loadDoctrineItems();
+
+    // ---- Prime broadcast live player ----
+    // Always-on broadcast: play HLS directly from Caddy, no status Worker.
+    (() => {
+      const tv = document.getElementById('prime-tv');
+      const video = document.getElementById('prime-tv-video');
+      const label = document.getElementById('prime-tv-label');
+      const statusLine = document.getElementById('prime-tv-status');
+      const maximizeBtn = document.getElementById('prime-tv-maximize');
+      const bar = tv?.querySelector('.prime-tv__bar');
+
+      if (!tv || !video || !label || !statusLine || !maximizeBtn || !bar) return;
+
+      const STREAM_HREF = 'https://primebook.duckdns.org/Prime/index.m3u8';
+      const HLS_JS_URL = 'https://cdn.jsdelivr.net/npm/hls.js@1.5.20/dist/hls.min.js';
+
+      let hls;
+      let hlsLoaderPromise;
+      let currentStreamHref = '';
+      let playerStarted = false;
+      let maximized = false;
+      let dragStart = null;
+      let floatingPosition = null;
+
+      try {
+        const savedPosition = JSON.parse(localStorage.getItem('prime-tv-position'));
+        if (Number.isFinite(savedPosition?.left) && Number.isFinite(savedPosition?.top)) {
+          floatingPosition = savedPosition;
+        }
+      } catch (_error) {
+        // Storage may be unavailable; dragging still works for this visit.
+      }
+
+      function setStatus(message) {
+        statusLine.textContent = message;
+      }
+
+      function applyFloatingPosition() {
+        tv.style.left = '';
+        tv.style.top = '';
+        tv.style.right = '';
+        tv.style.bottom = '';
+
+        if (tv.dataset.layout !== 'floating' || maximized || !floatingPosition) return;
+
+        const margin = 8;
+        floatingPosition.left = Math.min(
+          Math.max(margin, floatingPosition.left),
+          Math.max(margin, window.innerWidth - tv.offsetWidth - margin)
+        );
+        floatingPosition.top = Math.min(
+          Math.max(margin, floatingPosition.top),
+          Math.max(margin, window.innerHeight - tv.offsetHeight - margin)
+        );
+        tv.style.left = `${floatingPosition.left}px`;
+        tv.style.top = `${floatingPosition.top}px`;
+        tv.style.right = 'auto';
+        tv.style.bottom = 'auto';
+      }
+
+      function saveFloatingPosition() {
         try {
-          const response = await fetch(cacheBustedUrl.href, {
-            cache: 'no-store',
-            headers: {accept: 'application/json'},
-            signal: controller.signal
+          localStorage.setItem('prime-tv-position', JSON.stringify(floatingPosition));
+        } catch (_error) {
+          // Keep the position for this visit if storage is unavailable.
+        }
+      }
+
+      function setPrimeTvLayout() {
+        tv.hidden = false;
+        tv.classList.add('is-live');
+        tv.classList.toggle('is-maximized', maximized);
+        tv.dataset.layout = 'floating';
+        label.textContent = tv.dataset.liveLabel || label.textContent;
+        bar.tabIndex = maximized ? -1 : 0;
+        applyFloatingPosition();
+        maximizeBtn.textContent = maximized ? 'Min' : 'Max';
+        maximizeBtn.setAttribute('aria-label', maximized ? 'Restore PrimeTV size' : 'Maximize PrimeTV to browser width');
+        maximizeBtn.title = maximized ? 'Restore size' : 'Maximize to browser width';
+      }
+
+      function loadHlsJs() {
+        if (window.Hls) return Promise.resolve(window.Hls);
+        if (hlsLoaderPromise) return hlsLoaderPromise;
+
+        hlsLoaderPromise = new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = HLS_JS_URL;
+          script.async = true;
+          script.onload = () => resolve(window.Hls);
+          script.onerror = () => reject(new Error('hls.js failed to load'));
+          document.head.appendChild(script);
+        });
+
+        return hlsLoaderPromise;
+      }
+
+      function stopPlayer() {
+        if (hls) {
+          hls.destroy();
+          hls = null;
+        }
+
+        video.pause();
+        video.removeAttribute('src');
+        video.load();
+        currentStreamHref = '';
+        playerStarted = false;
+      }
+
+      async function startPlayer() {
+        const src = STREAM_HREF;
+        if (currentStreamHref === src && playerStarted) return;
+
+        stopPlayer();
+        currentStreamHref = src;
+        playerStarted = true;
+        video.muted = true;
+        video.playsInline = true;
+        setStatus('connecting… audio starts muted');
+
+        if (video.canPlayType('application/vnd.apple.mpegurl')) {
+          video.src = src;
+          video.play().then(() => {
+            setStatus('on air');
+          }).catch(() => {
+            setStatus('tap play to start');
           });
-
-          if (!response.ok) {
-            throw new Error(`status ${response.status}`);
-          }
-
-          const text = await response.text();
-          if (!text.trim()) {
-            throw new Error('empty live status');
-          }
-
-          return JSON.parse(text);
-        } finally {
-          clearTimeout(timeoutId);
-        }
-      }
-
-      async function readLiveStatus() {
-        let lastError;
-
-        for (const url of LIVE_STATUS_URLS) {
-          try {
-            return await fetchJson(url);
-          } catch (error) {
-            lastError = error;
-          }
-        }
-
-        throw lastError || new Error('live status unavailable');
-      }
-
-      function applyStatus(status) {
-        if (shouldShowLive(status)) {
-          showLive(status);
           return;
         }
 
-        misses++;
-        if (state !== 'live' || misses >= MISSES_BEFORE_HIDING_LIVE) {
-          hideLive('offline');
-        }
-      }
-
-      async function checkLive() {
         try {
-          const status = await readLiveStatus();
-          applyStatus(status);
-        } catch (error) {
-          misses++;
-          console.warn('PrimeTV live status unavailable:', error);
+          const Hls = await loadHlsJs();
 
-          if (state !== 'live' || misses >= MISSES_BEFORE_HIDING_LIVE) {
-            hideLive('error');
+          if (!Hls?.isSupported()) {
+            video.src = src;
+            setStatus('browser does not support HLS playback');
+            return;
           }
+
+          hls = new Hls({
+            backBufferLength: 0,
+            capLevelToPlayerSize: true,
+            enableWorker: true,
+            liveDurationInfinity: true,
+            liveMaxLatencyDurationCount: 3,
+            liveSyncDurationCount: 1,
+            lowLatencyMode: false,
+            maxBufferHole: 1,
+            maxBufferLength: 6,
+            maxLiveSyncPlaybackRate: 1.5,
+          });
+
+          hls.loadSource(src);
+          hls.attachMedia(video);
+          hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            video.play().then(() => {
+              setStatus('on air');
+            }).catch(() => {
+              setStatus('tap play to start');
+            });
+          });
+          hls.on(Hls.Events.ERROR, (_event, data) => {
+            if (data?.details === Hls.ErrorDetails.BUFFER_STALLED_ERROR) {
+              setStatus('buffering');
+              hls.startLoad();
+              return;
+            }
+
+            if (!data?.fatal) return;
+
+            if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+              setStatus('network hiccup — reconnecting');
+              hls.startLoad();
+              return;
+            }
+
+            if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+              setStatus('media hiccup — recovering');
+              hls.recoverMediaError();
+              return;
+            }
+
+            setStatus('stream stopped');
+            stopPlayer();
+          });
+        } catch (error) {
+          console.warn('PrimeTV player failed:', error);
+          setStatus('player failed to load');
         }
       }
 
@@ -1570,12 +2952,2047 @@
 
       window.addEventListener('resize', applyFloatingPosition);
 
-      checkLive();
-      timerId = setInterval(checkLive, CHECK_INTERVAL_MS);
-      window.addEventListener('pagehide', () => {
-        clearInterval(timerId);
+      tv.dataset.liveLabel = 'Live';
+      tv.dataset.state = 'live';
+      setPrimeTvLayout();
+      startPlayer();
+      window.addEventListener('pagehide', stopPlayer, {once: true});
+    })();
+
+    // ---- Random palette generator (with wild mode) ----
+    function applyRandomPalette() {
+      const root = document.documentElement;
+      const r = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+      const hsl = (h, s, l) => `hsl(${h}, ${s}%, ${l}%)`;
+
+      const wild = Math.random() < 0.25;
+
+      const hue = r(0, 360);
+      const dark = Math.random() < 0.6;
+      const bgLight = dark ? r(3, 14) : r(82, 94);
+
+      const bgSat = wild ? r(30, 70) : r(5, 25);
+      const textSat = wild ? r(30, 60) : r(5, 20);
+
+      root.style.setProperty('--bg', hsl(hue, bgSat, bgLight));
+      root.style.setProperty('--text', hsl(hue, textSat, dark ? r(88, 96) : r(4, 12)));
+
+      // softer, belonging stamp
+      root.style.setProperty(
+        '--stamp',
+        bgLight < 50
+          ? hsl((hue + 180) % 360, 30, 70)
+          : hsl((hue + 180) % 360, 30, 30)
+      );
+
+      const sealHue = wild ? r(0, 360) : r(90, 140);
+      root.style.setProperty('--seal',
+        dark
+          ? hsl(sealHue, wild ? r(50, 90) : r(30, 50), r(85, 92))
+          : hsl(sealHue, wild ? r(40, 80) : r(25, 45), r(20, 30))
+      );
+
+      root.style.setProperty(
+        '--aaa-text',
+        bgLight < 50 ? '#ffffff' : '#000000'
+      );
+      root.style.setProperty(
+        '--toast-bg',
+        bgLight < 50 ? '#ffffff' : '#000000'
+      );
+      root.style.setProperty(
+        '--toast-text',
+        bgLight < 50 ? '#000000' : '#ffffff'
+      );
+    }
+
+    applyRandomPalette();
+
+    // ---- Palette button + score ----
+    (() => {
+      const btn = document.getElementById('palette-btn');
+      const scoreEl = document.getElementById('palette-score');
+      const arcadeHint = document.getElementById('arcade-hint');
+      const toast = document.getElementById('toast');
+      const soundMute = document.getElementById('sound-mute');
+      const disabledOverlay = document.getElementById('palette-disabled-overlay');
+
+      if (!scoreEl) return;
+
+      const SCORE_IDLE_TEXT = '1 credit';
+      const SCORE_ACTIVE_MS = 5000;
+      const SCORE_RESET_GRACE_MS = 3000;
+
+      let score = 0;
+      let previousScore = 0;
+      let timer;
+      let warningTimer;
+      let toastTimer;
+      let countdownTimer;
+      let isProcessing = false;
+      let pendingUpdates = 0;
+
+      scoreEl.textContent = SCORE_IDLE_TEXT;
+
+      function showScore() {
+        scoreEl.textContent = `${score} ${score === 1 ? 'point' : 'points'}`;
+        if (arcadeHint) arcadeHint.textContent = score >= 99 ? 'BOOM SHAKA LAKA' : 'Keep tapping to score';
+      }
+
+      const SOUND_PATHS_PREUNLOCK = [
+        '/backoffice/the-stacks/reset.wav',
+        '/backoffice/the-stacks/checkpoint.m4a',
+        '/backoffice/the-stacks/boomshakalaka.mp3'
+      ];
+
+      const audioCache = {};
+
+      function resetScore() {
+        clearTimeout(warningTimer);
+        clearInterval(countdownTimer);
+        score = 0;
+        previousScore = 0;
+        pendingUpdates = 0;
+        scoreEl.textContent = SCORE_IDLE_TEXT;
+        if (arcadeHint) arcadeHint.textContent = 'Tap to play for points';
+      }
+
+      function preventZoom(e) {
+        e.preventDefault();
+      }
+
+      function showDisabledOverlay() {
+        if (!disabledOverlay) return;
+        disabledOverlay.classList.add('is-active');
+        disabledOverlay.addEventListener('touchstart', preventZoom, {passive: false});
+      }
+
+      function hideDisabledOverlay() {
+        if (!disabledOverlay) return;
+        disabledOverlay.classList.remove('is-active');
+        disabledOverlay.removeEventListener('touchstart', preventZoom);
+      }
+
+      function unlockAudio() {
+        if (Object.keys(audioCache).length > 0) return;
+
+        SOUND_PATHS_PREUNLOCK.forEach(path => {
+          const a = new Audio(path);
+          a.volume = 0;
+          a.play().then(() => a.pause()).catch(() => { });
+          a.volume = 1;
+          a.currentTime = 0;
+          audioCache[path] = a;
+        });
+
+        audioCache['/backoffice/the-stacks/tap.wav'] = new Audio('/backoffice/the-stacks/tap.wav');
+        audioCache['/backoffice/the-stacks/unlock.wav'] = new Audio('/backoffice/the-stacks/unlock.wav');
+      }
+
+      function playSound(path) {
+        if (soundMute && soundMute.checked) return;
+
+        let a = audioCache[path];
+
+        if (!a) {
+          a = new Audio(path);
+          audioCache[path] = a;
+        }
+
+        a.currentTime = 0;
+        a.volume = 1;
+        a.play().catch(() => { });
+      }
+
+      function showToast(message) {
+        if (!toast) return;
+
+        clearTimeout(toastTimer);
+        toast.textContent = message;
+        toast.classList.add('show');
+
+        toastTimer = setTimeout(() => {
+          toast.classList.remove('show');
+        }, 2000);
+      }
+
+      function showPersistentToast(message) {
+        if (!toast) return;
+
+        clearTimeout(toastTimer);
+        toast.textContent = message;
+        toast.classList.add('show');
+      }
+
+      function startResetTimer() {
+        clearTimeout(timer);
+        clearTimeout(warningTimer);
+        clearInterval(countdownTimer);
+
+        warningTimer = setTimeout(() => {
+          const resetAt = Date.now() + SCORE_RESET_GRACE_MS;
+
+          function updateCountdown() {
+            const remaining = Math.max(0, resetAt - Date.now());
+            showPersistentToast(`Points reset in ${(remaining / 1000).toFixed(3)}s`);
+          }
+
+          if (score <= 0) return;
+
+          updateCountdown();
+          countdownTimer = setInterval(updateCountdown, 47);
+        }, SCORE_ACTIVE_MS);
+
+        timer = setTimeout(() => {
+          clearInterval(countdownTimer);
+          resetScore();
+          playSound('/backoffice/the-stacks/reset.wav');
+          showToast('Points reset');
+        }, SCORE_ACTIVE_MS + SCORE_RESET_GRACE_MS);
+      }
+
+      function processUpdate() {
+        if (pendingUpdates === 0) {
+          isProcessing = false;
+          return;
+        }
+
+        isProcessing = true;
+        pendingUpdates--;
+
+        const random = Math.floor(Math.random() * 10) + 1;
+        let pointsEarned;
+
+        if (random <= 3) {
+          pointsEarned = 1;
+        } else if (random <= 6) {
+          pointsEarned = 2;
+        } else if (random <= 9) {
+          pointsEarned = 3;
+        } else {
+          pointsEarned = 4;
+        }
+
+        previousScore = score;
+        score += pointsEarned;
+        showScore();
+
+        requestAnimationFrame(() => {
+          applyRandomPalette();
+          randomizeStamps();
+
+          if (score >= 99 && previousScore < 99) {
+            const container = document.querySelector('.container');
+
+            clearTimeout(timer);
+            clearTimeout(warningTimer);
+            document.body.classList.add('slam');
+
+            if (container) {
+              container.addEventListener('animationend', function removeSlam(e) {
+                if (e.animationName === 'slam') {
+                  document.body.classList.remove('slam');
+                  container.removeEventListener('animationend', removeSlam);
+                }
+              });
+            }
+
+            playSound('/backoffice/the-stacks/boomshakalaka.mp3');
+            showToast('Boomshakalaka!!!');
+
+            if (btn) {
+              btn.disabled = true;
+              btn.style.opacity = '0.5';
+              btn.style.cursor = 'not-allowed';
+            }
+
+            showDisabledOverlay();
+
+            setTimeout(() => {
+              resetScore();
+              playSound('/backoffice/the-stacks/reset.wav');
+              showToast('Points reset');
+
+              if (btn) {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+              }
+
+              hideDisabledOverlay();
+            }, 5000);
+
+            isProcessing = false;
+            pendingUpdates = 0;
+            return;
+          }
+
+          if (score >= 60 && previousScore < 60) {
+            playSound('/backoffice/the-stacks/checkpoint.m4a');
+            showToast('Next checkpoint +99');
+          } else if (score >= 30 && previousScore < 30) {
+            playSound('/backoffice/the-stacks/checkpoint.m4a');
+            showToast('Next checkpoint +60');
+          } else if (score >= 15 && previousScore < 15) {
+            playSound('/backoffice/the-stacks/checkpoint.m4a');
+            showToast('Next checkpoint +30');
+          } else if (score >= 1 && previousScore < 1) {
+            playSound('/backoffice/the-stacks/checkpoint.m4a');
+            showToast(`Credit used · +${pointsEarned} ${pointsEarned === 1 ? 'point' : 'points'} · next 15`);
+          }
+
+          startResetTimer();
+
+          if (pendingUpdates > 0) {
+            requestAnimationFrame(processUpdate);
+          } else {
+            isProcessing = false;
+          }
+        });
+      }
+
+      function addPoints() {
+        if (btn && btn.disabled) return;
+
+        unlockAudio();
+
+        if (score === 0) {
+          playSound('/backoffice/the-stacks/unlock.wav');
+        }
+
+        playSound('/backoffice/the-stacks/tap.wav');
+        pendingUpdates++;
+
+        if (!isProcessing) {
+          processUpdate();
+        }
+      }
+
+      if (btn) {
+        btn.addEventListener('click', e => {
+          e.preventDefault();
+          addPoints();
+        });
+      }
+
+      scoreEl.addEventListener('click', e => {
+        e.preventDefault();
+        addPoints();
+      });
+
+      scoreEl.addEventListener('keydown', e => {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+
+        e.preventDefault();
+        addPoints();
+      });
+    })();
+    // ---- Clock ----
+    (() => {
+      const clock = document.getElementById('clock');
+      if (!clock) return;
+
+      function updateClock() {
+        const now = new Date();
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        clock.textContent =
+          `${days[now.getDay()]} ${months[now.getMonth()]} ${now.getDate()} ` +
+          `${String(now.getHours()).padStart(2, '0')}:` +
+          `${String(now.getMinutes()).padStart(2, '0')}:` +
+          `${String(now.getSeconds()).padStart(2, '0')}`;
+      }
+
+      updateClock();
+      setInterval(updateClock, 1000);
+    })();
+
+    // ---- Nav sort + randomize ----
+    (() => {
+      const nav = document.querySelector('nav');
+      const sortBtn = document.getElementById('sortNav');
+      const randomBtn = document.getElementById('randomNav');
+
+      if (!nav || !sortBtn || !randomBtn) return;
+
+      let asc = true;
+
+      function getLinks() {
+        return [...nav.querySelectorAll('a')].filter(
+          a => a !== sortBtn && a !== randomBtn
+        );
+      }
+
+      sortBtn.addEventListener('click', () => {
+        const links = getLinks();
+
+        links.sort((a, b) =>
+          asc
+            ? a.textContent.localeCompare(b.textContent)
+            : b.textContent.localeCompare(a.textContent)
+        );
+
+        links.forEach(a => nav.appendChild(a));
+        asc = !asc;
+      });
+
+      randomBtn.addEventListener('click', () => {
+        const links = getLinks();
+
+        for (let i = links.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [links[i], links[j]] = [links[j], links[i]];
+        }
+
+        links.forEach(a => nav.appendChild(a));
+      });
+    })();
+  </script>
+</body>
+
+</html>
+        toastTimer = setTimeout(() => {
+          toast.classList.remove('show');
+        }, 2000);
+      }
+
+      function showPersistentToast(message) {
+        if (!toast) return;
+
+        clearTimeout(toastTimer);
+        toast.textContent = message;
+        toast.classList.add('show');
+      }
+
+      function startResetTimer() {
+        clearTimeout(timer);
+        clearTimeout(warningTimer);
+        clearInterval(countdownTimer);
+
+        warningTimer = setTimeout(() => {
+          const resetAt = Date.now() + SCORE_RESET_GRACE_MS;
+
+          function updateCountdown() {
+            const remaining = Math.max(0, resetAt - Date.now());
+            showPersistentToast(`Points reset in ${(remaining / 1000).toFixed(3)}s`);
+          }
+
+          if (score <= 0) return;
+
+          updateCountdown();
+          countdownTimer = setInterval(updateCountdown, 47);
+        }, SCORE_ACTIVE_MS);
+
+        timer = setTimeout(() => {
+          clearInterval(countdownTimer);
+          resetScore();
+          playSound('/backoffice/the-stacks/reset.wav');
+          showToast('Points reset');
+        }, SCORE_ACTIVE_MS + SCORE_RESET_GRACE_MS);
+      }
+
+      function processUpdate() {
+        if (pendingUpdates === 0) {
+          isProcessing = false;
+          return;
+        }
+
+        isProcessing = true;
+        pendingUpdates--;
+
+        const random = Math.floor(Math.random() * 10) + 1;
+        let pointsEarned;
+
+        if (random <= 3) {
+          pointsEarned = 1;
+        } else if (random <= 6) {
+          pointsEarned = 2;
+        } else if (random <= 9) {
+          pointsEarned = 3;
+        } else {
+          pointsEarned = 4;
+        }
+
+        previousScore = score;
+        score += pointsEarned;
+        showScore();
+
+        requestAnimationFrame(() => {
+          applyRandomPalette();
+          randomizeStamps();
+
+          if (score >= 99 && previousScore < 99) {
+            const container = document.querySelector('.container');
+
+            clearTimeout(timer);
+            clearTimeout(warningTimer);
+            document.body.classList.add('slam');
+
+            if (container) {
+              container.addEventListener('animationend', function removeSlam(e) {
+                if (e.animationName === 'slam') {
+                  document.body.classList.remove('slam');
+                  container.removeEventListener('animationend', removeSlam);
+                }
+              });
+            }
+
+            playSound('/backoffice/the-stacks/boomshakalaka.mp3');
+            showToast('Boomshakalaka!!!');
+
+            if (btn) {
+              btn.disabled = true;
+              btn.style.opacity = '0.5';
+              btn.style.cursor = 'not-allowed';
+            }
+
+            showDisabledOverlay();
+
+            setTimeout(() => {
+              resetScore();
+              playSound('/backoffice/the-stacks/reset.wav');
+              showToast('Points reset');
+
+              if (btn) {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+              }
+
+              hideDisabledOverlay();
+            }, 5000);
+
+            isProcessing = false;
+            pendingUpdates = 0;
+            return;
+          }
+
+          if (score >= 60 && previousScore < 60) {
+            playSound('/backoffice/the-stacks/checkpoint.m4a');
+            showToast('Next checkpoint +99');
+          } else if (score >= 30 && previousScore < 30) {
+            playSound('/backoffice/the-stacks/checkpoint.m4a');
+            showToast('Next checkpoint +60');
+          } else if (score >= 15 && previousScore < 15) {
+            playSound('/backoffice/the-stacks/checkpoint.m4a');
+            showToast('Next checkpoint +30');
+          } else if (score >= 1 && previousScore < 1) {
+            playSound('/backoffice/the-stacks/checkpoint.m4a');
+            showToast(`Credit used · +${pointsEarned} ${pointsEarned === 1 ? 'point' : 'points'} · next 15`);
+          }
+
+          startResetTimer();
+
+          if (pendingUpdates > 0) {
+            requestAnimationFrame(processUpdate);
+          } else {
+            isProcessing = false;
+          }
+        });
+      }
+
+      function addPoints() {
+        if (btn && btn.disabled) return;
+
+        unlockAudio();
+
+        if (score === 0) {
+          playSound('/backoffice/the-stacks/unlock.wav');
+        }
+
+        playSound('/backoffice/the-stacks/tap.wav');
+        pendingUpdates++;
+
+        if (!isProcessing) {
+          processUpdate();
+        }
+      }
+
+      if (btn) {
+        btn.addEventListener('click', e => {
+          e.preventDefault();
+          addPoints();
+        });
+      }
+
+      scoreEl.addEventListener('click', e => {
+        e.preventDefault();
+        addPoints();
+      });
+
+      scoreEl.addEventListener('keydown', e => {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+
+        e.preventDefault();
+        addPoints();
+      });
+    })();
+    // ---- Clock ----
+    (() => {
+      const clock = document.getElementById('clock');
+      if (!clock) return;
+
+      function updateClock() {
+        const now = new Date();
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        clock.textContent =
+          `${days[now.getDay()]} ${months[now.getMonth()]} ${now.getDate()} ` +
+          `${String(now.getHours()).padStart(2, '0')}:` +
+          `${String(now.getMinutes()).padStart(2, '0')}:` +
+          `${String(now.getSeconds()).padStart(2, '0')}`;
+      }
+
+      updateClock();
+      setInterval(updateClock, 1000);
+    })();
+
+    // ---- Nav sort + randomize ----
+    (() => {
+      const nav = document.querySelector('nav');
+      const sortBtn = document.getElementById('sortNav');
+      const randomBtn = document.getElementById('randomNav');
+
+      if (!nav || !sortBtn || !randomBtn) return;
+
+      let asc = true;
+
+      function getLinks() {
+        return [...nav.querySelectorAll('a')].filter(
+          a => a !== sortBtn && a !== randomBtn
+        );
+      }
+
+      sortBtn.addEventListener('click', () => {
+        const links = getLinks();
+
+        links.sort((a, b) =>
+          asc
+            ? a.textContent.localeCompare(b.textContent)
+            : b.textContent.localeCompare(a.textContent)
+        );
+
+        links.forEach(a => nav.appendChild(a));
+        asc = !asc;
+      });
+
+      randomBtn.addEventListener('click', () => {
+        const links = getLinks();
+
+        for (let i = links.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [links[i], links[j]] = [links[j], links[i]];
+        }
+
+        links.forEach(a => nav.appendChild(a));
+      });
+    })();
+  </script>
+</body>
+
+</html><!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Mike Borsare</title>
+  <meta name="description" content="Mike Borsare trades MNQ and makes things." />
+  <meta name="author" content="Mike Borsare" />
+  <link rel="canonical" href="https://mikeb.work/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Mike Borsare" />
+  <meta property="og:title" content="Mike Borsare | Futures Trader &amp; Maker" />
+  <meta property="og:description" content="Mike Borsare trades MNQ and makes things." />
+  <meta property="og:url" content="https://mikeb.work/" />
+  <meta property="og:image" content="https://mikeb.work/social-preview.png" />
+  <meta property="og:image:alt" content="Mike Borsare — mikeb.work" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Mike Borsare | Futures Trader &amp; Maker" />
+  <meta name="twitter:description" content="Mike Borsare trades MNQ and makes things." />
+  <meta name="twitter:image" content="https://mikeb.work/social-preview.png" />
+  <meta name="twitter:image:alt" content="Mike Borsare — mikeb.work" />
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Person",
+      "@id": "https://mikeb.work/#person",
+      "name": "Mike Borsare",
+      "url": "https://mikeb.work/",
+      "description": "Mike Borsare trades MNQ and makes things.",
+      "sameAs": [
+        "https://github.com/mborsare"
+      ]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://mikeb.work/#website",
+      "url": "https://mikeb.work/",
+      "name": "Mike Borsare",
+      "alternateName": "mikeb.work",
+      "publisher": {
+        "@id": "https://mikeb.work/#person"
+      },
+      "inLanguage": "en"
+    },
+    {
+      "@type": "ProfilePage",
+      "@id": "https://mikeb.work/#webpage",
+      "url": "https://mikeb.work/",
+      "name": "Mike Borsare | Futures Trader & Maker",
+      "description": "Mike Borsare trades MNQ and makes things.",
+      "mainEntity": {
+        "@id": "https://mikeb.work/#person"
+      },
+      "isPartOf": {
+        "@id": "https://mikeb.work/#website"
+      }
+    }
+  ]
+}
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <meta name="theme-color" content="#000000" />
+
+  <style>
+    :root {
+      --bg: #000000;
+      --text: #c0c0c0;
+      --stamp: #888888;
+      --seal: #eaffea;
+      --toast-bg: #ffffff;
+      --toast-text: #000000;
+
+      /* fluid type scale */
+      --type-xs: clamp(0.72rem, 0.68rem + 0.18vw, 0.82rem);
+      --type-base: clamp(0.9rem, 0.82rem + 0.34vw, 1.06rem);
+      --type-nav: clamp(0.94rem, 0.86rem + 0.32vw, 1.08rem);
+      --type-lg: clamp(1.15rem, 0.98rem + 0.72vw, 1.55rem);
+      --type-xl: clamp(1.4rem, 1.08rem + 1.35vw, 2rem);
+      --type-ascii: clamp(0.62rem, 0.46rem + 0.7vw, 1rem);
+
+      /* palette contrast colors */
+      --btn-fill: color-mix(in hsl,
+          var(--bg),
+          var(--seal) 20%);
+      --aaa-text: #ffffff;
+    }
+
+    html {
+      font-size: 14px;
+    }
+
+    @font-face {
+      font-family: 'ComicMono';
+      src: url('/fonts/ComicMono-Regular.woff') format('woff');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow-y: auto;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'ComicMono', monospace;
+      font-size: var(--type-base);
+    }
+
+    .container {
+      min-width: 20rem;
+      max-width: 60rem;
+      width: 100%;
+      padding: clamp(0.75rem, 2vw, 1.25rem);
+      margin: auto 0;
+      text-align: center;
+      white-space: pre-line;
+      line-height: 1.5;
+    }
+
+    .site-intro {
+      margin: 3rem 3rem 0;
+      text-align: center;
+      white-space: normal;
+    }
+
+    .site-intro h1 {
+      color: var(--seal);
+      font-size: var(--type-base);
+      margin: 0 0 0.5rem;
+    }
+
+    .site-intro p {
+      color: var(--text);
+      font-size: var(--type-base);
+      margin: 0;
+    }
+
+    h1 {
+      color: var(--bg);
+    }
+
+    .list-item {
+      padding: 0.5rem 1rem;
+    }
+
+    .list-item.is-highlighted {
+      color: var(--aaa-text);
+      font-weight: 700;
+    }
+
+    .list-item.is-highlighted:nth-child(3n) {
+      --scribble-angle: 1.5deg;
+      --scribble-angle-2: -1deg;
+    }
+
+    .list-item.is-highlighted:nth-child(3n + 1) {
+      --scribble-angle: -2.2deg;
+      --scribble-angle-2: 1.8deg;
+    }
+
+    .doctrine-scribble {
+      position: relative;
+      display: inline-block;
+      max-width: 100%;
+    }
+
+    .doctrine-scribble::after {
+      content: "";
+      position: absolute;
+      left: -0.1em;
+      width: calc(100% + 0.2em);
+      background: currentColor;
+      pointer-events: none;
+    }
+
+    .doctrine-scribble::after {
+      bottom: -0.2em;
+      height: 0.12em;
+      clip-path: polygon(0 58%, 9% 34%, 19% 69%, 29% 22%, 38% 64%, 49% 31%, 60% 71%, 70% 27%, 80% 65%, 90% 36%, 100% 61%, 100% 88%, 90% 63%, 80% 91%, 70% 54%, 60% 96%, 49% 57%, 38% 89%, 29% 49%, 19% 95%, 9% 60%, 0 85%);
+      transform: rotate(var(--scribble-angle-2, 1.1deg));
+    }
+
+    .list-item::after {
+      color: var(--stamp);
+      content: "MJB";
+      white-space: pre;
+      font-size: var(--type-xs);
+      margin-left: 1rem;
+      vertical-align: middle;
+      display: inline-block;
+      position: relative;
+      letter-spacing: 0.25rem;
+      line-height: 1;
+      transform:
+        translate(var(--mjb-x, -2px), var(--mjb-y, -2px)) rotate(var(--mjb-tilt, -7deg));
+    }
+
+    @media (max-width: 60rem) {
+      .list-item {
+        font-size: var(--type-lg);
+        text-align: center;
+      }
+    }
+
+    .ascii {
+      white-space: pre;
+      line-height: 1.1;
+      color: var(--seal);
+    }
+
+    .footer-ascii {
+      font-size: 0.4rem;
+      margin-top: 9rem;
+      font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+    }
+
+    .clock {
+      color: var(--seal);
+    }
+
+    .webring {
+      display: flex;
+      justify-content: center;
+      margin-top: 10rem;
+    }
+
+    .webring a {
+      font-size: 0.8rem;
+    }
+
+    .webring span {
+      color: var(--seal);
+      padding: 0 2em;
+    }
+
+    /* ---- MOBILE TAP FIX ---- */
+    #palette-btn {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    #palette-disabled-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    #palette-disabled-overlay.is-active {
+      display: block;
+      pointer-events: auto;
+    }
+
+    button:active {
+      scale: 0.9;
+    }
+
+    #toast {
+      background: var(--toast-bg);
+      bottom: 1rem;
+      color: var(--toast-text);
+      left: 1rem;
+      opacity: 0;
+      padding: 1rem 2rem;
+      pointer-events: none;
+      position: fixed;
+      text-align: center;
+      transform: translateX(-120%);
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+
+    #toast.show {
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+    nav {
+      display: grid;
+      font-size: var(--type-nav);
+      gap: 1rem;
+      grid-template-columns: repeat(2, 1fr);
+      padding-bottom: 4rem;
+    }
+
+    @media (min-width: 40rem) {
+      nav {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    #palette-score {
+      padding: .5rem 3rem;
+      cursor: pointer;
+      touch-action: manipulation;
+      user-select: none;
+    }
+
+    #palette-score:active {
+      scale: 0.9;
+    }
+
+    .arcade-action {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .arcade-hint {
+      color: var(--seal);
+      font-size: var(--type-xs);
+      line-height: 1.2;
+      margin-top: 0.8rem;
+      transform: rotate(var(--mjb-tilt, -7deg));
+    }
+
+    /* ---- Boomshakalaka slam ---- */
+    @keyframes slam {
+      0% {
+        transform: translate(0, 0) scale(1);
+      }
+
+      6% {
+        transform: translate(0, 14px) scale(1.02);
+      }
+
+      14% {
+        transform: translate(0, -5px) scale(0.98);
+      }
+
+      22% {
+        transform: translate(0, 3px) scale(1);
+      }
+
+      35% {
+        transform: translate(-5px, 0) scale(1);
+      }
+
+      48% {
+        transform: translate(5px, 0) scale(1);
+      }
+
+      61% {
+        transform: translate(-3px, 0) scale(1);
+      }
+
+      74% {
+        transform: translate(2px, 0) scale(1);
+      }
+
+      87% {
+        transform: translate(-1px, 0) scale(1);
+      }
+
+      100% {
+        transform: translate(0, 0) scale(1);
+      }
+    }
+
+    body.slam .container {
+      animation: slam 0.75s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    details {
+      cursor: pointer;
+    }
+
+    .missive {
+      text-align: left;
+      color: var(--stamp);
+      display: flex;
+      justify-content: center;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-width: 100%;
+      font-size: var(--type-xl);
+      line-height: 1.4;
+      margin: 0;
+    }
+
+    .missive-text {
+      position: relative;
+      display: inline-block;
+      max-width: 100%;
+    }
+
+    .missive-text::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -0.12em;
+      height: 0.242em;
+      background:
+        radial-gradient(circle, color-mix(in srgb, var(--seal) 24%, transparent) 0 0.35px, transparent 0.7px) 0 0 / 3px 3px,
+        color-mix(in srgb, var(--seal) 10%, var(--bg));
+      clip-path: polygon(0 24%, 6% 14%, 19% 30%, 36% 8%, 53% 26%, 71% 12%, 88% 27%, 100% 18%, 100% 84%, 81% 96%, 61% 77%, 44% 100%, 25% 79%, 8% 94%, 0 82%);
+      transform: rotate(var(--underline-angle));
+      pointer-events: none;
+    }
+
+    .missive:nth-child(1) {
+      --underline-angle: -1.2deg;
+    }
+
+    .missive:nth-child(2) {
+      --underline-angle: 0.8deg;
+    }
+
+    .missive:nth-child(3) {
+      --underline-angle: -0.5deg;
+    }
+
+    .currently-reading {
+      max-width: 42rem;
+      margin: 0 auto 2.5rem;
+      text-align: center;
+      white-space: normal;
+    }
+
+    .reading-cover {
+      width: min(10rem, 100%);
+      height: auto;
+      border: 1px solid var(--stamp);
+      background: var(--bg);
+      margin-bottom: 1rem;
+    }
+
+    .reading-title {
+      color: var(--seal);
+      font-size: var(--type-nav);
+      margin-bottom: 0.25rem;
+    }
+
+    .reading-author {
+      color: var(--stamp);
+      font-size: var(--type-xs);
+      margin-bottom: 0.75rem;
+    }
+
+    .reading-time {
+      color: var(--seal);
+      margin-bottom: 0.75rem;
+    }
+
+    .reading-stats {
+      display: grid;
+      gap: 0.25rem;
+      margin: 0 auto 0.75rem;
+      color: var(--text);
+      font-size: var(--type-xs);
+    }
+
+    .reading-start {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+      justify-content: center;
+      color: var(--stamp);
+      font-size: var(--type-xs);
+    }
+
+    .reading-start input {
+      max-width: 100%;
+      border: 1px solid var(--stamp);
+      background: var(--bg);
+      color: var(--text);
+      font: inherit;
+      padding: 0.35rem;
+    }
+
+    @media (min-width: 40rem) {
+      .currently-reading {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 1.25rem;
+        align-items: center;
+        text-align: left;
+      }
+
+      .reading-cover {
+        margin-bottom: 0;
+      }
+
+      .reading-meta {
+        min-width: 0;
+      }
+
+      .reading-stats {
+        margin-left: 0;
+        margin-right: 0;
+      }
+
+      .reading-start {
+        justify-content: flex-start;
+      }
+    }
+
+    a {
+      color: var(--seal);
+      text-decoration: none;
+      padding: 0.15rem 0.4rem;
+      background:
+        radial-gradient(circle, color-mix(in srgb, var(--seal) 28%, transparent) 0 0.35px, transparent 0.7px) 0 0 / 3px 3px,
+        color-mix(in srgb, var(--seal) 16%, var(--bg));
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--seal) 20%, transparent);
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+      transition: box-shadow 0.15s ease;
+    }
+
+    a:hover,
+    a:focus-visible {
+      background:
+        radial-gradient(circle, color-mix(in srgb, var(--seal) 35%, transparent) 0 0.35px, transparent 0.7px) 0 0 / 3px 3px,
+        color-mix(in srgb, var(--seal) 30%, var(--bg));
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--seal) 45%, transparent);
+    }
+
+    nav a,
+    nav button {
+      justify-self: center;
+    }
+
+    :is(nav button, #palette-score, #prime-tv-maximize) {
+      border: 0.12em solid currentColor;
+      border-radius: 0.8em;
+      font: inherit;
+      cursor: pointer;
+      color: var(--seal);
+      background: transparent;
+      box-shadow: none;
+      transition: background-color 0.15s ease, filter 0.15s ease;
+    }
+
+    nav button {
+      padding: 0.4rem 0.75rem;
+    }
+
+    :is(nav button, #palette-score, #prime-tv-maximize):hover,
+    :is(nav button, #palette-score, #prime-tv-maximize):focus-visible {
+      background: color-mix(in srgb, var(--seal) 12%, transparent);
+      filter: brightness(1.25);
+    }
+
+    .resource-link {
+      display: block;
+      width: fit-content;
+      margin: 0 auto;
+    }
+
+    .parts-heading {
+      text-transform: uppercase;
+      letter-spacing: .2rem;
+      font-size: 1rem;
+    }
+
+    a:active {
+      color: var(--text);
+    }
+
+    a:focus-visible,
+    :is(nav button, #palette-score, #prime-tv-maximize):focus-visible {
+      outline: 1px solid var(--seal);
+      outline-offset: 2px;
+    }
+
+    .prime-tv {
+      display: none;
+      position: fixed;
+      right: 1rem;
+      bottom: 1rem;
+      z-index: 1001;
+      box-sizing: border-box;
+      width: min(28rem, calc(100vw - 2rem));
+      overflow: hidden;
+      background: #111111;
+      color: #f0f0f0;
+      border: 1px solid #626262;
+      border-radius: 0.65rem;
+      box-shadow: 0 1.25rem 3rem rgba(0, 0, 0, 0.65), 0 0.25rem 0.75rem rgba(0, 0, 0, 0.35);
+    }
+
+    .prime-tv.is-live {
+      display: block;
+    }
+
+    .prime-tv__bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.65rem;
+      background: #242424;
+      color: #f0f0f0;
+      padding: 0.6rem 0.75rem;
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
+    }
+
+    .prime-tv.is-dragging .prime-tv__bar {
+      cursor: grabbing;
+    }
+
+    .prime-tv__bar::before {
+      content: '';
+      width: 0.5rem;
+      height: 0.5rem;
+      flex: none;
+      border-radius: 50%;
+      background: #be5656;
+      box-shadow: 0 0 0 2px rgba(190, 86, 86, 0.16);
+    }
+
+    #prime-tv-label {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .prime-tv__controls {
+      display: flex;
+      flex: none;
+      gap: 0.35rem;
+    }
+
+    .prime-tv__controls button {
+      appearance: none;
+      border: 1px solid #666666;
+      border-radius: 0.25rem;
+      background: #333333;
+      color: #f0f0f0;
+      font: inherit;
+      line-height: 1;
+      padding: 0.2rem 0.45rem;
+      cursor: pointer;
+    }
+
+    .prime-tv.is-maximized {
+      top: 1rem;
+      right: 1rem;
+      bottom: auto;
+      left: 1rem;
+      width: auto;
+    }
+
+    .prime-tv.is-maximized .prime-tv__bar {
+      cursor: default;
+      touch-action: auto;
+    }
+
+    .prime-tv__video {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      max-height: calc(100dvh - 7rem);
+      object-fit: contain;
+      background: #000000;
+    }
+
+    .prime-tv__status {
+      min-height: 1.2rem;
+      padding: 0.45rem 0.75rem 0.55rem;
+      color: #c0c0c0;
+      font-size: 0.75rem;
+      text-align: left;
+    }
+
+    @media (max-width: 40rem),
+    (max-height: 35rem) {
+      .prime-tv {
+        right: 0.75rem;
+        bottom: calc(0.75rem + env(safe-area-inset-bottom));
+        width: min(10rem, calc(100vw - 1.5rem));
+      }
+
+      .prime-tv__bar {
+        gap: 0.35rem;
+        padding: 0.35rem 0.45rem;
+        font-size: 0.75rem;
+      }
+
+      .prime-tv__status {
+        padding: 0.3rem 0.45rem 0.35rem;
+        font-size: 0.7rem;
+      }
+
+      .prime-tv.is-maximized {
+        top: 0.75rem;
+        right: 0.75rem;
+        bottom: auto;
+        left: 0.75rem;
+        width: auto;
+      }
+    }
+
+    .sr-only {
+      position: absolute;
+      left: -9999px;
+    }
+
+    .ascii-heading {
+      display: block;
+      width: fit-content;
+      margin-inline: auto;
+      white-space: pre;
+      text-align: left;
+      font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+      font-variant-ligatures: none;
+      font-size: var(--type-ascii);
+      line-height: 1;
+      color: var(--seal);
+    }
+
+    .bio-ascii {
+      font-size: min(var(--type-ascii), 1.6vw);
+      margin-bottom: 1.5rem;
+    }
+
+    .site-controls {
+      position: sticky;
+      top: 0.5rem;
+      background: var(--bg);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem 2rem;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      padding: 0.5rem 0;
+    }
+
+    .sound-mute-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    #sound-mute {
+      margin: 0;
+    }
+
+    .workshop {
+      padding: 1rem;
+    }
+
+    /* Keep ASCII rows aligned while centering the complete logo. */
+    pre.mike-logo {
+      width: max-content;
+      margin-inline: auto;
+      text-align: left;
+      white-space: pre;
+      font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+      letter-spacing: 0;
+      line-height: 1;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="toast"></div>
+  <div id="palette-disabled-overlay" aria-hidden="true"></div>
+  <section id="prime-tv" class="prime-tv" aria-label="PrimeTV broadcast" data-nosnippet>
+    <div class="prime-tv__bar" tabindex="0" aria-label="Move PrimeTV with arrow keys" title="Drag to move PrimeTV">
+      <span id="prime-tv-label">PrimeTV</span>
+      <div class="prime-tv__controls">
+        <button id="prime-tv-maximize" type="button" aria-label="Maximize PrimeTV to browser width"
+          title="Maximize to browser width">MAX</button>
+      </div>
+    </div>
+    <video id="prime-tv-video" class="prime-tv__video" controls muted playsinline preload="metadata"></video>
+    <div id="prime-tv-status" class="prime-tv__status">connecting…</div>
+  </section>
+  <div class="container">
+    <h2 class="sr-only">Arcade</h2>
+    <!-- prettier-ignore -->
+    <pre class="ascii-heading" aria-hidden="true"> ▄▄▄       ██▀███   ▄████▄   ▄▄▄      ▓█████▄ ▓█████
+▒████▄    ▓██ ▒ ██▒▒██▀ ▀█  ▒████▄    ▒██▀ ██▌▓█   ▀
+▒██  ▀█▄  ▓██ ░▄█ ▒▒▓█    ▄ ▒██  ▀█▄  ░██   █▌▒███
+░██▄▄▄▄██ ▒██▀▀█▄  ▒▓▓▄ ▄██▒░██▄▄▄▄██ ░▓█▄   ▌▒▓█  ▄
+ ▓█   ▓██▒░██▓ ▒██▒▒ ▓███▀ ░ ▓█   ▓██▒░▒████▓ ░▒████▒
+ ▒▒   ▓▒█░░ ▒▓ ░▒▓░░ ░▒ ▒  ░ ▒▒   ▓▒█░ ▒▒▓  ▒ ░░ ▒░ ░
+  ▒   ▒▒ ░  ░▒ ░ ▒░  ░  ▒     ▒   ▒▒ ░ ░ ▒  ▒  ░ ░  ░
+  ░   ▒     ░░   ░ ░          ░   ▒    ░ ░  ░    ░
+      ░  ░   ░     ░ ░            ░  ░   ░       ░  ░
+                   ░                   ░</pre>
+    <div class="site-controls">
+      <div class="arcade-action">
+        <span id="palette-score" role="button" tabindex="0">1 credit</span>
+        <span id="arcade-hint" class="arcade-hint">Tap to play!</span>
+      </div>
+
+      <label class="sound-mute-label">
+        <input type="checkbox" id="sound-mute">
+        <span>Mute sounds</span>
+      </label>
+    </div>
+    <div class="workshop">
+      <h2 class="sr-only">Workshop</h2>
+      <!-- prettier-ignore -->
+      <pre class="ascii-heading" aria-hidden="true">
+
+▗▖ ▗▖ ▄▄▄   ▄▄▄ █  ▄  ▄▄▄ ▐▌    ▄▄▄  ▄▄▄▄  
+▐▌ ▐▌█   █ █    █▄▀  ▀▄▄  ▐▌   █   █ █   █ 
+▐▌ ▐▌▀▄▄▄▀ █    █ ▀▄ ▄▄▄▀ ▐▛▀▚▖▀▄▄▄▀ █▄▄▄▀ 
+▐▙█▟▌           █  █      ▐▌ ▐▌      █     
+                                     ▀     
+</pre>
+      <nav>
+        <button type="button" id="sortNav" aria-label="Sort links">SORT</button>
+        <button type="button" id="randomNav" aria-label="Mix up links">MIX-UP</button>
+        <a href="the-tape.html" class="ascii">The Tape</a>
+        <a href="am.html" class="ascii">a.m.</a>
+        <a href="jesse.html" class="ascii">Lefevre</a>
+        <a href="teller.html" class="ascii">William Teller</a>
+        <a href="timer.html" class="ascii">Timer</a>
+        <a href="speculation-art.html" class="ascii">Dickson pamphlet</a>
+        <a href="capital-army.html" class="ascii">Capital army</a>
+        <a href="wc.html" class="ascii">World cup today!</a>
+        <a href="meet.html" class="ascii">Meet me</a>
+        <a href="drop-in.html" class="ascii">Drop in</a>
+        <a href="media-player.html" class="ascii">Media player</a>
+        <a href="headlines.html" class="ascii">Headlines</a>
+        <a href="lot.html" class="ascii">Lot</a>
+        <a href="lots.html" class="ascii">Lots</a>
+        <a href="genesis.html" class="ascii">NHL 94</a>
+        <a href="adventure.html" class="ascii">Adventure</a>
+        <a href="field.html" class="ascii">Field</a>
+        <a href="es-sitrep.html" class="ascii">Weather</a>
+        <a href="blog.html" class="ascii">Blog</a>
+        <a href="dice.html" class="ascii">Dice</a>
+        <a href="trinitron.html" class="ascii">Trinitron</a>
+        <a href="journal.html" class="ascii">Journal</a>
+        <a href="the-paper.html" class="ascii">The paper</a>
+        <a href="news-radio.html" class="ascii">News radio</a>
+        <a href="posters.html" class="ascii">Posters</a>
+        <a href="netflix.html" class="ascii">Netfix</a>
+        <a href="jumble.html" class="ascii">Jumble</a>
+        <a href="mailto:mb@mikeb.work">💌 Email Mike</a>
+      </nav>
+
+      <header class="site-intro">
+        <!-- prettier-ignore -->
+        <pre class="ascii-heading bio-ascii" aria-hidden="true"> ▄▀▀█▀▄    ▄▀▀█▄▄   ▄▀▀█▄▄▄▄  ▄▀▀▄ ▀▄  ▄▀▀▀█▀▀▄  ▄▀▀█▀▄    ▄▀▀▀█▀▀▄  ▄▀▀▄ ▀▀▄
+█   █  █  █ ▄▀   █ ▐  ▄▀   ▐ █  █ █ █ █    █  ▐ █   █  █  █    █  ▐ █   ▀▄ ▄▀
+▐   █  ▐  ▐ █    █   █▄▄▄▄▄  ▐  █  ▀█ ▐   █     ▐   █  ▐  ▐   █     ▐     █
+    █       █    █   █    ▌    █   █     █          █        █            █
+ ▄▀▀▀▀▀▄   ▄▀▄▄▄▄▀  ▄▀▄▄▄▄   ▄▀   █    ▄▀        ▄▀▀▀▀▀▄   ▄▀           ▄▀
+█       █ █     ▐   █    ▐   █    ▐   █         █       █ █             █
+▐       ▐ ▐         ▐        ▐        ▐         ▐       ▐ ▐             ▐</pre>
+        <h1>mikeb.work is Mike Borsare, Mike Borsare is:</h1>
+        <p>
+          Operator &gt; Trader &gt; Gambler &gt; Lost &gt; Product designer &gt;
+          Graphic designer &gt; Urban planner &gt; UPS &gt; University of Tennessee &gt;
+          University of Alabama &gt; Farragut High School &gt; Chelsea HS &gt;
+          Oak Mountain Middle School &gt; Riverchase MS &gt; Inverness Elementary &gt;
+          Cahawba Valley Preschool &gt; Kid &gt; Stardust
+        </p>
+      </header>
+
+      <h2 class="sr-only">Now reading</h2>
+      <!-- prettier-ignore -->
+      <pre class="ascii-heading" aria-hidden="true">
+ ▗▄▄▖▗▖ ▗▖ ▗▄▄▖ ▗▄▄▖▗▄▄▄▖ ▗▄▄▖ ▗▄▄▖    ▗▄▄▄▖ ▗▄▄▖
+▐▌   ▐▌ ▐▌▐▌   ▐▌   ▐▌   ▐▌   ▐▌         █  ▐▌   
+ ▝▀▚▖▐▌ ▐▌▐▌   ▐▌   ▐▛▀▀▘ ▝▀▚▖ ▝▀▚▖      █   ▝▀▚▖
+▗▄▄▞▘▝▚▄▞▘▝▚▄▄▖▝▚▄▄▖▐▙▄▄▖▗▄▄▞▘▗▄▄▞▘    ▗▄█▄▖▗▄▄▞▘
+      </pre>
+      <div class="missives">
+        <div class="missive"><span class="missive-text">Show up</span></div>
+        <div class="missive"><span class="missive-text">Serve the market</span></div>
+        <div class="missive"><span class="missive-text">Build, improve, and make</span></div>
+      </div>
+    </div>
+    <h2 class="sr-only">Doctrine</h2>
+    <!-- prettier-ignore -->
+    <pre class="ascii-heading" aria-hidden="true">
+▄▄▄▄   ▄▄▄   ▄▄▄▄ ▄▄▄▄▄▄ ▄▄▄▄  ▄▄ ▄▄  ▄▄ ▄▄▄▄▄ 
+██▀██ ██▀██ ██▀▀▀   ██   ██▄█▄ ██ ███▄██ ██▄▄  
+████▀ ▀███▀ ▀████   ██   ██ ██ ██ ██ ▀██ ██▄▄▄ 
+</pre>
+    <div id="doctrine"></div>
+    <h2 class="parts-heading">Parts and pieces</h2>
+    <a href="/backoffice/doctrine.json" class="resource-link">Raw doctrine:
+      /backoffice/doctrine.json</a>
+    <a href="//github.com/mborsare/mikeb.work" class="resource-link">Open source and version
+      controlled</a>
+    <a href="//patorjk.com/software/taag/#p=testall&f=Graffiti&t=mikeb.work&x=none&v=4&h=4&w=80&we=true"
+      class="resource-link">Ascii made with taag</a>
+    <!-- prettier-ignore -->
+    <pre class="ascii footer-ascii mike-logo">
+ ███▄ ▄███▓ ██▓ ██ ▄█▀▓█████
+▓██▒▀█▀ ██▒▓██▒ ██▄█▒ ▓█   ▀
+▓██    ▓██░▒██▒▓███▄░ ▒███
+▒██    ▒██ ░██░▓██ █▄ ▒▓█  ▄
+▒██▒   ░██▒░██░▒██▒ █▄░▒████▒
+░ ▒░   ░  ░░▓  ▒ ▒▒ ▓▒░░ ▒░ ░
+░  ░      ░ ▒ ░░ ░▒ ▒░ ░ ░  ░
+░      ░    ▒ ░░ ░░ ░    ░
+       ░    ░  ░  ░      ░  ░
+    </pre>
+    <time id="clock" class="clock" data-nosnippet></time>
+    <div class="webring"><a href="https://hotlinewebring.club/mikeb/previous">Previous</a>
+      <span>Proud member of Hotline Webring</span>
+      <a href="https://hotlinewebring.club/mikeb/next">Next</a>
+    </div>
+  </div>
+
+
+
+  <script>
+    // ---- Currently reading timer ----
+    (() => {
+      const input = document.getElementById('reading-start');
+      const timer = document.getElementById('reading-timer');
+      const storageKey = 'currentlyReadingStartedAt';
+      const defaultStartedAt = new Date(2026, 4, 10);
+
+      if (!input || !timer) return;
+
+      function toInputValue(date) {
+        const offset = date.getTimezoneOffset() * 60000;
+        return new Date(date.getTime() - offset).toISOString().slice(0, 16);
+      }
+
+      function formatDuration(ms) {
+        const totalMs = Math.max(0, Math.floor(ms));
+        const milliseconds = totalMs % 1000;
+        const totalSeconds = Math.floor(totalMs / 1000);
+        const days = Math.floor(totalSeconds / 86400);
+        const hours = Math.floor((totalSeconds % 86400) / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+        const parts = [];
+
+        if (days) parts.push(`${days}d`);
+        if (hours || days) parts.push(`${hours}h`);
+        if (minutes || hours || days) parts.push(`${minutes}m`);
+        parts.push(`${seconds}s`);
+        parts.push(`${String(milliseconds).padStart(3, '0')}ms`);
+
+        return parts.join(' ');
+      }
+
+      function readStart() {
+        const time = Date.parse(input.value);
+        return Number.isNaN(time) ? Date.now() : time;
+      }
+
+      function updateTimer() {
+        const text = formatDuration(Date.now() - readStart());
+        timer.textContent = text;
+        timer.dataset.text = text;
+      }
+
+      input.value = localStorage.getItem(storageKey) || toInputValue(defaultStartedAt);
+      localStorage.setItem(storageKey, input.value);
+      input.addEventListener('change', () => {
+        localStorage.setItem(storageKey, input.value);
+        updateTimer();
+      });
+
+      updateTimer();
+      setInterval(updateTimer, 47);
+    })();
+
+    // ---- Doctrine data (embedded for file:// protocol support) ----
+    // This data is synced from backoffice/doctrine.json
+    const DOCTRINE_DATA = [
+      {"doctrineItem": "Forgive yourself. Shame is chemical"},
+      {"doctrineItem": "Show up everyday (it's honorable)"},
+      {"doctrineItem": "Note last night's bedtime"},
+      {"doctrineItem": "Read yesterday's journal"},
+      {"doctrineItem": "Review yesterday's trades"},
+      {"doctrineItem": "The now in Motivewave chooses where to engage"},
+      {"doctrineItem": "The now in Bookmap chooses where to execute"},
+      {"doctrineItem": "The regime and tape choose the target type"},
+      {"doctrineItem": "Focus on the now for signal"},
+      {"doctrineItem": "Environments matter, chaos breeds chaos. Trade calm"},
+      {"doctrineItem": "Run cadence loop: The 7, market map, email"},
+      {"doctrineItem": "Leaks are a chemical event. Debrief why and create a rule"},
+      {"doctrineItem": "Witness distortions. See reality"},
+      {"doctrineItem": "Size is earned instead of imagined"},
+      {"doctrineItem": "Single lots for rhythm and limited exposure, +1 lot on permission"},
+      {"doctrineItem": "Press when green"},
+      {"doctrineItem": "Globex owns the night. Make instead of trade: ops, art, design"},
+      {"doctrineItem": "Globex wants to bargain. Deals with self cost time, money and emotion"},
+      {"doctrineItem": "Hero trades are signal"},
+      {"doctrineItem": "If both sides lose, stand down"},
+      {"doctrineItem": "Attack at edges and breathe"},
+      {"doctrineItem": "Every score is data for improvement"},
+      {"doctrineItem": "PnL is execution points. 1EXP = 1USD"},
+      {"doctrineItem": "Draw a clean sheet and accept it"},
+      {"doctrineItem": "Draw a red sheet and accept it"},
+      {"doctrineItem": "Draws days together. It's a campaign"},
+      {"doctrineItem": "Trust yourself. Returns cost time, money, and emotion"},
+      {"doctrineItem": "Stretch and sync with nature"},
+      {"doctrineItem": "Journal leftie thru-out"},
+      {"doctrineItem": "Vlog and review sessions"},
+      {"doctrineItem": "Regulate with music, movies and the daily worksheet"},
+      {"doctrineItem": "Survival > PnL"},
+      {"doctrineItem": "Use accounts for lessons and new rules instead of shame"},
+      {"doctrineItem": "Obey prime"}
+    ];
+
+    // ---- Load doctrine items from JSON ----
+    const highlightedDoctrineItems = new Set([
+      'Show up',
+      'Serve the market',
+      'Build, improve, and make'
+    ]);
+
+    function renderDoctrineItems(data) {
+      const container = document.getElementById('doctrine');
+      if (!container) {
+        console.error('Container element #doctrine not found');
+        return;
+      }
+
+      if (!Array.isArray(data)) {
+        console.error('Invalid data format: expected array');
+        return;
+      }
+
+      container.innerHTML = data
+        .map(item => {
+          const text = item.doctrineItem || '';
+          // Escape HTML to prevent XSS
+          const escaped = text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+          const className = highlightedDoctrineItems.has(text)
+            ? 'list-item is-highlighted'
+            : 'list-item';
+          const content = highlightedDoctrineItems.has(text)
+            ? `<span class="doctrine-scribble"><span class="doctrine-scribble-edge">${escaped}</span></span>`
+            : escaped;
+          return `<div class="${className}">${content}</div>`;
+        })
+        .join('');
+
+      // Initialize stamps after items are loaded
+      randomizeStamps();
+    }
+
+    async function loadDoctrineItems() {
+      // Try to fetch from JSON file first (works with HTTP/HTTPS)
+      try {
+        const response = await fetch('./backoffice/doctrine.json');
+        if (response.ok) {
+          const data = await response.json();
+          renderDoctrineItems(data);
+          return;
+        }
+      } catch (error) {
+        // Fall back to embedded data (works with file:// protocol)
+      }
+
+      // Use embedded data as fallback
+      renderDoctrineItems(DOCTRINE_DATA);
+    }
+
+    // ---- Stamp jitter ----
+    function randomizeStamps() {
+      const items = document.querySelectorAll('.list-item');
+      const edgeShapes = [
+        'polygon(0 10%, 18% 3%, 43% 36%, 53% 0, 67% 5%, 57% 52%, 100% 31%, 100% 48%, 55% 72%, 77% 97%, 62% 100%, 37% 67%, 6% 90%, 0 74%, 32% 51%)',
+        'polygon(8% 0, 42% 27%, 28% 4%, 53% 30%, 78% 0, 91% 11%, 63% 48%, 100% 59%, 94% 75%, 52% 63%, 35% 100%, 18% 92%, 41% 55%, 0 34%)',
+        'polygon(0 42%, 31% 30%, 6% 7%, 19% 0, 49% 25%, 76% 0, 89% 11%, 67% 42%, 100% 54%, 95% 70%, 61% 58%, 79% 93%, 65% 100%, 47% 65%, 16% 91%, 5% 78%, 32% 53%)',
+        'polygon(0 17%, 16% 2%, 41% 32%, 56% 0, 71% 8%, 59% 45%, 98% 24%, 100% 41%, 62% 63%, 85% 89%, 70% 100%, 47% 72%, 19% 100%, 7% 86%, 35% 56%)'
+      ];
+
+      function disciplined() {
+        const e = Math.pow(Math.random(), 3);
+        return {x: -3 - e * 8, y: -3 - e * 6, tilt: -4 - e * 6};
+      }
+
+      function sloppy() {
+        return {x: -10 + Math.random() * 16, y: -10 + Math.random() * 16, tilt: -18 + Math.random() * 36};
+      }
+
+      function unhinged() {
+        return {x: Math.random() * 70 - 35, y: Math.random() * 70 - 35, tilt: Math.random() * 80 - 40};
+      }
+
+      function mjbJitter() {
+        const r = Math.random();
+        return r < 0.9 ? disciplined() : r < 0.98 ? sloppy() : unhinged();
+      }
+
+      items.forEach(item => {
+        const s = mjbJitter();
+        item.style.setProperty('--mjb-x', `${s.x}px`);
+        item.style.setProperty('--mjb-y', `${s.y}px`);
+        item.style.setProperty('--mjb-tilt', `${s.tilt}deg`);
+
+        const doodle = item.querySelector('.doctrine-scribble-edge');
+        if (!doodle) return;
+        for (const side of ['left', 'right']) {
+          const size = 0.35 + Math.random() * 0.3;
+          const tilt = (side === 'left' ? -14 : 162) + Math.random() * 60 - 30;
+          doodle.style.setProperty(`--edge-${side}-shape`, edgeShapes[Math.floor(Math.random() * edgeShapes.length)]);
+          doodle.style.setProperty(`--edge-${side}-size`, `${size}em`);
+          doodle.style.setProperty(`--edge-${side}-offset`, `${-size - 0.05}em`);
+          doodle.style.setProperty(`--edge-${side}-bottom`, `${-0.18 - Math.random() * 0.16}em`);
+          doodle.style.setProperty(`--edge-${side}-tilt`, `${tilt}deg`);
+        }
+      });
+
+      const arcadeHint = document.getElementById('arcade-hint');
+      if (arcadeHint) {
+        arcadeHint.style.setProperty('--mjb-tilt', `${mjbJitter().tilt}deg`);
+      }
+    }
+
+    // Load doctrine items on page load
+    loadDoctrineItems();
+
+    // ---- Prime broadcast live player ----
+    // Always-on broadcast: play HLS directly from Caddy, no status Worker.
+    (() => {
+      const tv = document.getElementById('prime-tv');
+      const video = document.getElementById('prime-tv-video');
+      const label = document.getElementById('prime-tv-label');
+      const statusLine = document.getElementById('prime-tv-status');
+      const maximizeBtn = document.getElementById('prime-tv-maximize');
+      const bar = tv?.querySelector('.prime-tv__bar');
+
+      if (!tv || !video || !label || !statusLine || !maximizeBtn || !bar) return;
+
+      const STREAM_HREF = 'https://primebook.duckdns.org/Prime/index.m3u8';
+      const HLS_JS_URL = 'https://cdn.jsdelivr.net/npm/hls.js@1.5.20/dist/hls.min.js';
+
+      let hls;
+      let hlsLoaderPromise;
+      let currentStreamHref = '';
+      let playerStarted = false;
+      let maximized = false;
+      let dragStart = null;
+      let floatingPosition = null;
+
+      try {
+        const savedPosition = JSON.parse(localStorage.getItem('prime-tv-position'));
+        if (Number.isFinite(savedPosition?.left) && Number.isFinite(savedPosition?.top)) {
+          floatingPosition = savedPosition;
+        }
+      } catch (_error) {
+        // Storage may be unavailable; dragging still works for this visit.
+      }
+
+      function setStatus(message) {
+        statusLine.textContent = message;
+      }
+
+      function applyFloatingPosition() {
+        tv.style.left = '';
+        tv.style.top = '';
+        tv.style.right = '';
+        tv.style.bottom = '';
+
+        if (tv.dataset.layout !== 'floating' || maximized || !floatingPosition) return;
+
+        const margin = 8;
+        floatingPosition.left = Math.min(
+          Math.max(margin, floatingPosition.left),
+          Math.max(margin, window.innerWidth - tv.offsetWidth - margin)
+        );
+        floatingPosition.top = Math.min(
+          Math.max(margin, floatingPosition.top),
+          Math.max(margin, window.innerHeight - tv.offsetHeight - margin)
+        );
+        tv.style.left = `${floatingPosition.left}px`;
+        tv.style.top = `${floatingPosition.top}px`;
+        tv.style.right = 'auto';
+        tv.style.bottom = 'auto';
+      }
+
+      function saveFloatingPosition() {
+        try {
+          localStorage.setItem('prime-tv-position', JSON.stringify(floatingPosition));
+        } catch (_error) {
+          // Keep the position for this visit if storage is unavailable.
+        }
+      }
+
+      function setPrimeTvLayout() {
+        tv.hidden = false;
+        tv.classList.add('is-live');
+        tv.classList.toggle('is-maximized', maximized);
+        tv.dataset.layout = 'floating';
+        label.textContent = tv.dataset.liveLabel || label.textContent;
+        bar.tabIndex = maximized ? -1 : 0;
+        applyFloatingPosition();
+        maximizeBtn.textContent = maximized ? 'Min' : 'Max';
+        maximizeBtn.setAttribute('aria-label', maximized ? 'Restore PrimeTV size' : 'Maximize PrimeTV to browser width');
+        maximizeBtn.title = maximized ? 'Restore size' : 'Maximize to browser width';
+      }
+
+      function loadHlsJs() {
+        if (window.Hls) return Promise.resolve(window.Hls);
+        if (hlsLoaderPromise) return hlsLoaderPromise;
+
+        hlsLoaderPromise = new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = HLS_JS_URL;
+          script.async = true;
+          script.onload = () => resolve(window.Hls);
+          script.onerror = () => reject(new Error('hls.js failed to load'));
+          document.head.appendChild(script);
+        });
+
+        return hlsLoaderPromise;
+      }
+
+      function stopPlayer() {
+        if (hls) {
+          hls.destroy();
+          hls = null;
+        }
+
+        video.pause();
+        video.removeAttribute('src');
+        video.load();
+        currentStreamHref = '';
+        playerStarted = false;
+      }
+
+      async function startPlayer() {
+        const src = STREAM_HREF;
+        if (currentStreamHref === src && playerStarted) return;
+
         stopPlayer();
-      }, {once: true});
+        currentStreamHref = src;
+        playerStarted = true;
+        video.muted = true;
+        video.playsInline = true;
+        setStatus('connecting… audio starts muted');
+
+        if (video.canPlayType('application/vnd.apple.mpegurl')) {
+          video.src = src;
+          video.play().then(() => {
+            setStatus('on air');
+          }).catch(() => {
+            setStatus('tap play to start');
+          });
+          return;
+        }
+
+        try {
+          const Hls = await loadHlsJs();
+
+          if (!Hls?.isSupported()) {
+            video.src = src;
+            setStatus('browser does not support HLS playback');
+            return;
+          }
+
+          hls = new Hls({
+            backBufferLength: 0,
+            capLevelToPlayerSize: true,
+            enableWorker: true,
+            liveDurationInfinity: true,
+            liveMaxLatencyDurationCount: 3,
+            liveSyncDurationCount: 1,
+            lowLatencyMode: false,
+            maxBufferHole: 1,
+            maxBufferLength: 6,
+            maxLiveSyncPlaybackRate: 1.5,
+          });
+
+          hls.loadSource(src);
+          hls.attachMedia(video);
+          hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            video.play().then(() => {
+              setStatus('on air');
+            }).catch(() => {
+              setStatus('tap play to start');
+            });
+          });
+          hls.on(Hls.Events.ERROR, (_event, data) => {
+            if (data?.details === Hls.ErrorDetails.BUFFER_STALLED_ERROR) {
+              setStatus('buffering');
+              hls.startLoad();
+              return;
+            }
+
+            if (!data?.fatal) return;
+
+            if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+              setStatus('network hiccup — reconnecting');
+              hls.startLoad();
+              return;
+            }
+
+            if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+              setStatus('media hiccup — recovering');
+              hls.recoverMediaError();
+              return;
+            }
+
+            setStatus('stream stopped');
+            stopPlayer();
+          });
+        } catch (error) {
+          console.warn('PrimeTV player failed:', error);
+          setStatus('player failed to load');
+        }
+      }
+
+      maximizeBtn.addEventListener('click', () => {
+        maximized = !maximized;
+        setPrimeTvLayout();
+      });
+
+      bar.addEventListener('pointerdown', event => {
+        if (tv.dataset.layout !== 'floating' || maximized || dragStart || !event.isPrimary || event.button !== 0 || event.target.closest('button')) return;
+
+        const bounds = tv.getBoundingClientRect();
+        dragStart = {
+          pointerId: event.pointerId,
+          x: event.clientX,
+          y: event.clientY,
+          left: bounds.left,
+          top: bounds.top,
+          moved: false
+        };
+        bar.setPointerCapture(event.pointerId);
+        tv.classList.add('is-dragging');
+        event.preventDefault();
+      });
+
+      bar.addEventListener('pointermove', event => {
+        if (!dragStart || event.pointerId !== dragStart.pointerId) return;
+
+        floatingPosition = {
+          left: dragStart.left + event.clientX - dragStart.x,
+          top: dragStart.top + event.clientY - dragStart.y
+        };
+        dragStart.moved = true;
+        applyFloatingPosition();
+      });
+
+      function finishDrag(event) {
+        if (!dragStart || event.pointerId !== dragStart.pointerId) return;
+        if (dragStart.moved) saveFloatingPosition();
+        dragStart = null;
+        tv.classList.remove('is-dragging');
+        if (bar.hasPointerCapture(event.pointerId)) bar.releasePointerCapture(event.pointerId);
+      }
+
+      bar.addEventListener('pointerup', finishDrag);
+      bar.addEventListener('pointercancel', finishDrag);
+
+      bar.addEventListener('keydown', event => {
+        if (event.target !== bar || tv.dataset.layout !== 'floating' || maximized) return;
+
+        const directions = {
+          ArrowLeft: [-1, 0],
+          ArrowRight: [1, 0],
+          ArrowUp: [0, -1],
+          ArrowDown: [0, 1]
+        };
+        const direction = directions[event.key];
+        if (!direction) return;
+
+        event.preventDefault();
+        const bounds = tv.getBoundingClientRect();
+        const step = event.shiftKey ? 40 : 10;
+        floatingPosition = {
+          left: bounds.left + direction[0] * step,
+          top: bounds.top + direction[1] * step
+        };
+        applyFloatingPosition();
+        saveFloatingPosition();
+      });
+
+      window.addEventListener('resize', applyFloatingPosition);
+
+      tv.dataset.liveLabel = 'LIVE · Prime TV';
+      tv.dataset.state = 'live';
+      setPrimeTvLayout();
+      startPlayer();
+      window.addEventListener('pagehide', stopPlayer, {once: true});
     })();
 
     // ---- Random palette generator (with wild mode) ----
