@@ -277,14 +277,18 @@
       font-family: "CursiveWorksheet";
       font-size: 2.25rem;
       letter-spacing: 0.075rem;
-      line-height: 2.25rem;
+      line-height: 1.1;
       margin: 0;
+      white-space: nowrap;
+      width: max-content;
+      max-width: none;
     }
 
     .cursive-area {
       display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
       margin-top: 3rem;
     }
 
@@ -495,23 +499,19 @@
 
       .cursive-area {
         color: lightgray;
-        gap: 0;
         margin-top: 0;
+        padding-top: 0.42in;
+        break-before: page;
+        page-break-before: always;
+        break-inside: avoid;
         break-after: avoid;
       }
 
-      .cursive-area > div {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        column-gap: 2rem;
-        padding-top: 0.1in;
-        break-inside: avoid;
-      }
-
       .cursive-teacher {
-        font-size: 1.5rem;
+        /* Print at a fixed, readable size; screen fitting must not enlarge it. */
+        font-size: 3rem !important;
         letter-spacing: 0.03rem;
-        line-height: 0.3225in;
+        line-height: 1.1;
       }
 
       .footer-ascii {
@@ -606,17 +606,8 @@
     <section class="rules-section mission-lines-section">
       <div class="handwriting-paper" aria-hidden="true"></div>
     </section>
-    <section class="cursive-area">
-      <div>
-        <p class="cursive-teacher">Protect the mission</p>
-        <p class="cursive-teacher">Lay siege</p>
-        <p class="cursive-teacher">Restraint pays</p>
-        <p class="cursive-teacher">Emotions are state</p>
-        <p class="cursive-teacher">Always cycling</p>
-        <p class="cursive-teacher">Watch the show</p>
-        <p class="cursive-teacher">Serve the market</p>
-        <p class="cursive-teacher">Expect the thief</p>
-      </div>
+    <section class="cursive-area" aria-label="Daily doctrine">
+      <p class="cursive-teacher" id="daily-doctrine">Protect the mission</p>
     </section>
 
     <div class="games-section">
@@ -772,6 +763,62 @@
 
       const mq = window.matchMedia("print");
       mq.addEventListener?.("change", renderAllPaper);
+    })();
+
+    (() => {
+      const doctrines = [
+        "Protect the mission",
+        "Lay siege",
+        "Restraint pays",
+        "Emotions are state",
+        "Always cycling",
+        "Watch the show",
+        "Serve the market",
+        "Expect the thief"
+      ];
+      const text = document.getElementById("daily-doctrine");
+      const area = text.parentElement;
+      const dayMs = 24 * 60 * 60 * 1000;
+      const cycleStart = Date.UTC(2026, 10, 23);
+      let currentDay = "";
+
+      function fitDoctrine() {
+        const available = area.clientWidth;
+        if (!available) return;
+
+        // Use the largest single-line handwriting that fits the actual page width.
+        let low = 10;
+        let high = 200;
+        while (high - low > 0.5) {
+          const mid = (low + high) / 2;
+          text.style.fontSize = `${mid}px`;
+          if (text.getBoundingClientRect().width <= available - 2) {
+            low = mid;
+          } else {
+            high = mid;
+          }
+        }
+        text.style.fontSize = `${low}px`;
+      }
+
+      function updateDoctrine() {
+        const now = new Date();
+        const localDay = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+        if (localDay === currentDay) return;
+        currentDay = localDay;
+        const daysElapsed = Math.round((localDay - cycleStart) / dayMs);
+        const index = ((daysElapsed % doctrines.length) + doctrines.length) % doctrines.length;
+        text.textContent = doctrines[index];
+        fitDoctrine();
+      }
+
+      updateDoctrine();
+      setInterval(updateDoctrine, 60 * 1000);
+      window.addEventListener("resize", fitDoctrine);
+      window.addEventListener("beforeprint", fitDoctrine);
+      window.addEventListener("afterprint", fitDoctrine);
+      window.matchMedia("print").addEventListener?.("change", fitDoctrine);
+      document.fonts?.ready.then(fitDoctrine);
     })();
 
     (() => {
